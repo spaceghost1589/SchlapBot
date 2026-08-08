@@ -1,74 +1,52 @@
-// The MIT License (MIT)
-//
-// Copyright (c) 2021-2024 Alexander Kurbatov
-
-#include "Bot.h"
-
-#include <sc2api/sc2_coordinator.h>
-#include <sc2api/sc2_gametypes.h>
-#include <sc2utils/sc2_arg_parser.h>
-
+#include <cstddef>
 #include <iostream>
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#ifdef BUILD_FOR_LADDER
+#include "sc2_coordinator.h"
+#include "sc2_gametypes.h"
+#include "sc2_arg_parser.h"
+
+#include "SchlapBot.h"
+
+using enum sc2::Difficulty;
+using enum sc2::Race;
+
+using sc2::AIBuild,
+    sc2::ArgParser,
+    sc2::Coordinator,
+    sc2::LadderSettings,
+    std::cout,
+    std::size_t,
+    std::span,
+    std::string,
+    std::string_view,
+    std::vector;
+
+
+// #ifdef BUILD_FOR_LADDER
 namespace
 {
 
-struct Options
-{
-    Options(): GamePort(0), StartPort(0)
-    {}
-
-    int32_t GamePort;
-    int32_t StartPort;
-    std::string ServerAddress;
-    std::string OpponentId;
-};
-
-void ParseArguments(int argc, char* argv[], Options* options_)
-{
-    sc2::ArgParser arg_parser(argv[0]);
-    arg_parser.AddOptions(
-        {
-            {"-g", "--GamePort", "Port of client to connect to", false},
-            {"-o", "--StartPort", "Starting server port", false},
-            {"-l", "--LadderServer", "Ladder server address", false},
-            {"-x", "--OpponentId", "PlayerId of opponent", false},
-        });
-
-    arg_parser.Parse(argc, argv);
-
-    std::string GamePortStr;
-    if (arg_parser.Get("GamePort", GamePortStr))
-        options_->GamePort = atoi(GamePortStr.c_str());
-
-    std::string StartPortStr;
-    if (arg_parser.Get("StartPort", StartPortStr))
-        options_->StartPort = atoi(StartPortStr.c_str());
-
-    std::string OpponentId;
-    if (arg_parser.Get("OpponentId", OpponentId))
-        options_->OpponentId = OpponentId;
-
-    arg_parser.Get("LadderServer", options_->ServerAddress);
-}
-
 }  // namespace
 
-int main(int argc, char* argv[])
+int main(const int argc, const char* argv[])
 {
-    Options options;
-    ParseArguments(argc, argv, &options);
+    const span args(argv, static_cast<size_t>(argc));
+    ArgParser::ParseArguments(args);
 
-    sc2::Coordinator coordinator;
-    Bot bot;
+    const LadderSettings options;
+    Coordinator coordinator;
+    SchlapBot bot;
 
-    size_t num_agents = 2;
-    coordinator.SetParticipants({ CreateParticipant(sc2::Race::Random, &bot, "BlankBot") });
+    constexpr size_t num_agents = 2;
+    coordinator.SetParticipants({ CreateParticipant(Random, &bot, "SchlapBot") });
 
-    std::cout << "Connecting to port " << options.GamePort << std::endl;
-    coordinator.Connect(options.GamePort);
-    coordinator.SetupPorts(num_agents, options.StartPort, false);
+    cout << "Connecting to port " << options.game_port << '\n';
+    coordinator.Connect(options.game_port);
+    coordinator.SetupPorts(num_agents, options.start_port, false);
 
     // NB (alkurbatov): Increase speed of steps processing.
     // Disables ability to control your bot during game.
@@ -77,7 +55,7 @@ int main(int argc, char* argv[])
 
     coordinator.JoinGame();
     coordinator.SetTimeoutMS(10000);
-    std::cout << "Successfully joined game" << std::endl;
+    std::cout << "Successfully joined game" << '\n';
 
     while (coordinator.Update())
     {}
@@ -86,43 +64,44 @@ int main(int argc, char* argv[])
 }
 
 #else
-
-int main(int argc, char* argv[])
-{
-    if (argc < 2)
-    {
-        std::cerr << "Provide either name of the map file or path to it!" << std::endl;
-        return 1;
-    }
-
-    sc2::Coordinator coordinator;
-    coordinator.LoadSettings(argc, argv);
-
-    // NOTE: Uncomment to start the game in full screen mode.
-    // coordinator.SetFullScreen(true);
-
-    // NOTE: Uncomment to play at normal speed.
-    // coordinator.SetRealtime(true);
-
-    Bot bot;
-    coordinator.SetParticipants(
-        {
-            CreateParticipant(sc2::Race::Random, &bot, "BlankBot"),
-            CreateComputer(
-                sc2::Race::Random,
-                sc2::Difficulty::CheatInsane,
-                sc2::AIBuild::Rush,
-                "CheatInsane"
-                )
-        });
-
-    coordinator.LaunchStarcraft();
-    coordinator.StartGame(argv[1]);
-
-    while (coordinator.Update())
-    {}
-
-    return 0;
-}
-
-#endif
+//
+// int main(const int argc, char* argv[])
+// {
+//     const vector<string_view>  args(argv, argv + argc);
+//
+//     if (argc < 2)
+//     {
+//         std::cerr << "IncorporealAIE_v4.SC2Map" << '\n';
+//         return 1;
+//     }
+//
+//     Coordinator coordinator;
+//     coordinator.LoadSettings(argc, argv);
+//     vector<string_view> args(argv, argv + argc);
+//     // NOTE: Uncomment to start the game in full screen mode.
+//     // coordinator.SetFullScreen(true);
+//
+//     coordinator.SetRealtime(true);
+//
+//     SchlapBot bot;
+//     coordinator.SetParticipants(
+//         {
+//             CreateParticipant(Terran, &bot, "SchlapBot"),
+//             CreateComputer(
+//                 Random,
+//                 sc2::Difficulty::CheatInsane,
+//                 AIBuild::Rush,
+//                 "CheatInsane"
+//                 ),
+//         });
+//
+//     coordinator.LaunchStarcraft();
+//     coordinator.StartGame(argv[1]);
+//
+//     while (coordinator.Update())
+//     {}
+//
+//     return 0;
+// }
+//
+// // #endif

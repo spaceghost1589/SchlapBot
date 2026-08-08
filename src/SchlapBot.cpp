@@ -2,58 +2,58 @@
 //
 // Copyright (c) 2021-2024 Alexander Kurbatov
 
-#include "Bot.h"
+#include "SchlapBot.h"
 
 #include <sc2api/sc2_common.h>
 #include <sc2api/sc2_unit.h>
 
 #include <iostream>
 
-void Bot::OnGameStart()
+void SchlapBot::OnGameStart()
 {
     std::cout << "New game started!" << std::endl;
 }
 
-void Bot::OnGameEnd()
+void SchlapBot::OnGameEnd()
 {
     std::cout << "Game over!" << std::endl;
 }
 
-void Bot::OnBuildingConstructionComplete(const sc2::Unit* building_)
+void SchlapBot::OnBuildingConstructionComplete(const sc2::Unit* building_)
 {
     std::cout << sc2::UnitTypeToName(building_->unit_type) <<
         "(" << building_->tag << ") constructed" << std::endl;
 }
 
-void Bot::OnStep()
+void SchlapBot::OnStep()
 {
     std::cout << "OnStep" << std::endl;
 }
 
-void Bot::OnUnitCreated(const sc2::Unit* unit_)
+void SchlapBot::OnUnitCreated(const sc2::Unit* unit_)
 {
     std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
         "(" << unit_->tag << ") was created" << std::endl;
 }
 
-void Bot::OnUnitIdle(const sc2::Unit* unit_)
+void SchlapBot::OnUnitIdle(const sc2::Unit* unit_)
 {
     std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
          "(" << unit_->tag << ") is idle" << std::endl;
 }
 
-void Bot::OnUnitDestroyed(const sc2::Unit* unit_)
+void SchlapBot::OnUnitDestroyed(const sc2::Unit* unit_)
 {
     std::cout << sc2::UnitTypeToName(unit_->unit_type) <<
          "(" << unit_->tag << ") was destroyed" << std::endl;
 }
 
-void Bot::OnUpgradeCompleted(sc2::UpgradeID id_)
+void SchlapBot::OnUpgradeCompleted(sc2::UpgradeID id_)
 {
     std::cout << sc2::UpgradeIDToName(id_) << " completed" << std::endl;
 }
 
-void Bot::OnError(const std::vector<sc2::ClientError>& client_errors,
+void SchlapBot::OnError(const std::vector<sc2::ClientError>& client_errors,
         const std::vector<std::string>& protocol_errors)
 {
     for (const auto i : client_errors) {

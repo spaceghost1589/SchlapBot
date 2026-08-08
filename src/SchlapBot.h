@@ -7,9 +7,9 @@
 #include <sc2api/sc2_agent.h>
 
 // The main bot class.
-struct Bot: sc2::Agent
+struct SchlapBot: sc2::Agent
 {
-    Bot() = default;
+    SchlapBot() = default;
 
  private:
     void OnGameStart() final;

@@ -1,30 +1,34 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2021-2024 Alexander Kurbatov
-
 set(bot_sources
     main.cpp
-    Bot.cpp)
+    SchlapBot.cpp
+)
 
-add_executable(BlankBot ${bot_sources})
+add_executable(SchlapBot ${bot_sources})
+
+target_link_libraries(SchlapBot PRIVATE
+    sc2api
+    sc2lib
+    sc2utils
+    sc2protocol
+)
 
 if (BUILD_FOR_LADDER)
-    target_compile_definitions(BlankBot PRIVATE BUILD_FOR_LADDER)
+    target_compile_definitions(SchlapBot PRIVATE BUILD_FOR_LADDER)
 endif ()
 
 if (MSVC)
-    target_compile_options(BlankBot PRIVATE /W4 /EHsc)
+    target_compile_options(SchlapBot PRIVATE /W4 /EHsc)
 else ()
-    target_compile_options(BlankBot PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(SchlapBot PRIVATE -Wall -Wextra -pedantic)
 endif ()
 
-target_link_libraries(BlankBot PRIVATE cpp_sc2)
+target_link_libraries(SchlapBot PRIVATE cpp_sc2)
 
 if (MINGW)
-    target_link_libraries(BlankBot PRIVATE ssp)
+    target_link_libraries(SchlapBot PRIVATE ssp)
 elseif (APPLE)
-    target_link_libraries(BlankBot PRIVATE "-framework Carbon")
+    target_link_libraries(SchlapBot PRIVATE "-framework Carbon")
 # Building on Linux
 elseif (UNIX AND NOT APPLE)
-    target_link_libraries(BlankBot PRIVATE pthread dl)
+    target_link_libraries(SchlapBot PRIVATE pthread dl)
 endif ()

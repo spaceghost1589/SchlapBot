@@ -1,35 +1,48 @@
-# The MIT License (MIT)
-#
-# Copyright (c) 2021-2024 Alexander Kurbatov
+cmake_minimum_required(VERSION 3.20)
 
-cmake_minimum_required(VERSION 3.15)
-
-# Skip generating proto files with Protobuf compiler and use prebuilt files
-# Will still build Protobuf as libprotobuf is required for linking
-option(WSL2_CROSS_COMPILE "Building on WSL2 for Windows" OFF)
-
-# Only valid OS configuration should be in WSL2 context
-# Should not work wtih WIN32, APPLE, etc
-if (WSL2_CROSS_COMPILE AND UNIX AND NOT APPLE)
-    set(CMAKE_TOOLCHAIN_FILE cmake/toolchain/x86-64-w64-mingw32.cmake)
-elseif (WSL2_CROSS_COMPILE)
-    message(FATAL_ERROR "Invalid environment.\
-                        WSL2_CROSS_COMPILE=ON for WSL only")
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
+    cmake_policy(SET CMP0135 NEW)
 endif ()
 
-project(BlankBot)
+project(SchlapBot)
 
 include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
 
+option(BUILD_SC2_RENDERER "Build SC2 Renderer library" ON)
 option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
 
-# Build with c++17 support, required by sc2api
-set(CMAKE_CXX_STANDARD 17)
+set(SC2_VERSION "5.0.14" CACHE STRING "Version of the target StarCraft II client")
+message(STATUS "Target SC2 version: ${SC2_VERSION}")
+
+# Use bin as the directory for all executables and binaries
+set(CPP_SC2_BUILD_DIR "${PROJECT_BINARY_DIR}/bin")
+set(EXECUTABLE_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
+set(LIBRARY_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
+
+set(build_types DEBUG RELEASE RELWITHDEBINFO)
+set(output_types LIBRARY ARCHIVE RUNTIME)
+
+foreach (build IN LISTS build_types)
+    foreach (output IN LISTS output_types)
+        set(CMAKE_${output}_OUTPUT_DIRECTORY_${build} "${CPP_SC2_BUILD_DIR}")
+    endforeach ()
+endforeach ()
+
+set(LIBRARY_DEBUG_POSTFIX d)
+set(CMAKE_DEBUG_POSTFIX ${LIBRARY_DEBUG_POSTFIX})
+
+# Module paths for finding framework cmake files
+list(APPEND CMAKE_MODULE_PATH
+        "${PROJECT_SOURCE_DIR}/thirdparty/cmake"
+        "${PROJECT_SOURCE_DIR}/thirdparty/civetweb"
+        "${PROJECT_SOURCE_DIR}/cmake/assets")
+
+# Build with C++20 support
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Specify output directories
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (MSVC)
     # Setup MSVC parallelized builds
@@ -39,10 +52,16 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>)
 endif ()
 
-list(APPEND CMAKE_MODULE_PATH thirdparty/cmake)
+# cpp-sc2 core dependency configuration
 
-# cpp-sc2 dependency
-include(cpp_sc2)
+# Required dependencies that download protocols, protobuf, and build libraries
+include(civetweb)
+include(protobuf)
+include(sc2protocol)
 
-# bot sources
+if (BUILD_SC2_RENDERER)
+    include(SDL)
+endif ()
+
+# Compile your custom bot source folder
 add_subdirectory(src)
