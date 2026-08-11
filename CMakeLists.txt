@@ -58,6 +58,7 @@ endif ()
 include(civetweb)
 include(protobuf)
 include(sc2protocol)
+include(protos)
 
 if (BUILD_SC2_RENDERER)
     include(SDL)
