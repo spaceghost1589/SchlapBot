@@ -1,5 +1,10 @@
 message(STATUS "FetchContent: protocol")
 
+# Suppress all warnings from civetweb.
+if (SUPPRESS_DEPENDENCY_WARNINGS)
+    add_compile_options(-w)
+endif ()
+
 FetchContent_Declare(
     s2client_proto_repo
     GIT_REPOSITORY https://github.com/Blizzard/s2client-proto.git

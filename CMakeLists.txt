@@ -3,6 +3,12 @@ cmake_minimum_required (VERSION 4.3.1)
 # The exact UUID string varies by CMake version (check CMake's Help/dev/experimental.rst)
 set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
 
+option (BUILD_SC2_RENDERER "Build SC2 Renderer library" OFF)
+option (BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
+option (BUILD_API_EXAMPLES "Build Examples" OFF)
+option (BUILD_API_TESTS "Build Tests" OFF)
+option (SUPPRESS_DEPENDENCY_WARNINGS "Suppress Dependency Warnings" ON)
+
 project (SchlapBot LANGUAGES CXX)
 
 if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
@@ -23,12 +29,6 @@ endif ()
 
 include (FetchContent)
 set (FETCHCONTENT_QUIET FALSE)
-
-option (ABSL_USE_SYSTEM_INCLUDES "Silence warnings in Abseil headers by marking them as SYSTEM includes" ON)
-option (BUILD_SC2_RENDERER "Build SC2 Renderer library" OFF)
-option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
-option (BUILD_API_EXAMPLES "Build Examples" OFF)
-option (BUILD_API_TESTS "Build Tests" OFF)
 
 set (SC2_VERSION "5.0.14" CACHE STRING "Version of the target StarCraft II client")
 message (STATUS "Target SC2 version: ${SC2_VERSION}")
@@ -58,6 +58,7 @@ set (CMAKE_DEBUG_POSTFIX ${LIBRARY_DEBUG_POSTFIX})
 list (APPEND CMAKE_MODULE_PATH
     "${PROJECT_SOURCE_DIR}/thirdparty/cmake"
     "${PROJECT_SOURCE_DIR}/thirdparty/civetweb"
+#    "${PROJECT_SOURCE_DIR}/thirdparty/protobuf"
     "${PROJECT_SOURCE_DIR}/cmake/assets"
 )
 
@@ -79,6 +80,8 @@ target_compile_options (project_warnings INTERFACE
 
 # Allow creating filters for projects in visual studio.
 set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+
+add_compile_options (-Wno-unused-function) # Disables "defined but not used" function check.
 
 if (MSVC)
     add_compile_options (
@@ -104,7 +107,6 @@ include (${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/civetweb/civetweb.cmake)
 if (BUILD_SC2_RENDERER)
     include (${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cmake/SDL.cmake)
 endif ()
-
 if (WSL2_CROSS_COMPILE)
     include(protos)
 endif ()

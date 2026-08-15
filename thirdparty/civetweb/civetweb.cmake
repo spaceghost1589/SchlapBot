@@ -1,5 +1,10 @@
 message(STATUS "FetchContent: civetweb")
 
+# Suppress all warnings from civetweb.
+if (SUPPRESS_DEPENDENCY_WARNINGS)
+    add_compile_options(-w)
+endif ()
+
 # Disable builds
 set(CIVETWEB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(CIVETWEB_ENABLE_SERVER_EXECUTABLE OFF CACHE BOOL "" FORCE)

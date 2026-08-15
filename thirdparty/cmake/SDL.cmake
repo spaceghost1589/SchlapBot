@@ -1,5 +1,10 @@
 message(STATUS "FetchContent: SDL")
 
+# Suppress all warnings from SDL.
+if (SUPPRESS_DEPENDENCY_WARNINGS)
+    add_compile_options(-w)
+endif ()
+
 # Disabled builds
 set(SDL_TEST OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)

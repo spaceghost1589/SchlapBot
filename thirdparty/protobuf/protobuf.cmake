@@ -1,5 +1,10 @@
 set(CMAKE_POLICY_DEFAULT_CMP0141 NEW)
 
+# Suppress all warnings from protobuf.
+if (SUPPRESS_DEPENDENCY_WARNINGS)
+    add_compile_options(-w)
+endif ()
+
 message(STATUS "FetchContent: protobuf")
 
 include(FetchContent)
