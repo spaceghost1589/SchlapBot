@@ -3,9 +3,14 @@
 #include <fstream>
 #include <iostream>
 
+using std::cerr,
+    std::function,
+    std::ifstream,
+    std::string;
+
 namespace sc2 {
 
-PropertyReader::PropertyReader(const std::string& file_name) {
+PropertyReader::PropertyReader(const string& file_name) {
     LoadFile(file_name);
 }
 
@@ -13,26 +18,26 @@ bool PropertyReader::IsLoaded() const {
     return file_read_;
 }
 
-bool PropertyReader::LoadFile(const std::string& file_name) {
+bool PropertyReader::LoadFile(const string& file_name) {
     file_read_ = false;
     properties_.clear();
 
-    std::ifstream file(file_name);
+    ifstream file(file_name);
     if (!file.is_open()) {
         return false;
     }
     file_read_ = true;
 
-    std::string line;
-    while (std::getline(file, line)) {
+    string line;
+    while (getline(file, line)) {
         // If first character on line is # assume comment, if it's blank assume malformed/incorrect/empty line and skip
         // it
         if (line[0] == '#' || line[0] == ' ' || line.empty() || line.length() < 2) {
             continue;
         }
 
-        std::string key;
-        std::string value;
+        string key;
+        string value;
         unsigned int index = 0;
         const size_t equal_index = line.find_first_of('=');
         // Extract key
@@ -65,9 +70,9 @@ void PropertyReader::Free() {
     properties_.clear();
 }
 
-bool PropertyReader::Read(const std::string& key, const std::function<void(const std::string& v)>& convert) {
+bool PropertyReader::Read(const string& key, const function<void(const string& v)>& convert) {
     if (properties_.empty()) {
-        std::cerr << "No properties file loaded" << '\n';
+        cerr << "No properties file loaded" << '\n';
         return false;
     }
 
@@ -80,18 +85,18 @@ bool PropertyReader::Read(const std::string& key, const std::function<void(const
     return false;
 }
 
-bool PropertyReader::ReadInt(const std::string& key, int& value) {
-    auto to_int = [&value](const std::string& v) { value = std::stoi(v); };
+bool PropertyReader::ReadInt(const string& key, int& value) {
+    auto to_int = [&value](const string& v) { value = stoi(v); };
     return Read(key, to_int);
 }
 
-bool PropertyReader::ReadFloat(const std::string& key, float& value) {
-    auto to_float = [&value](const std::string& v) { value = std::stof(v); };
+bool PropertyReader::ReadFloat(const string& key, float& value) {
+    auto to_float = [&value](const string& v) { value = stof(v); };
     return Read(key, to_float);
 }
 
-bool PropertyReader::ReadString(const std::string& key, std::string& value) {
-    auto to_string = [&value](const std::string& v) { value = v; };
+bool PropertyReader::ReadString(const string& key, string& value) {
+    auto to_string = [&value](const string& v) { value = v; };
     return Read(key, to_string);
 }
 

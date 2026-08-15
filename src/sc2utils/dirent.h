@@ -1,4 +1,3 @@
-#ifdef _WIN32
 /*
  * Dirent interface for Microsoft Visual Studio
  * Version 1.21
@@ -7,7 +6,14 @@
  * This file is part of dirent.  Dirent may be freely distributed
  * under the MIT license.  For all details and documentation, see
  * https://github.com/tronkko/dirent
+ *
+ * Dirent is a Linux/UNIX programming interface for retrieving information about files and directories. This project
+ * provides a compatible programming interface for Microsoft Visual Studio compiler and Microsoft operating system.
+ * Using this interface, your C or C++ application can scan files and directories on Microsoft Windows and Linux/UNIX!
  */
+#pragma once
+
+#ifdef _WIN32
 #ifndef DIRENT_H
 #define DIRENT_H
 
@@ -677,7 +683,7 @@ static struct dirent* readdir(DIR* dirp) {
 
             /* Reset dummy fields */
             entp->d_ino = 0;
-            entp->d_reclen = sizeof(struct dirent);
+            entp->d_reclen = sizeof(dirent);
 
         } else {
             /*

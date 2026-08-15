@@ -8,8 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "sc2_gametypes.h"
-#include "sc2_proto_interface.h"
+#include "sc2lib/sc2_gametypes.h"
 
 namespace sc2 {
 
@@ -117,7 +116,7 @@ struct ScoreDetails {
     float spent_minerals;
     float spent_vespene;
 
-    CategoryScoreDetails food_used;
+    CategoryScoreDetails supply_used;
 
     CategoryScoreDetails killed_minerals;
     CategoryScoreDetails killed_vespene;
@@ -154,7 +153,7 @@ struct ScoreDetails {
         SET_ENTRY(ScoreDetails, spent_minerals)
         SET_ENTRY(ScoreDetails, spent_vespene)
 
-        SET_ENTRY_STRUCT(ScoreDetails, food_used)
+        SET_ENTRY_STRUCT(ScoreDetails, supply_used)
         SET_ENTRY_STRUCT(ScoreDetails, killed_minerals)
         SET_ENTRY_STRUCT(ScoreDetails, killed_vespene)
         SET_ENTRY_STRUCT(ScoreDetails, lost_minerals)

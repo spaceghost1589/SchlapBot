@@ -37,12 +37,12 @@ public:
     ArgParser(string usage, string description, string example);
 
     void AddOptions(const vector<Arg>& options);
-    bool Parse(span<const char*> args);
+    bool Parse(span<char*> args);
 
-    static void ParseArguments(span<const char*> args);
+    static void ParseArguments(span<char*> args);
 
     // If the arg exists returns true and if a value exists for it fill it.
-    bool Get(string_view identifier, string& value);
+    bool Get(const string& identifier, string& value);
     void PrintHelp() const;
     void PrintUsage() const;
 

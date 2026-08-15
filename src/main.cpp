@@ -1,32 +1,27 @@
 #include <cstddef>
 #include <iostream>
 #include <span>
-#include <string>
-#include <string_view>
-#include <vector>
 
 #include "sc2api/sc2_coordinator.h"
-#include "sc2api/sc2_game_settings.h"
-#include "sc2api/sc2_gametypes.h"
-#include "sc2utils/sc2_arg_parser.h"
+#include "sc2lib/sc2_gametypes.h"
 
-#include "SchlapBot.h"
+import SchlapBot;
+import map_data;
 
-using enum sc2::AIBuild;
-using enum sc2::Difficulty;
-using enum sc2::Race;
-
-using sc2::AIBuild,
-    sc2::ArgParser,
+using sc2::SchlapBot,
+    sc2::AIBuild,
     sc2::Coordinator,
-    sc2::LadderSettings,
-    std::cerr,
+    sc2::Difficulty,
+    sc2::MapData,
+    sc2::Race,
     std::cout,
+    std::cerr,
     std::size_t,
-    std::span,
-    std::string,
-    std::string_view,
-    std::vector;
+    std::span;
+
+using enum AIBuild;
+using enum Difficulty;
+using enum Race;
 
 
 #ifdef BUILD_FOR_LADDER
@@ -35,9 +30,9 @@ namespace
 
 }  // namespace
 
-int main(const int argc, const char* argv[])
+int main(const int argc, char* const argv[])
 {
-    const span args(argv, static_cast<size_t>(argc));
+    span args(argv, static_cast<size_t>(argc));
     ArgParser::ParseArguments(args);
 
     const LadderSettings options;
@@ -45,7 +40,7 @@ int main(const int argc, const char* argv[])
     SchlapBot bot;
 
     constexpr size_t num_agents = 2;
-    coordinator.SetParticipants({ CreateParticipant(Random, &bot, "SchlapBot") });
+    coordinator.SetParticipants({ CreateParticipant(Terran, &bot, "SchlapBot") });
 
     cout << "Connecting to port " << options.game_port << '\n';
     coordinator.Connect(options.game_port);
@@ -68,39 +63,49 @@ int main(const int argc, const char* argv[])
 
 #else
 
-int main(const int argc, char* argv[])
+int main(int argc, char* argv[]) // NOLINT(*-avoid-c-arrays, *-use-internal-linkage)
 {
-    const span args(argv, static_cast<size_t>(argc));
-
-
+    span args(argv, static_cast<size_t>(argc));
 
     if (args.size() < 2)
     {
-        cerr << "IncorporealAIE_v4.SC2Map" << '\n';
-        return 1;
+        cerr << "IncorporealAIE_v4" << '\n';
+        // return 1;
     }
 
     Coordinator coordinator;
-    coordinator.LoadSettings(argc, argv);
+    if (coordinator.LoadSettings(args)) {
+        cout << "LoadSettings success." << '\n';
+    } else {
+        cerr << "LoadSettings failed." << '\n';
+        abort();
+    }
+
     // NOTE: Uncomment to start the game in full screen mode.
     // coordinator.SetFullScreen(true);
 
     coordinator.SetRealtime(true);
 
-    SchlapBot bot;
+    SchlapBot bot{};
 
-    coordinator.SetParticipants(
-        {
-            CreateParticipant(Terran, &bot, "SchlapBot"),
+    coordinator.SetParticipants( {
+            CreateParticipant (
+                Terran,
+                &bot,
+                "SchlapBot"
+            ),
             CreateComputer(
                 Random,
                 Easy,
                 Macro
             ),
-        });
+        } );
+
+    // sc2_game_settings.cc
+    const MapData map_data("IncorporealAIE_v4");
 
     coordinator.LaunchStarcraft();
-    coordinator.StartGame(args.front());
+    coordinator.StartGame(map_data.map_path_new);
 
     while (coordinator.Update())
     {}

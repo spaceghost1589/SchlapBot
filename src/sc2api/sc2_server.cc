@@ -6,6 +6,8 @@
 #include "civetweb.h"
 #include "s2clientprotocol/sc2api.pb.h"
 
+using std::cout;
+
 namespace sc2 {
 
 bool VERBOSE = false;
@@ -85,7 +87,8 @@ static void SendMessage(mg_connection* conn, std::queue<T>& message_queue) {
     google::protobuf::Message* message = message_queue.front().second;
     size_t size = message->ByteSizeLong();
     char* bytes = new char[size];
-    message->SerializeToArray(bytes, (int)size);
+    if (!message->SerializeToArray(bytes, static_cast<int>(size)))
+        cout << "`SendMessage` failed due to serialization exceeding maximum protobuf size of 2GB:" << size << '\n';
     mg_websocket_write(conn, MG_WEBSOCKET_OPCODE_BINARY, (const char*)bytes, size);
     message_queue.pop();
     delete[] bytes;

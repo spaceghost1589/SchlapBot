@@ -7,16 +7,16 @@
 namespace sc2 {
 
 //-------------------------------------------------------------------------------------------------
-// ActionImp: an implementation of an ActionInterface.
+// ActionImpl: an implementation of an ActionInterface.
 //-------------------------------------------------------------------------------------------------
 
-class ActionImp : public ActionInterface {
+class ActionImpl : public ActionInterface {
 public:
     ProtoInterface& proto_;
     GameRequestPtr request_actions_;
     ControlInterface& control_;
 
-    ActionImp(ProtoInterface& proto, ControlInterface& control);
+    ActionImpl(ProtoInterface& proto, ControlInterface& control);
 
     SC2APIProtocol::RequestAction* GetRequestAction();
 
@@ -45,21 +45,21 @@ public:
     Tags commands_;
 };
 
-ActionImp::ActionImp(ProtoInterface& proto, ControlInterface& control) : proto_(proto), control_(control) {
+ActionImpl::ActionImpl(ProtoInterface& proto, ControlInterface& control) : proto_(proto), control_(control) {
 }
 
-SC2APIProtocol::RequestAction* ActionImp::GetRequestAction() {
+SC2APIProtocol::RequestAction* ActionImpl::GetRequestAction() {
     if (request_actions_ == nullptr) {
         request_actions_ = proto_.MakeRequest();
     }
     return request_actions_->mutable_action();
 }
 
-const Tags& ActionImp::Commands() const {
+const Tags& ActionImpl::Commands() const {
     return commands_;
 }
 
-void ActionImp::SendActions() {
+void ActionImpl::SendActions() {
     commands_.clear();
 
     if (request_actions_ == nullptr) {
@@ -84,12 +84,12 @@ void ActionImp::SendActions() {
     control_.WaitForResponse();
 }
 
-void ActionImp::ToggleAutocast(Tag unit_tag, AbilityID ability) {
-    Tags tags = {unit_tag};
+void ActionImpl::ToggleAutocast(Tag unit_tag, AbilityID ability) {
+    const Tags tags = {unit_tag};
     ToggleAutocast(tags, ability);
 }
 
-void ActionImp::ToggleAutocast(const Tags& unit_tags, AbilityID ability) {
+void ActionImpl::ToggleAutocast(const Tags& unit_tags, AbilityID ability) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -112,7 +112,7 @@ bool Convert(ChatChannel channel, SC2APIProtocol::ActionChat::Channel& channel_p
     return false;
 }
 
-void ActionImp::SendChat(const std::string& message, ChatChannel channel) {
+void ActionImpl::SendChat(const std::string& message, ChatChannel channel) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionChat* action_chat = action->mutable_action_chat();
@@ -124,40 +124,40 @@ void ActionImp::SendChat(const std::string& message, ChatChannel channel) {
     }
 }
 
-void ActionImp::UnitCommand(const Unit* unit, AbilityID ability, bool queued_command) {
+void ActionImpl::UnitCommand(const Unit* unit, AbilityID ability, bool queued_command) {
     if (!unit)
         return;
     UnitCommand(unit->tag, ability, queued_command);
 }
 
-void ActionImp::UnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command) {
+void ActionImpl::UnitCommand(const Unit* unit, AbilityID ability, const Point2D& point, bool queued_command) {
     if (!unit)
         return;
     UnitCommand(unit->tag, ability, point, queued_command);
 }
 
-void ActionImp::UnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command) {
+void ActionImpl::UnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command) {
     if (!unit || !target)
         return;
     UnitCommand(unit->tag, ability, target->tag, queued_command);
 }
 
-void ActionImp::UnitCommand(const Units& units, AbilityID ability, bool queued_command) {
+void ActionImpl::UnitCommand(const Units& units, AbilityID ability, bool queued_command) {
     Tags tags = sc2::ConvertToTags(units);
     UnitCommand(tags, ability, queued_command);
 }
 
-void ActionImp::UnitCommand(const Units& units, AbilityID ability, const Point2D& point, bool queued_command) {
+void ActionImpl::UnitCommand(const Units& units, AbilityID ability, const Point2D& point, bool queued_command) {
     Tags tags = sc2::ConvertToTags(units);
     UnitCommand(tags, ability, point, queued_command);
 }
 
-void ActionImp::UnitCommand(const Units& units, AbilityID ability, const Unit* target, bool queued_command) {
+void ActionImpl::UnitCommand(const Units& units, AbilityID ability, const Unit* target, bool queued_command) {
     Tags tags = sc2::ConvertToTags(units);
     UnitCommand(tags, ability, target->tag, queued_command);
 }
 
-void ActionImp::UnitCommand(Tag tag, AbilityID ability, bool queued_command) {
+void ActionImpl::UnitCommand(Tag tag, AbilityID ability, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -168,7 +168,7 @@ void ActionImp::UnitCommand(Tag tag, AbilityID ability, bool queued_command) {
     tag_command->add_unit_tags(tag);
 }
 
-void ActionImp::UnitCommand(Tag tag, AbilityID ability, const Point2D& point, bool queued_command) {
+void ActionImpl::UnitCommand(Tag tag, AbilityID ability, const Point2D& point, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -182,7 +182,7 @@ void ActionImp::UnitCommand(Tag tag, AbilityID ability, const Point2D& point, bo
     tag_command->add_unit_tags(tag);
 }
 
-void ActionImp::UnitCommand(Tag tag, AbilityID ability, const Tag target_tag, bool queued_command) {
+void ActionImpl::UnitCommand(Tag tag, AbilityID ability, const Tag target_tag, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -194,7 +194,7 @@ void ActionImp::UnitCommand(Tag tag, AbilityID ability, const Tag target_tag, bo
     tag_command->add_unit_tags(tag);
 }
 
-void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, bool queued_command) {
+void ActionImpl::UnitCommand(const Tags& tags, AbilityID ability, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -207,7 +207,7 @@ void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, bool queued_com
         tag_command->add_unit_tags(tag);
 }
 
-void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, const Point2D& point, bool queued_command) {
+void ActionImpl::UnitCommand(const Tags& tags, AbilityID ability, const Point2D& point, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -223,7 +223,7 @@ void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, const Point2D& 
         tag_command->add_unit_tags(tag);
 }
 
-void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, const Tag target_tag, bool queued_command) {
+void ActionImpl::UnitCommand(const Tags& tags, AbilityID ability, const Tag target_tag, bool queued_command) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionRaw* action_raw = action->mutable_action_raw();
@@ -242,13 +242,13 @@ void ActionImp::UnitCommand(const Tags& tags, AbilityID ability, const Tag targe
 // ActionFeatureLayerImp: an implementation of an ActionFeatureLayerInterface.
 //-------------------------------------------------------------------------------------------------
 
-class ActionFeatureLayerImp : public ActionFeatureLayerInterface {
+class ActionFeatureLayerImpl : public ActionFeatureLayerInterface {
 public:
     ProtoInterface& proto_;
     ControlInterface& control_;
     GameRequestPtr request_actions_;
 
-    ActionFeatureLayerImp(ProtoInterface& proto, ControlInterface& control);
+    ActionFeatureLayerImpl(ProtoInterface& proto, ControlInterface& control);
 
     SC2APIProtocol::RequestAction* GetRequestAction();
 
@@ -261,18 +261,18 @@ public:
     void SendActions() override;
 };
 
-ActionFeatureLayerImp::ActionFeatureLayerImp(ProtoInterface& proto, ControlInterface& control)
+ActionFeatureLayerImpl::ActionFeatureLayerImpl(ProtoInterface& proto, ControlInterface& control)
     : proto_(proto), control_(control) {
 }
 
-SC2APIProtocol::RequestAction* ActionFeatureLayerImp::GetRequestAction() {
+SC2APIProtocol::RequestAction* ActionFeatureLayerImpl::GetRequestAction() {
     if (request_actions_ == nullptr) {
         request_actions_ = proto_.MakeRequest();
     }
     return request_actions_->mutable_action();
 }
 
-void ActionFeatureLayerImp::SendActions() {
+void ActionFeatureLayerImpl::SendActions() {
     if (request_actions_ == nullptr) {
         return;
     }
@@ -285,7 +285,7 @@ void ActionFeatureLayerImp::SendActions() {
     control_.WaitForResponse();
 }
 
-void ActionFeatureLayerImp::UnitCommand(AbilityID ability) {
+void ActionFeatureLayerImpl::UnitCommand(AbilityID ability) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial* action_feature_layer = action->mutable_action_feature_layer();
@@ -293,7 +293,7 @@ void ActionFeatureLayerImp::UnitCommand(AbilityID ability) {
     unit_command->set_ability_id(ability);
 }
 
-void ActionFeatureLayerImp::UnitCommand(AbilityID ability, const Point2DI& point, bool minimap) {
+void ActionFeatureLayerImpl::UnitCommand(AbilityID ability, const Point2DI& point, bool minimap) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial* action_feature_layer = action->mutable_action_feature_layer();
@@ -310,7 +310,7 @@ void ActionFeatureLayerImp::UnitCommand(AbilityID ability, const Point2DI& point
     unit_command->set_ability_id(ability);
 }
 
-void ActionFeatureLayerImp::CameraMove(const Point2DI& center) {
+void ActionFeatureLayerImpl::CameraMove(const Point2DI& center) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial* action_feature_layer = action->mutable_action_feature_layer();
@@ -321,7 +321,7 @@ void ActionFeatureLayerImp::CameraMove(const Point2DI& center) {
     center_proto->set_y(center.y);
 }
 
-void ActionFeatureLayerImp::Select(const Point2DI& center, PointSelectionType selection_type) {
+void ActionFeatureLayerImpl::Select(const Point2DI& center, PointSelectionType selection_type) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial* action_feature_layer = action->mutable_action_feature_layer();
@@ -333,7 +333,7 @@ void ActionFeatureLayerImp::Select(const Point2DI& center, PointSelectionType se
     select_pt->set_type(static_cast<SC2APIProtocol::ActionSpatialUnitSelectionPoint_Type>(selection_type));
 }
 
-void ActionFeatureLayerImp::Select(const Point2DI& p0, const Point2DI& p1, bool /*add_to_selection*/) {
+void ActionFeatureLayerImpl::Select(const Point2DI& p0, const Point2DI& p1, bool /*add_to_selection*/) {
     SC2APIProtocol::RequestAction* request_action = GetRequestAction();
     SC2APIProtocol::Action* action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial* action_feature_layer = action->mutable_action_feature_layer();
@@ -348,29 +348,29 @@ void ActionFeatureLayerImp::Select(const Point2DI& p0, const Point2DI& p1, bool 
 }
 
 //-------------------------------------------------------------------------------------------------
-// AgentControlImp: an implementation of AgentControlInterface.
+// AgentControlImpl: an implementation of AgentControlInterface.
 //-------------------------------------------------------------------------------------------------
 
-class AgentControlImp : public AgentControlInterface {
+class AgentControlImpl : public AgentControlInterface {
 public:
     ControlInterface* control_interface_;
-    std::unique_ptr<ActionImp> actions_;
-    std::unique_ptr<ActionFeatureLayerImp> actions_feature_layer_;
+    std::unique_ptr<ActionImpl> actions_;
+    std::unique_ptr<ActionFeatureLayerImpl> actions_feature_layer_;
     Agent* agent_;
 
-    AgentControlImp(Agent* agent, ControlInterface* control_interface);
-    ~AgentControlImp() = default;
+    AgentControlImpl(Agent* agent, ControlInterface* control_interface);
+    ~AgentControlImpl() = default;
 
     bool Restart() override;
 };
 
-AgentControlImp::AgentControlImp(Agent* agent, ControlInterface* control_interface)
+AgentControlImpl::AgentControlImpl(Agent* agent, ControlInterface* control_interface)
     : control_interface_(control_interface), actions_(nullptr), agent_(agent) {
-    actions_ = std::make_unique<ActionImp>(control_interface_->Proto(), *control_interface);
-    actions_feature_layer_ = std::make_unique<ActionFeatureLayerImp>(control_interface_->Proto(), *control_interface);
+    actions_ = std::make_unique<ActionImpl>(control_interface_->Proto(), *control_interface);
+    actions_feature_layer_ = std::make_unique<ActionFeatureLayerImpl>(control_interface_->Proto(), *control_interface);
 }
 
-bool AgentControlImp::Restart() {
+bool AgentControlImpl::Restart() {
     GameRequestPtr request = control_interface_->Proto().MakeRequest();
     request->mutable_restart_game();
     if (!control_interface_->Proto().SendRequest(request)) {
@@ -403,23 +403,23 @@ bool AgentControlImp::Restart() {
 // Agent implementation.
 //-------------------------------------------------------------------------------------------------
 
-Agent::Agent() : agent_control_imp_(new AgentControlImp(this, Control())) {
+Agent::Agent() : agent_control_impl_(new AgentControlImpl(this, Control())) {
 }
 
 Agent::~Agent() {
-    delete agent_control_imp_;
+    delete agent_control_impl_;
 }
 
 ActionInterface* Agent::Actions() {
-    return agent_control_imp_->actions_.get();
+    return agent_control_impl_->actions_.get();
 }
 
 ActionFeatureLayerInterface* Agent::ActionsFeatureLayer() {
-    return agent_control_imp_->actions_feature_layer_.get();
+    return agent_control_impl_->actions_feature_layer_.get();
 }
 
 AgentControlInterface* Agent::AgentControl() {
-    return agent_control_imp_;
+    return agent_control_impl_;
 }
 
 }  // namespace sc2

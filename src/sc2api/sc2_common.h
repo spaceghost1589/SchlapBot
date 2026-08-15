@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 
+
 namespace sc2 {
 
 //! 3D point.
@@ -101,8 +102,7 @@ struct Rect2DI {
     Point2DI from;
     Point2DI to;
 
-    Rect2DI() {
-    }
+    Rect2DI() = default;
 
     Rect2DI(const Point2DI& in_from, const Point2DI& in_to) : from(in_from), to(in_to) {
     }
@@ -128,15 +128,15 @@ struct Color {
 };
 
 namespace Colors {
-static const Color White = Color(255, 255, 255);
-static const Color Red = Color(255, 0, 0);
-static const Color Green = Color(0, 255, 0);
-static const Color Yellow = Color(255, 255, 0);
-static const Color Blue = Color(0, 0, 255);
-static const Color Teal = Color(0, 255, 255);
-static const Color Purple = Color(255, 0, 255);
-static const Color Black = Color(0, 0, 0);
-static const Color Gray = Color(128, 128, 128);
+    inline const Color White = Color(255, 255, 255);
+    inline const Color Red = Color(255, 0, 0);
+    inline const Color Green = Color(0, 255, 0);
+    inline const Color Yellow = Color(255, 255, 0);
+    inline const Color Blue = Color(0, 0, 255);
+    inline const Color Teal = Color(0, 255, 255);
+    inline const Color Purple = Color(255, 0, 255);
+    inline const Color Black = Color(0, 0, 0);
+    inline const Color Gray = Color(128, 128, 128);
 };  // namespace Colors
 
 //! Gets a random floating-point number between -1.0 and 1.0.
@@ -155,7 +155,7 @@ int GetRandomInteger(int min, int max);
 //!< \param container Array, list or whatever container.
 //!< \return A random entry.
 template <typename Container>
-typename Container::value_type& GetRandomEntry(Container& container) {
+Container::value_type& GetRandomEntry(Container& container) {
     typename Container::iterator iter = container.begin();
     std::advance(iter, GetRandomInteger(0, static_cast<int>(container.size()) - 1));
     return *iter;

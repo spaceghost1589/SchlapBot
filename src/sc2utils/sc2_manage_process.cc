@@ -9,11 +9,7 @@
 #include <iostream>
 #include <thread>
 
-#include "sc2_scan_directory.h"
-
-#if defined(_WIN32)
-
-// Windows headers for process manipulation.
+#if defined(_WIN32) // Windows headers for process manipulation.
 #include <conio.h>
 #include <shlobj.h>
 #include <tchar.h>
@@ -24,7 +20,6 @@
 #include <locale>
 #include <string>
 #include <vector>
-
 #elif defined(__APPLE__)
 
 // Mac headers for process manipulation.
@@ -63,22 +58,31 @@
 #error "Unsupported platform"
 #endif
 
+import sc2_scan_directory;
+
+using std::chrono::milliseconds,
+    std::string,
+    std::this_thread::sleep_for;
+
 namespace sc2 {
 
 void SleepFor(unsigned int ms) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    sleep_for(milliseconds(ms));
 }
 
-bool DoesFileExist(const std::string& path) {
+bool DoesFileExist(const string& path) {
     return std::ifstream(path).good();
 }
 
-bool HasExtension(const std::string& map_name, const std::string& extention) {
-    if (map_name.size() < extention.size()) {
+bool HasExtension(const string& map_name, const string& extension) {
+    if (map_name.size() < extension.size()) {
         return false;
     }
 
-    return std::equal(map_name.end() - extention.size(), map_name.end(), extention.begin(), extention.end(),
+    return std::equal(map_name.end() - extension.size(),
+                      map_name.end(),
+                      extension.begin(),
+                      extension.end(),
                       [](char a, char b) { return tolower(a) == tolower(b); });
 }
 
@@ -90,16 +94,16 @@ struct WindowsProcess {
 };
 std::vector<WindowsProcess> windows_processes;
 
-static int GetIndexOfProcess(uint64_t processe_id) {
+static int GetIndexOfProcess(uint64_t process_id) {
     for (int i = 0; i < windows_processes.size(); ++i) {
-        if ((DWORD)processe_id == windows_processes[i].pi_.dwProcessId)
+        if (static_cast<DWORD>(process_id) == windows_processes[i].pi_.dwProcessId)
             return i;
     }
     return -1;
 }
 
-std::string GetUserDirectory() {
-    unsigned int csidl = CSIDL_PERSONAL;
+string GetUserDirectory() {
+    constexpr unsigned int csidl = CSIDL_PERSONAL;
     WCHAR windowsPath[MAX_PATH];
 
     HRESULT result = SHGetFolderPathW(nullptr, csidl, nullptr, SHGFP_TYPE_CURRENT, windowsPath);
@@ -109,23 +113,23 @@ std::string GetUserDirectory() {
         return convertor.to_bytes(windowsPath);
     }
 
-    return std::string();
+    return string();
 }
 
-static std::string GetExePath() {
+static string GetExePath() {
     WCHAR windowsPath[MAX_PATH];
 
-    DWORD length = GetModuleFileNameW(0, windowsPath, MAX_PATH);
+    DWORD length = GetModuleFileNameW(nullptr, windowsPath, MAX_PATH);
     if (length > 0) {
         std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
         return convertor.to_bytes(windowsPath);
     }
 
-    return std::string();
+    return string();
 }
 
-std::string GetLibraryMapsDirectory() {
-    std::string result = GetExePath();
+string GetLibraryMapsDirectory() {
+    string result = GetExePath();
     result = result.substr(0, result.find_last_of("\\"));
     result = result.substr(0, result.find_last_of("\\"));
     result = result.substr(0, result.find_last_of("\\"));
@@ -133,8 +137,8 @@ std::string GetLibraryMapsDirectory() {
     return result;
 }
 
-std::string GetGameMapsDirectory(const std::string& process_path) {
-    std::string result = process_path;
+string GetGameMapsDirectory(const string& process_path) {
+    string result = process_path;
     result = result.substr(0, result.find_last_of("\\"));
     result = result.substr(0, result.find_last_of("\\"));
     result = result.substr(0, result.find_last_of("\\"));
@@ -144,19 +148,18 @@ std::string GetGameMapsDirectory(const std::string& process_path) {
 
 BOOL WINAPI ConsoleHandlerRoutine(DWORD /*dwCtrlType*/) {
     while (windows_processes.size()) {
-        uint64_t pid = static_cast<uint64_t>(windows_processes[windows_processes.size() - 1].pi_.dwProcessId);
+        uint64_t pid = (windows_processes[windows_processes.size() - 1].pi_.dwProcessId);
         if (!TerminateProcess(pid))
             windows_processes.pop_back();
     }
     return FALSE;
 }
 
-uint64_t StartProcess(const std::string& process_path, const std::vector<std::string>& command_line) {
-    static const unsigned int buffer_size = (1 << 16) + 1;
+uint64_t StartProcess(const string& process_path, const std::vector<string>& command_line) {
+    static constexpr unsigned int buffer_size = (1 << 16) + 1;
 
-    WindowsProcess process;
-    std::memset(&process, 0, sizeof(process));
-    process.si_.cb = sizeof(process.si_);
+    WindowsProcess process = {};
+    process.si_.cb         = sizeof(process.si_);
 
     char current_directory[buffer_size];
     char support_directory[buffer_size];
@@ -173,8 +176,8 @@ uint64_t StartProcess(const std::string& process_path, const std::vector<std::st
     if (slashcount != 3)
         return false;
 
-    std::string exe_name = process_path.substr(process_path.find_last_of("/\\"));
-    bool is64bit = exe_name.find("_x64") != std::string::npos;
+    const string exe_name = process_path.substr(process_path.find_last_of("/\\"));
+    bool is64bit = exe_name.find("_x64") != string::npos;
     if (is64bit)
         strcat_s(support_directory, "Support64");
     else
@@ -201,7 +204,7 @@ uint64_t StartProcess(const std::string& process_path, const std::vector<std::st
                        &process.pi_)          // Pointer to PROCESS_INFORMATION structure
     ) {
         SetCurrentDirectory(current_directory);
-        return uint64_t(0);
+        return (0);
     }
 
     windows_processes.push_back(process);
@@ -211,11 +214,11 @@ uint64_t StartProcess(const std::string& process_path, const std::vector<std::st
     // Hook.
     SetConsoleCtrlHandler(ConsoleHandlerRoutine, TRUE);
 
-    return static_cast<uint64_t>(process.pi_.dwProcessId);
+    return (process.pi_.dwProcessId);
 }
 
 bool IsProcessRunning(uint64_t process_id) {
-    int index = GetIndexOfProcess(process_id);
+    const int index = GetIndexOfProcess(process_id);
     if (index < 0)
         return false;
 
@@ -227,7 +230,7 @@ bool IsProcessRunning(uint64_t process_id) {
 }
 
 bool TerminateProcess(uint64_t process_id) {
-    int index = GetIndexOfProcess(process_id);
+    const int index = GetIndexOfProcess(process_id);
     if (index < 0)
         return false;
 
@@ -277,15 +280,15 @@ void KillRunningProcesses(int signum) {
 }
 
 #if defined(__linux__)
-std::string GetUserDirectory() {
+string GetUserDirectory() {
     const char* home_directory = getenv("HOME");
     if (!home_directory)
         home_directory = getpwuid(getuid())->pw_dir;
-    return std::string(home_directory);
+    return string(home_directory);
 }
 #else
 
-void GetDirectory(std::string& path, uint32_t folderType, short domain) {
+void GetDirectory(string& path, uint32_t folderType, short domain) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
@@ -301,33 +304,33 @@ void GetDirectory(std::string& path, uint32_t folderType, short domain) {
 #pragma clang diagnostic pop
 }
 
-std::string GetUserDirectory() {
-    std::string result;
+string GetUserDirectory() {
+    string result;
     GetDirectory(result, kApplicationSupportFolderType, kUserDomain);
     result += "/Blizzard";
     return result;
 }
 #endif
 
-static std::string GetExePath() {
+static string GetExePath() {
 #if defined(__linux__)
     char path[PATH_MAX + 1] = {0};
     if (readlink("/proc/self/exe", path, PATH_MAX) == -1)
-        return std::string();
+        return string();
 
-    return std::string(path);
+    return string(path);
 #else
     char path[PATH_MAX];
     uint32_t size = sizeof(path);
     if (_NSGetExecutablePath(path, &size) != 0)
-        return std::string();
+        return string();
 
-    return std::string(path);
+    return string(path);
 #endif
 }
 
-std::string GetLibraryMapsDirectory() {
-    std::string result = GetExePath();
+string GetLibraryMapsDirectory() {
+    string result = GetExePath();
 
     char* resolvedPath = realpath(result.c_str(), nullptr);
     if (resolvedPath != nullptr) {
@@ -342,8 +345,8 @@ std::string GetLibraryMapsDirectory() {
     return result;
 }
 
-std::string GetGameMapsDirectory(const std::string& process_path) {
-    std::string result = process_path;
+string GetGameMapsDirectory(const string& process_path) {
+    string result = process_path;
 #if defined(__linux__)
     result = result.substr(0, result.find_last_of("/"));
     result = result.substr(0, result.find_last_of("/"));
@@ -379,7 +382,7 @@ int _kbhit() {
     return bytesWaiting;
 }
 
-uint64_t StartProcess(const std::string& process_path, const std::vector<std::string>& command_line) {
+uint64_t StartProcess(const string& process_path, const std::vector<string>& command_line) {
     std::vector<char*> char_list;
     // execve expects the process path to be the first argument in the list.
     char_list.push_back(const_cast<char*>(process_path.c_str()));
@@ -452,38 +455,38 @@ bool PollKeyPress() {
     return _kbhit();
 }
 
-bool FindLatestExe(std::string& path) {
+bool FindLatestExe(string& path) {
     if (path.length() < 4) {
         return false;
     }
 
-    static const char VersionsFolder[] = "Versions\\";
+    static constexpr char VersionsFolder[] = "Versions\\";
     static std::size_t BaseFolderNameLen = 10;  // "Base00000\"
-    std::size_t versions_pos = path.find(VersionsFolder);
-    if (versions_pos == std::string::npos) {
+    const std::size_t versions_pos = path.find(VersionsFolder);
+    if (versions_pos == string::npos) {
         return DoesFileExist(path);
     }
 
     // Get the versions path.
-    std::string versions_path = path;
+    string versions_path = path;
     versions_path.erase(versions_path.begin() + versions_pos + sizeof(VersionsFolder) - 1, versions_path.end());
 
     // Get the exe name.
-    std::string exe_name = path;
+    string exe_name = path;
     exe_name.erase(exe_name.begin(), exe_name.begin() + versions_pos + sizeof(VersionsFolder) + BaseFolderNameLen - 1);
 
     // Get a list of all subfolders.
-    std::vector<std::string> subfolders;
+    std::vector<string> subfolders;
     scan_directory(versions_path.c_str(), subfolders, true, true);
     if (subfolders.empty()) {
         return DoesFileExist(path);
     }
 
     // Sort the subfolders list.
-    std::sort(subfolders.begin(), subfolders.end());
+    std::ranges::sort(subfolders);
 
     for (int folder_index = static_cast<int>(subfolders.size()) - 1; folder_index >= 0; --folder_index) {
-        const std::string test_path = subfolders[folder_index] + "\\" + exe_name;
+        const string test_path = subfolders[folder_index] + "\\" + exe_name;
         if (DoesFileExist(test_path)) {
             path = test_path;
             return true;
@@ -493,19 +496,19 @@ bool FindLatestExe(std::string& path) {
     return DoesFileExist(path);
 }
 
-bool FindBaseExe(std::string& path, uint32_t base_build) {
-    const std::string base_folder = "Base";
+bool FindBaseExe(string& path, uint32_t base_build) {
+    const string base_folder = "Base";
 
-    std::string new_path = path;
-    std::string new_num = std::to_string(base_build);
+    string new_path = path;
+    string new_num = std::to_string(base_build);
 
-    auto folder_start = new_path.find(base_folder);
-    if (folder_start == std::string::npos) {
+    const auto folder_start = new_path.find(base_folder);
+    if (folder_start == string::npos) {
         return false;
     }
 
-    auto num_start = folder_start + base_folder.size();
-    auto num_end = num_start + new_num.size();
+    const auto num_start = folder_start + base_folder.size();
+    const auto num_end = num_start + new_num.size();
     if (num_end > new_path.size()) {
         return false;
     }

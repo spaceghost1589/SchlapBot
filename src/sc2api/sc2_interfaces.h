@@ -10,10 +10,12 @@ be of little concern to the consumer.
 
 #include <vector>
 
-#include "sc2_action.h"
 #include "sc2_common.h"
 #include "sc2_data.h"
 #include "sc2_unit.h"
+#include "sc2lib/sc2_action.h"
+
+import map_info;
 
 // Forward declarations to avoid including proto headers everywhere.
 namespace SC2APIProtocol {
@@ -27,7 +29,6 @@ enum class ABILITY_ID;
 
 class ObservationInterface;
 struct Score;
-struct GameInfo;
 
 enum class Visibility { Hidden = 0, Fogged = 1, Visible = 2, FullHidden = 3 };
 
@@ -36,7 +37,7 @@ enum class Visibility { Hidden = 0, Fogged = 1, Visible = 2, FullHidden = 3 };
 //!< \param observation The interface for querying game state to determine whether the unit should be filtered or not.
 //!< \return Whether or not to filter the unit in or out of the list. true will add the unit, false will leave it out of
 //!< the list. \sa GetUnits()
-typedef std::function<bool(const Unit& unit)> Filter;
+using Filter = std::function<bool(const Unit& unit)>;
 
 //! The ObservationInterface reflects the current state of the game. Guaranteed to be valid when OnGameStart or OnStep
 //! is called.
@@ -146,24 +147,24 @@ public:
     virtual uint32_t GetVespene() const = 0;
 
     //! The total supply cap given the players max possible supply.
-    //!< \return Food cap.
-    //!< \sa GetFoodUsed() GetFoodArmy() GetFoodWorkers()
-    virtual uint32_t GetFoodCap() const = 0;
+    //!< \return Supply cap.
+    //!< \sa GetSupplyUsed() GetSupplyArmy() GetSupplyWorkers()
+    virtual uint32_t GetSupplyCap() const = 0;
 
-    //! The total supply used by the player as defined: GetFoodArmy() + GetFoodWorkers().
-    //!< \return Food used.
-    //!< \sa GetFoodArmy() GetFoodWorkers()
-    virtual uint32_t GetFoodUsed() const = 0;
+    //! The total supply used by the player as defined: GetSupplyArmy() + GetSupplyWorkers().
+    //!< \return Supply used.
+    //!< \sa GetSupplyArmy() GetSupplyWorkers()
+    virtual uint32_t GetSupplyUsed() const = 0;
 
     //! The total supply consumed by army units alone.
-    //!< \sa GetFoodUsed() GetFoodWorkers()
-    //!< \return Food used by army units.
-    virtual uint32_t GetFoodArmy() const = 0;
+    //!< \sa GetSupplyUsed() GetSupplyWorkers()
+    //!< \return Supply used by army units.
+    virtual uint32_t GetSupplyArmy() const = 0;
 
     //! The total supply consumed by workers units alone.
-    //!< \sa GetFoodArmy() GetFoodUsed()
-    //!< \return Food used by worker units.
-    virtual uint32_t GetFoodWorkers() const = 0;
+    //!< \sa GetSupplyArmy() GetSupplyUsed()
+    //!< \return Supply used by worker units.
+    virtual uint32_t GetSupplyWorkers() const = 0;
 
     //! The number of workers that currently have no orders.
     //!< \return Count of idle workers.
@@ -241,17 +242,19 @@ public:
 
     //! Returns a list of abilities represented as a uint32_t see the ABILITY_ID enum for their corresponding, named,
     //! representations.
+    //!< \param unit
     //!< \param tag Tag of unit.
-    //!< \param ignore_resource_requirements Ignores food, mineral and gas costs, as well as cooldowns.
-    //!< \param use_generalized_ability. e.g. if true BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY and
+    //!< \param ignore_resource_requirements Ignores supply, mineral and gas costs, as well as cooldowns.
+    //!< \param use_generalized_ability e.g. if true BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY and
     //!< BUILD_TECHLAB_STARPORT ability ids are generalized to BUILD_TECHLAB \return Abilities for the unit.
     virtual AvailableAbilities GetAbilitiesForUnit(const Unit* unit, bool ignore_resource_requirements = false,
                                                    bool use_generalized_ability = true) = 0;
     //! Issues multiple available abilities queries.
     //! Batch version.
+    //!< \param units
     //!< \param tag Tags of units.
-    //!< \param ignore_resource_requirements Ignores food, mineral and gas costs, as well as cooldowns.
-    //!< \param use_generalized_ability. e.g. if true BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY and
+    //!< \param ignore_resource_requirements Ignores supply, mineral and gas costs, as well as cooldowns.
+    //!< \param use_generalized_ability e.g. if true BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY and
     //!< BUILD_TECHLAB_STARPORT ability ids are generalized to BUILD_TECHLAB \return Abilities for the units.
     virtual std::vector<AvailableAbilities> GetAbilitiesForUnits(const Units& units,
                                                                  bool ignore_resource_requirements = false,
@@ -281,6 +284,8 @@ public:
     //! The placing unit field is optional. This is only used for cases where the placing unit plays a role in the
     //! placement grid test (e.g. A flying barracks building an add-on requires room for both the barracks and add-on).
     //!< \param ability Ability for building or moving a structure.
+    //!< \param target_pos
+    //!< \param unit
     //!< \param end target_pos Position to attempt placement on.
     //!< \param placing_unit_tag_ (Optional) The unit that is moving, if moving a structure.
     //!< \return If placement is possible.
@@ -307,23 +312,27 @@ class ActionInterface {
 public:
     virtual ~ActionInterface() = default;
 
-    /*!\fn virtual void UnitCommand(Tag unit_tag, uint32_t ability)
-     * Batches a UnitCommand that will be dispatched when SendActions() is called. UnitCommand has many overloaded
+    /*!fn virtual void UnitCommand(Tag unit_tag, uint32_t ability)
+     * brief Batches a UnitCommand that will be dispatched when SendActions() is called. UnitCommand has many overloaded
      * functions, you can call it with most combinations of Unit types (the Unit object or tag), ability types (the enum
-     * or uint32_t) and targets (a 2D position or tag). \param unit_tag The unique id that represents the unit. \param
-     * ability The unique id that represents the ability, see ABILITY_ID for ids. \sa ABILITY_ID Unit Point2D
+     * or uint32_t) and targets (a 2D position or tag).
+     * param unit_tag The unique id that represents the unit.
+     * param * ability The unique id that represents the ability, see ABILITY_ID for ids.
+     * sa ABILITY_ID Unit Point2D
      * SendActions()
      */
 
     //! Issues a command to a unit. Self targeting.
-    //!< \param unit The unit to send the command to.
-    //!< \param ability The ability id of the command.
+    //! \param unit The unit to send the command to.
+    //! \param ability The ability id of the command.
+    //! \param queued_command
     virtual void UnitCommand(const Unit* unit, AbilityID ability, bool queued_command = false) = 0;
 
     //! Issues a command to a unit. Targets a point.
-    //!< \param unit The unit to send the command to.
-    //!< \param ability The ability id of the command.
-    //!< \param point The 2D world position to target.
+    //! \param unit The unit to send the command to.
+    //! \param ability The ability id of the command.
+    //! \param point The 2D world position to target.
+    //! \param queued_command
     virtual void UnitCommand(const Unit* unit, AbilityID ability, const Point2D& point,
                              bool queued_command = false) = 0;
 
@@ -331,6 +340,7 @@ public:
     //!< \param unit The unit to send the command to.
     //!< \param ability The ability id of the command.
     //!< \param target The unit that is a target of the unit getting the command.
+    //!< \param queued_command
     virtual void UnitCommand(const Unit* unit, AbilityID ability, const Unit* target, bool queued_command = false) = 0;
 
     //! Issues a command to multiple units (prefer this where possible). Same as UnitCommand(Unit, AbilityID).
@@ -347,31 +357,42 @@ public:
     //! Issues a command to a unit. Self targeting.
     //!< \param tag Tag of unit.
     //!< \param ability The ability id of the command.
+    //!< \param queued_command
     virtual void UnitCommand(Tag tag, AbilityID ability, bool queued_command = false) = 0;
 
     //! Issues a command to a unit. Targets a point.
     //!< \param tag Tag of unit.
     //!< \param ability The ability id of the command.
     //!< \param point The 2D world position to target.
+    //!< \param queued_command
     virtual void UnitCommand(Tag tag, AbilityID ability, const Point2D& point, bool queued_command = false) = 0;
 
     //! Issues a command to a unit. Targets another unit.
     //!< \param tag Tag of unit.
     //!< \param ability The ability id of the command.
     //!< \param target_tag Tag of unit that is a target of the unit getting the command.
+    //!< \param queued_command
     virtual void UnitCommand(Tag tag, AbilityID ability, const Tag target_tag, bool queued_command = false) = 0;
 
     //! Issues a command to multiple units (prefer this where possible). Same as UnitCommand(Tag, AbilityID).
     //!< \param tags Tags of units.
+    //!< \param ability
+    //!< \param queued_move
     virtual void UnitCommand(const Tags& tags, AbilityID ability, bool queued_move = false) = 0;
 
     //! Issues a command to multiple units (prefer this where possible). Same as UnitCommand(Tag, AbilityID, Point2D).
     //!< \param tags Tags of units.
+    //!< \param ability
+    //!< \param point
+    //!< \param queued_command
     virtual void UnitCommand(const Tags& tags, AbilityID ability, const Point2D& point,
                              bool queued_command = false) = 0;
 
     //! Issues a command to multiple units (prefer this where possible). Same as UnitCommand(Tag, AbilityID, Tag).
     //!< \param tags Tags of units.
+    //!< \param ability
+    //!< \param target_tag
+    //!< \param queued_command
     virtual void UnitCommand(const Tags& tags, AbilityID ability, const Tag target_tag,
                              bool queued_command = false) = 0;
 
@@ -492,8 +513,8 @@ public:
     //!< \param color (Optional) Color of the line.
     virtual void DebugLineOut(const Point3D& p0, const Point3D& p1, Color color = Colors::White) = 0;
     //! Outputs a box specified as two 3D points in the game world. Map coordinates are used.
-    //!< \param p0 One corner of the box.
-    //!< \param p1 The far corner of the box.
+    //!< \param p_min One corner of the box.
+    //!< \param p_max The far corner of the box.
     //!< \param color (Optional) Color of the lines.
     virtual void DebugBoxOut(const Point3D& p_min, const Point3D& p_max, Color color = Colors::White) = 0;
     //! Outputs a sphere specified as a 3D point in the game world and a radius. Map coordinates are used.
@@ -513,15 +534,15 @@ public:
                                  uint32_t count = 1) = 0;
 
     //! Destroy a unit.
-    //!< \param tag Unit to destroy.
+    //!< \param unit Unit to destroy.
     virtual void DebugKillUnit(const Unit* unit) = 0;
 
     //! Makes the entire map visible, i.e., removes the fog-of-war.
     virtual void DebugShowMap() = 0;
     //! Enables commands to be issued to enemy units.
     virtual void DebugEnemyControl() = 0;
-    //! Disables the food check.
-    virtual void DebugIgnoreFood() = 0;
+    //! Disables the supply check.
+    virtual void DebugIgnoreSupply() = 0;
     //! Disables resource checks.
     virtual void DebugIgnoreResourceCost() = 0;
     //! Gives a bunch of minerals and gas.
@@ -547,15 +568,15 @@ public:
     virtual void DebugEndGame(bool victory = false) = 0;
     //! Sets the energy level on a unit.
     //!< \param value The new energy level.
-    //!< \param tag The unit.
+    //!< \param unit
     virtual void DebugSetEnergy(float value, const Unit* unit) = 0;
     //! Sets the life on a unit.
     //!< \param value The new life.
-    //!< \param tag The unit.
+    //!< \param unit
     virtual void DebugSetLife(float value, const Unit* unit) = 0;
     //! Sets shields on a unit.
     //!< \param value The new shields.
-    //!< \param tag The unit.
+    //!< \param unit
     virtual void DebugSetShields(float value, const Unit* unit) = 0;
 
     //! Sets the position of the camera.

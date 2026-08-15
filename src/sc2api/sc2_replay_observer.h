@@ -9,9 +9,9 @@
 
 namespace sc2 {
 
-class ReplayControlImp;
+class ReplayControlImpl;
 class ReplayControlInterface;
-class ObserverActionImp;
+class ObserverActionImpl;
 class ObserverActionInterface;
 class ControlInterface;
 struct ReplayInfo;
@@ -24,11 +24,11 @@ public:
 
     //! Obtains the replay control interface.
     //!< \return The replay control interface.
-    ReplayControlInterface* ReplayControl();
+    ReplayControlInterface* ReplayControl() const;
 
     //! Obtains the observer action interface.
     //!< \return The observer action interface.
-    ObserverActionInterface* ObserverAction();
+    ObserverActionInterface* ObserverAction() const;
 
     //! Determines if the replay should be filtered out.
     //! \param replay_info Replay information used to decide if the replay should be filtered.
@@ -38,8 +38,8 @@ public:
     virtual void Reset();
 
 private:
-    ReplayControlImp* replay_control_imp_;
-    ObserverActionImp* observer_action_imp_;
+    ReplayControlImpl* replay_control_impl_;
+    ObserverActionImpl* observer_action_impl_;
 };
 
 }  // namespace sc2

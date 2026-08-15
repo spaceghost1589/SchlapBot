@@ -2,14 +2,14 @@
 
 #include <functional>
 
-#include "s2clientprotocol/sc2api.pb.h"
 #include "sc2_connection.h"
+#include "s2clientprotocol/sc2api.pb.h"
 
 namespace sc2 {
 
 class ControlInterface;
 
-const unsigned int kDefaultProtoInterfaceTimeout = 120000;  // A generous 120 seconds.
+constexpr unsigned int kDefaultProtoInterfaceTimeout = 120000;  // A generous 120 seconds.
 
 typedef std::shared_ptr<SC2APIProtocol::Request> GameRequestPtr;
 typedef std::shared_ptr<const SC2APIProtocol::Response> GameResponsePtr;

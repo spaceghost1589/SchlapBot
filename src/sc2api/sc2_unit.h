@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "sc2_common.h"
-#include "sc2_gametypes.h"
 #include "sc2_proto_interface.h"
-#include "sc2_typeenums.h"
+#include "sc2lib/sc2_gametypes.h"
+#include "sc2lib/sc2_typeenums.h"
 
 namespace sc2 {
 

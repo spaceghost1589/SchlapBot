@@ -11,17 +11,20 @@ both inherit from Client.
 #include <string>
 #include <vector>
 
-#include "sc2_typeenums.h"
+#include "s2clientprotocol/raw.pb.h"
+
+#include "sc2_interfaces.h"
+#include "sc2lib/sc2_typeenums.h"
 
 namespace sc2 {
+struct Point2D;
 
-class ControlImp;
+class ControlImpl;
 class Unit;
 class ObservationInterface;
 class QueryInterface;
 class DebugInterface;
 class ControlInterface;
-class ControlImp;
 
 /*! Errors that the api can encounter, if the OnError event in ClientEvents is overwritten it will contain a list of
  * errors encountered. */
@@ -44,6 +47,21 @@ enum class ClientError {
                            timeout. */
     WrongGameVersion,   /*! A replay was attempted to be loaded in the wrong game version. */
 };
+
+struct MapState
+{
+    explicit MapState(const SC2APIProtocol::MapState& map);
+
+    bool HasCreep(const Point2D& point) const;
+
+    Visibility GetVisibility(const Point2D& point) const;
+
+private:
+
+    // SampleImage creep_data_;
+    // SampleImage visibility_data_;
+
+}; // struct MapState
 
 //! A set of common events a user can override in their derived bot or replay observer class.
 class ClientEvents {
@@ -153,7 +171,7 @@ public:
 
 private:
     //! Pointer to the control interface.
-    ControlImp* control_imp_;
+    ControlImpl* control_impl_;
 };
 
 }  // namespace sc2

@@ -7,6 +7,8 @@
 #include "civetweb.h"
 #include "s2clientprotocol/sc2api.pb.h"
 
+using std::cout;
+
 namespace {
 bool StartCivetweb() {
     static bool is_initialized = false;
@@ -125,15 +127,16 @@ void Connection::Send(const SC2APIProtocol::Request* request) {
     if (!connection_) {
         return;
     }
-    size_t size = request->ByteSizeLong();
+    const size_t size = request->ByteSizeLong();
     void* buffer = malloc(size);
-    request->SerializeToArray(buffer, (int)size);
-    mg_websocket_write(connection_, MG_WEBSOCKET_OPCODE_BINARY, (const char*)buffer, size);
+    if (!request->SerializeToArray(buffer, static_cast<int>(size)))
+        cout << "`Send` failed due to serialization exceeding maximum protobuf size of 2GB:" << size << '\n';
+    mg_websocket_write(connection_, MG_WEBSOCKET_OPCODE_BINARY, static_cast<const char*>(buffer), size);
 
     free(buffer);
 
     if (verbose_) {
-        std::cout << "Sending: " << request->DebugString();
+        cout << "Sending: " << request->DebugString();
     }
 }
 

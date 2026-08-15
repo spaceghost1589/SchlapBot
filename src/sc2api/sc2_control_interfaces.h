@@ -4,9 +4,8 @@
 #include <vector>
 
 #include "sc2_client.h"
-#include "sc2_data.h"
-#include "sc2_game_settings.h"
 #include "sc2_proto_interface.h"
+#include "sc2lib/sc2_game_settings.h"
 
 namespace sc2 {
 

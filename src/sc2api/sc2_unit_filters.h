@@ -2,41 +2,35 @@
 
 #include <vector>
 
-#include "sc2_typeenums.h"
 #include "sc2_unit.h"
+#include "sc2lib/sc2_typeenums.h"
 
 namespace sc2 {
 //! Determines if the unit matches the unit type.
-struct IsUnit {
-    explicit IsUnit(UNIT_TYPEID type_);
+struct IsUnit {explicit IsUnit(UNIT_TYPEID type_);
 
     bool operator()(const Unit& unit_) const;
 
-private:
-    UNIT_TYPEID m_type;
+private: UNIT_TYPEID m_type;
 };
 
 //! Determines if units matches the unit type.
-struct IsUnits {
-    explicit IsUnits(const std::vector<UNIT_TYPEID>& types_);
+struct IsUnits {explicit IsUnits(const std::vector<UNIT_TYPEID>& types_);
 
     bool operator()(const Unit& unit_) const;
 
-private:
-    std::vector<UNIT_TYPEID> m_types;
+private: std::vector<UNIT_TYPEID> m_types;
 };
 
 //! Determines if the unit is town hall (command center, hatchery etc).
-struct IsTownHall {
-    bool operator()(const Unit& unit_) const;
+struct IsTownHall {bool operator()(const Unit& unit_) const;
 
     bool operator()(UNIT_TYPEID type_) const;
 };
 
 //! Determines if the unit is mineral patch,
 //! includes 'foggy' minerals (hidden under the fog of war).
-struct IsMineralPatch {
-    bool operator()(const Unit& unit_) const;
+struct IsMineralPatch {bool operator()(const Unit& unit_) const;
 
     bool operator()(UNIT_TYPEID type_) const;
 };
@@ -52,8 +46,7 @@ struct IsVisibleMineralPatch {
 
 //! Determines if the unit is vespene geyser,
 //! includes 'foggy' geysers (hidden under the fog of war).
-struct IsGeyser {
-    bool operator()(const Unit& unit_) const;
+struct IsGeyser {bool operator()(const Unit& unit_) const;
 
     bool operator()(UNIT_TYPEID type_) const;
 };
@@ -63,13 +56,11 @@ struct IsGeyser {
 //! the geysers covered by the fog of war don't have such parameter
 //! (it is always zero) and can't be selected/targeted.
 //! This filter returns only the visible and not depleted geysers.
-struct IsVisibleGeyser {
-    bool operator()(const Unit& unit_) const;
+struct IsVisibleGeyser {bool operator()(const Unit& unit_) const;
 };
 
 //! Determines if the unit is a building.
-struct IsBuilding {
-    bool operator()(const Unit& unit_) const;
+struct IsBuilding {bool operator()(const Unit& unit_) const;
 
     bool operator()(UNIT_TYPEID type_) const;
 };
@@ -78,8 +69,7 @@ struct IsBuilding {
 //! Good to use in generic bots supporting all races.
 //! For bots supporting only one race IsUnit is recommended as it is
 //! a bit faster, e.g. sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV).
-struct IsWorker {
-    bool operator()(const Unit& unit_) const;
+struct IsWorker {bool operator()(const Unit& unit_) const;
 
     bool operator()(UNIT_TYPEID type_) const;
 };
