@@ -13,7 +13,7 @@ and override library provided events in ClientEvents.
 
 namespace sc2 {
 
-class AgentControlImp;
+class AgentControlImpl;
 class ActionInterface;
 class ActionFeatureLayerInterface;
 class AgentControlInterface;
@@ -40,7 +40,7 @@ public:
     AgentControlInterface* AgentControl();
 
 private:
-    AgentControlImp* agent_control_imp_;
+    AgentControlImpl* agent_control_impl_;
 };
 
 }  // namespace sc2

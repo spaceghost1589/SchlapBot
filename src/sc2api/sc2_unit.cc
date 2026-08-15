@@ -63,7 +63,7 @@ void UnitPool::MarkDead(const Tag tag) {
         return;
     }
     unit->is_alive = false;
-    // CHeck if this is necessary, bro
+    // Check if this is necessary, bro
     tag_to_existing_unit_.erase(tag);
 }
 

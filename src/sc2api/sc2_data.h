@@ -5,9 +5,12 @@
 #include <string>
 #include <vector>
 
-#include "sc2_gametypes.h"
+#include "sc2_common.h"
 #include "sc2_proto_interface.h"
-#include "sc2_typeenums.h"
+#include "sc2lib/sc2_gametypes.h"
+#include "sc2lib/sc2_typeenums.h"
+
+using sc2::Point2D;
 
 namespace sc2 {
 
@@ -168,10 +171,10 @@ struct UnitTypeData {
     float armor;
     //! Weapons on this unit type.
     std::vector<Weapon> weapons;
-    //! How much food the unit requires.
-    float food_required;
-    //! How much food the unit provides.
-    float food_provided;
+    //! How much supply the unit requires.
+    float supply_required;
+    //! How much supply the unit provides.
+    float supply_provided;
     //! Which ability id creates the unit.
     AbilityID ability_id;
     //! The race the unit belongs to.

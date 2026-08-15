@@ -21,8 +21,7 @@ foreach(proto ${proto_files})
             "${proto_generation_dir}/${proto_name}.pb.h")
 endforeach()
 
-add_library(sc2protocol STATIC ${proto_src}
-        ../main.cpp)
+add_library(sc2protocol STATIC ${proto_src})
 
 target_include_directories(sc2protocol SYSTEM PUBLIC "${PROJECT_BINARY_DIR}/generated")
 

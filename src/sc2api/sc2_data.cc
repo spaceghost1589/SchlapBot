@@ -3,9 +3,9 @@
 #include <cassert>
 #include <iostream>
 
-#include "s2clientprotocol/sc2api.pb.h"
 #include "sc2_interfaces.h"
 #include "sc2_proto_to_pods.h"
+#include "s2clientprotocol/sc2api.pb.h"
 
 // TODO: Fill out the log functions
 
@@ -291,9 +291,9 @@ void UnitTypeData::ReadFromProto(const SC2APIProtocol::UnitTypeData& unit_data) 
         weapons.push_back(weapon);
     }
 
-    food_provided = unit_data.food_provided();
+    supply_provided = unit_data.food_provided();
 
-    food_required = unit_data.food_required();
+    supply_required = unit_data.food_required();
 
     ability_id = unit_data.ability_id();
 

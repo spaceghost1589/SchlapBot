@@ -1,26 +1,39 @@
 #pragma once
 
-#include "s2clientprotocol/sc2api.pb.h"
-#include "sc2_action.h"
-#include "sc2_map_info.h"
+#include <cstdint>
+#include <s2clientprotocol/common.pb.h>
+#include <s2clientprotocol/query.pb.h>
+#include <s2clientprotocol/raw.pb.h>
+#include <s2clientprotocol/sc2api.pb.h>
+#include <s2clientprotocol/spatial.pb.h>
+
+#include "sc2_proto_interface.h"
 #include "sc2_score.h"
 #include "sc2_unit.h"
+#include "sc2lib/sc2_action.h"
+#include "sc2lib/sc2_gametypes.h"
+import map_info;
+
+using std::uint32_t;
 
 namespace sc2 {
 
-typedef MessageResponsePtr<SC2APIProtocol::ResponseObservation> ResponseObservationPtr;
-typedef MessageResponsePtr<SC2APIProtocol::Observation> ObservationPtr;
-typedef MessageResponsePtr<SC2APIProtocol::ObservationRaw> ObservationRawPtr;
-typedef MessageResponsePtr<SC2APIProtocol::ObservationRender> ObservationRenderPtr;
-typedef MessageResponsePtr<SC2APIProtocol::ResponsePing> ResponsePingPtr;
-typedef MessageResponsePtr<SC2APIProtocol::ResponseGameInfo> ResponseGameInfoPtr;
-typedef MessageResponsePtr<SC2APIProtocol::ResponseQuery> ResponseQueryPtr;
+using ResponseObservationPtr = MessageResponsePtr<SC2APIProtocol::ResponseObservation>;
+using ObservationPtr = MessageResponsePtr<SC2APIProtocol::Observation>;
+using ObservationRawPtr = MessageResponsePtr<SC2APIProtocol::ObservationRaw>;
+using ObservationRenderPtr = MessageResponsePtr<SC2APIProtocol::ObservationRender>;
+using ResponsePingPtr = MessageResponsePtr<SC2APIProtocol::ResponsePing>;
+using ResponseGameInfoPtr = MessageResponsePtr<SC2APIProtocol::ResponseGameInfo>;
+using ResponseQueryPtr = MessageResponsePtr<SC2APIProtocol::ResponseQuery>;
 
 bool Convert(const ObservationPtr& observation_ptr, Score& score);
-bool Convert(const ObservationRawPtr& observation_ptr, UnitPool& unit_pool, uint32_t game_loop,
+bool Convert(const ObservationRawPtr& observation_raw, UnitPool& unit_pool, uint32_t game_loop,
              uint32_t prev_game_loop);
 bool Convert(const ObservationPtr& observation_ptr, RenderedFrame& render);
 bool Convert(const ResponseGameInfoPtr& response_game_info_ptr, GameInfo& game_info);
+bool Convert(const SC2APIProtocol::DisplayType& type_proto, Unit::DisplayType& type);
+bool Convert(const SC2APIProtocol::Alliance& alliance_proto, Unit::Alliance& alliance);
+bool Convert(const SC2APIProtocol::CloakState& cloak_proto, Unit::CloakState& cloak);
 
 void ConvertRawActions(const ResponseObservationPtr& response_observation_ptr, RawActions& actions);
 void ConvertFeatureLayerActions(const ResponseObservationPtr& response_observation_ptr, SpatialActions& actions);

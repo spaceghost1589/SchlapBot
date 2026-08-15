@@ -11,14 +11,18 @@
 #include <string>
 #include <vector>
 
-#include "sc2_game_settings.h"
+#include "sc2lib/sc2_game_settings.h"
 #include "sc2_proto_interface.h"
 
 namespace sc2 {
 
+using std::span,
+    std::string;
+
+
 class Agent;
 class ReplayObserver;
-class CoordinatorImp;
+class CoordinatorImpl;
 
 //! Coordinator of one or more clients. Used to start, step and stop games and replays.
 class Coordinator {
@@ -32,104 +36,103 @@ public:
     //!     1. If command line arguments are provided it will use them. Invoke binary with --help to see expected
     //!     arguments.
     //!     2. (Recommended) If the StarCraft II binary has been run the function will auto discover its location.
-    //! \param argc Provided in main signature.
-    //! \param argv Provided in main signature.
+    //! \param args Provided in main signature. Conversion from `int argc, char* argv[]` required.
     //! \param game_settings The name of the settings file.
     //! \return True if settings were found or discovered, false otherwise.
-    bool LoadSettings(int argc, char** argv);
+    bool LoadSettings(span<char*> args) const;
 
     //! Specifies whether bots or replays OnStep function should be run in parallel. If set to true make sure your bots
     //! are thread-safe if they reach into shared code. \param value True to multithread, false otherwise.
-    void SetMultithreaded(bool value);
+    void SetMultithreaded(bool value) const;
 
     //! Specifies whether the game should run in realtime or not. If the game is running in real time that means the
     //! coordinator is not stepping it forward. The game is running and your bot reaches into it asynchronously to read
     //! state. \param value True to be realtime, false otherwise.
-    void SetRealtime(bool value);
+    void SetRealtime(bool value) const;
 
     //! Sets the number of game loops to run for each step.
     //! \param step_size Number of gameloops to run for each step.
-    void SetStepSize(int step_size);
+    void SetStepSize(int step_size) const;
 
     //! Sets the path to the StarCraft II binary.
     //! \param path Absolute file path.
-    void SetProcessPath(const std::string& path);
+    void SetProcessPath(const string& path) const;
 
     //! Set the correct data version of a replay to allow faster replay loading. Saves a few seconds if replay is not up
     //! to date.
     //!  Works only in combination with correct process path set by "SetProcessPath".
     //! \param version Look in "protocol/buildinfo/versions.json" for the property "data-hash". Or read it from
     //! "ReplayInfo.data_version".
-    void SetDataVersion(const std::string& version);
+    void SetDataVersion(const string& version) const;
 
     //! Sets the timeout for network operations.
-    //! \param value timeout_ms in milliseconds.
-    void SetTimeoutMS(uint32_t timeout_ms = kDefaultProtoInterfaceTimeout);
+    //! \param timeout_ms in milliseconds.
+    void SetTimeoutMS(uint32_t timeout_ms = kDefaultProtoInterfaceTimeout) const;
 
     //! Sets the first port number to use. Subsequent port assignments are sequential.
     //! \param port_start First port number.
-    void SetPortStart(int port_start);
+    void SetPortStart(int port_start) const;
 
     //! Indicates whether feature layers should be provided in the observation.
     //! \param settings Configuration of feature layer settings.
     //! \sa FeatureLayerSettings
-    void SetFeatureLayers(const FeatureLayerSettings& settings);
+    void SetFeatureLayers(const FeatureLayerSettings& settings) const;
 
     //!
     //! \sa RenderSettings
-    void SetRender(const RenderSettings& settings);
+    void SetRender(const RenderSettings& settings) const;
 
     //! Sets the game window dimensions.
     //! \param width Width of game window.
     //! \param height Height of game window.
-    void SetWindowSize(int width, int height);
+    void SetWindowSize(int width, int height) const;
 
     //! Sets the game window location.
     //! \param x X position of game window.
     //! \param y y position of game window.
-    void SetWindowLocation(int x, int y);
+    void SetWindowLocation(int x, int y) const;
 
     //! Uses generalized abilities where possible. Example: BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY,
     //! BUILD_TECHLAB_STARPORT ability ids are generalized to BUILD_TECHLAB ability id in the observation.
-    void SetUseGeneralizedAbilityId(bool value);
+    void SetUseGeneralizedAbilityId(bool value) const;
 
     //! Sets the replay perspective. Use 0 to observe all players.
-    void SetReplayPerspective(int player_id);
+    void SetReplayPerspective(int player_id) const;
 
     //! Appends a command line argument to be fed to StarCraft II when starting.
     // \param option The string to be appended to the executable invoke.
-    void AddCommandLine(const std::string& option);
+    void AddCommandLine(const string& option) const;
 
     //! When set to true, less actions will be generated because the game will not try to keep your unit selection.
     //! Useful to reduce the number of actions, but may complicate the debugging process.
-    void SetRawAffectsSelection(bool value);
+    void SetRawAffectsSelection(bool value) const;
 
     //! Specifies whether the game should run in fullscreen or not.
     //! This usually indicates that a real player (the first registered participant) is using the first launched
     //! instance to play (the first registered participant). The game will be launched in the windowed mode
     //! for the second player (second participant).
     //! It should be used in combination with SetRealtime(true), otherwise the game has no sound.
-    void SetFullScreen(bool value);
+    void SetFullScreen(bool value) const;
 
     //! Sets up the bots and whether they are controlled by in-built AI, human or a custom bot.
     // \param participants A vector of player setups for each participant in the game.
     // \sa PlayerSetup
-    void SetParticipants(const std::vector<PlayerSetup>& participants);
+    void SetParticipants(const vector<PlayerSetup>& participants) const;
 
-    void SetReplayRecovery(bool value);
+    void SetReplayRecovery(bool value) const;
 
     //! Add an instance of ReplayObserver, each ReplayObserver will run a separate StarCraft II client.
     // \param replay_observer A pointer to the replay observer to utilize.
     // \sa ReplayObserver
-    void AddReplayObserver(ReplayObserver* replay_observer);
+    void AddReplayObserver(ReplayObserver* replay_observer) const;
 
     // Start-up.
 
     //! Uses settings gathered from LoadSettings, specifically the path to the executable, to run StarCraft II.
-    void LaunchStarcraft();
+    void LaunchStarcraft() const;
 
     //! Attaches to a running Starcraft.
-    void Connect(int port);
+    void Connect(int port) const;
 
     //! Starts a game on a certain map. There are multiple ways to specify a map:
     //! Absolute path: Any .SC2Map file.
@@ -138,22 +141,22 @@ public:
     //! \param map_path Path to the map to run.
     //! \return True if the game started, false if there was errors or the game didn't start, override OnError callback
     //! to see the exact errors.
-    bool StartGame(const std::string& map_path = std::string());
+    bool StartGame(const string& map_path = string()) const;
 
     //! Creates a game but does not join the agents to the game
     //! \param map_path Path to the map to run.
     //! Returns true if the game was successfully created
-    bool CreateGame(const std::string& map_path = std::string());
+    bool CreateGame(const string& map_path = string()) const;
 
     //! Joins agents to the game
     //! Returns true if the agents were successfully connected to the game
-    bool JoinGame();
+    bool JoinGame() const;
 
     //! Sets up the sc2 game ports to use
     //! param num_agents Number of agents in the game
     //! param port_start Starting port number
     //! param check_single  Checks if the game is a single player or multiplayer game
-    void SetupPorts(size_t num_agents, int port_start, bool check_single = true);
+    void SetupPorts(size_t num_agents, int port_start, bool check_single = true) const;
 
     // Run.
 
@@ -173,10 +176,10 @@ public:
     //!     2. The Observation is parsed and client events are dispatched.
     //!     3. Unit actions batched from the ActionInterface are dispatched.
     //! \return False if the game has ended, true otherwise.
-    bool Update();
+    bool Update() const;
 
     //! Requests for the currently running game to end.
-    void LeaveGame();
+    void LeaveGame() const;
 
     // Status.
 
@@ -185,34 +188,34 @@ public:
 
     // Replay specific.
     //! Sets the path for to a folder of replays to analyze.
-    // \param path The folder path.
-    bool SetReplayPath(const std::string& path);
+    //! \param path The folder path.
+    bool SetReplayPath(const string& path) const;
     //! Loads replays from a file.
-    // \param path The file path.
-    bool LoadReplayList(const std::string& file_path);
+    //! \param path The file path.
+    bool LoadReplayList(const string& path) const;
     //! Saves replays to a file.
-    // \param path The file path.
-    void SaveReplayList(const std::string& file_path);
+    //! \param path The file path.
+    void SaveReplayList(const string& path) const;
     //! Determines if there are unprocessed replays.
-    //!< \return Is true if there are replays left.
+    //! \return Is true if there are replays left.
     bool HasReplays() const;
 
     // Misc.
 
     //! Blocks for all bots to receive any pending responses
-    void WaitForAllResponses();
+    void WaitForAllResponses() const;
     //! Saves a binary blob as a map to a remote location.
     // \param data The map data.
     // \param data_size The size of map data.
     // \param remote_path The file path to save the data to.
     //!< \return Is true if the save is successful.
-    bool RemoteSaveMap(const void* data, int data_size, std::string remote_path);
+    bool RemoteSaveMap(const void* data, int data_size, const string& remote_path) const;
     //! Gets the game executable path.
     //!< \return The game executable path.
-    std::string GetExePath() const;
+    string GetExePath() const;
 
 private:
-    CoordinatorImp* imp_;
+     CoordinatorImpl* impl_;
 };
 
 }  // namespace sc2

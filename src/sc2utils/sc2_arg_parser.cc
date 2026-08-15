@@ -1,12 +1,12 @@
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <span>
 #include <string>
 #include <utility>
 
-
 #include "sc2_arg_parser.h"
-#include "sc2api/sc2_game_settings.h"
+#include "sc2lib/sc2_game_settings.h"
 
 namespace sc2 {
 
@@ -35,7 +35,7 @@ ArgParser::ArgParser(string usage,
       example_(std::move(example)) {
 }
 
-void ArgParser::ParseArguments(const span<const char*> args)
+void ArgParser::ParseArguments(span<char*> args)
 {
     // executable_name
     ArgParser arg_parser(string_view(args.front()));
@@ -77,7 +77,8 @@ void ArgParser::AddOptions(const vector<Arg>& options) {
     }
 } // AddOptions
 
-bool ArgParser::Parse(const span<const char*> args) {
+//! @return false if `args is empty`, invalid option, or help command
+bool ArgParser::Parse(span<char*> args) {
 	if (args.empty()) {
 		return false;
 	}
@@ -144,12 +145,12 @@ bool ArgParser::Parse(const span<const char*> args) {
 	});
 } // Parse
 
-bool ArgParser::Get(const string_view identifier, string& value) {
-    string_view fullname = identifier;
+bool ArgParser::Get(const string& identifier, string& value) {
+    string fullname = identifier;
 
     // If the identifier is the abbreviation turn it into the fullname
     if (fullname.size() == 1) {
-        const auto identifier_ = abbv_to_full_.find(string("-") + string(identifier));
+        const auto identifier_ = abbv_to_full_.find("-" + identifier);
 
         if (identifier_ == abbv_to_full_.end()) {
             return false;

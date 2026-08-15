@@ -1,9 +1,17 @@
-#include "sc2_proto_to_pods.h"
-
 #include <cassert>
 #include <iostream>
+#include <stdint.h>
 
+#include <s2clientprotocol/common.pb.h>
+#include <s2clientprotocol/raw.pb.h>
+#include <s2clientprotocol/score.pb.h>
+
+#include "sc2_proto_to_pods.h"
+#include "sc2_proto_interface.h"
+#include "sc2_score.h"
+#include "sc2_unit.h"
 #include "sc2_unit_filters.h"
+
 
 namespace sc2 {
 
@@ -51,7 +59,7 @@ bool Convert(const ScorePtr& score_ptr, ScoreDetails& score_details) {
     score_details.spent_vespene = score_details_ptr->spent_vespene();
 
     if (score_details_ptr->has_food_used()) {
-        Convert(score_details_ptr->food_used(), score_details.food_used);
+        Convert(score_details_ptr->food_used(), score_details.supply_used);
     }
 
     if (score_details_ptr->has_killed_minerals()) {
@@ -121,8 +129,8 @@ bool Convert(const ObservationPtr& observation_ptr, Score& score) {
         return false;
     }
 
-    score.score_type = score_ptr->has_score_type() ? ScoreType(score_ptr->score_type()) : ScoreType::Melee;
-    score.score = static_cast<float>(score_ptr->score());
+    score.score_type = score_ptr->has_score_type() ? static_cast<ScoreType>(score_ptr->score_type()) : ScoreType::Melee;
+    score.score      = static_cast<float>(score_ptr->score());
 
     Convert(score_ptr, score.score_details);
 
