@@ -23,13 +23,15 @@ endforeach()
 
 add_library(sc2protocol STATIC ${proto_src})
 
-target_include_directories(sc2protocol SYSTEM PUBLIC "${PROJECT_BINARY_DIR}/generated")
+target_include_directories(sc2protocol SYSTEM PUBLIC
+																			 "${PROJECT_BINARY_DIR}/generated"
+																			 )
 
 target_link_libraries(sc2protocol PUBLIC libprotobuf)
 
 if (MSVC)
     target_compile_options(sc2protocol PRIVATE /W0)
-endif (MSVC)
+endif()
 
 # Copy precompiled protos to the generated directory
 if (WSL2_CROSS_COMPILE)

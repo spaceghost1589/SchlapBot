@@ -1,7 +1,7 @@
 message(STATUS "FetchContent: SDL")
 
 # Suppress all warnings from SDL.
-if (SUPPRESS_DEPENDENCY_WARNINGS)
+if (NOT DEPENDENCY_WARNINGS)
     add_compile_options(-w)
 endif ()
 

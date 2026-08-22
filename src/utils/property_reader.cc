@@ -1,0 +1,103 @@
+#include "property_reader.h"
+
+#include <fstream>
+#include <iostream>
+
+using std::cerr,
+    std::function,
+    std::ifstream,
+    std::string;
+
+namespace sc2 {
+
+PropertyReader::PropertyReader(const string& file_name) {
+    LoadFile(file_name);
+}
+
+bool PropertyReader::IsLoaded() const {
+    return file_read_;
+}
+
+bool PropertyReader::LoadFile(const string& file_name) {
+    file_read_ = false;
+    properties_.clear();
+
+    ifstream file(file_name);
+    if (!file.is_open()) {
+        return false;
+    }
+    file_read_ = true;
+
+    string line;
+    while (getline(file, line)) {
+        // If first character on line is # assume comment, if it's blank assume malformed/incorrect/empty line and skip
+        // it
+        if (line[0] == '#' || line[0] == ' ' || line.empty() || line.length() < 2) {
+            continue;
+        }
+
+        string key;
+        string value;
+        unsigned int index = 0;
+        const size_t equal_index = line.find_first_of('=');
+        // Extract key
+        for (; index < equal_index; ++index) {
+            // Spaces are allowed in key except in the last character
+            if (index == equal_index - 1 && line[index] == ' ') {
+                continue;
+            }
+
+            key += line[index];
+        }
+
+        // Extract value
+        for (index = static_cast<unsigned int>(equal_index) + 1; index < line.size(); ++index) {
+            // Spaces are allowed in value except in the first character
+            if (index == equal_index + 1 && line[index] == ' ') {
+                continue;
+            }
+
+            value += line[index];
+        }
+
+        properties_[key] = value;
+    }
+    file.close();
+    return true;
+}
+
+void PropertyReader::Free() {
+    properties_.clear();
+}
+
+bool PropertyReader::Read(const string& key, const function<void(const string& v)>& convert) {
+    if (properties_.empty()) {
+        cerr << "No properties file loaded" << '\n';
+        return false;
+    }
+
+    auto it = properties_.find(key);
+    if (it != properties_.end()) {
+        convert(it->second);
+        return true;
+    }
+
+    return false;
+}
+
+bool PropertyReader::ReadInt(const string& key, int& value) {
+    auto to_int = [&value](const string& v) { value = stoi(v); };
+    return Read(key, to_int);
+}
+
+bool PropertyReader::ReadFloat(const string& key, float& value) {
+    auto to_float = [&value](const string& v) { value = stof(v); };
+    return Read(key, to_float);
+}
+
+bool PropertyReader::ReadString(const string& key, string& value) {
+    auto to_string = [&value](const string& v) { value = v; };
+    return Read(key, to_string);
+}
+
+}  // namespace sc2

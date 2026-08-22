@@ -3,7 +3,19 @@
   <component name="CMakePythonSetting">
     <option name="pythonIntegrationState" value="YES" />
   </component>
-  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$">
-    <contentRoot DIR="$PROJECT_DIR$" />
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/out/build/x64-RelWithDebInfo/s2clientprotocol" />
+    </libraryRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/.idea" />
+      <file path="$PROJECT_DIR$/out" />
+      <file path="$PROJECT_DIR$/out/build/x64-RelWithDebInfo/_deps/protobuf-src/src/google/protobuf/map.h" />
+    </excludeRoots>
+    <unexcludedRoots>
+      <file path="$PROJECT_DIR$/out/build/x64-RelWithDebInfo" />
+      <file path="$PROJECT_DIR$/out/build/x64-RelWithDebInfo/_deps/s2client_proto_repo-src" />
+    </unexcludedRoots>
   </component>
 </project>

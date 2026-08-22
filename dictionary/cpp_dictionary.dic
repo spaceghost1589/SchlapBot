@@ -5,14 +5,17 @@ alkurbatov
 any
 array
 atomic
+baneling
 buildinfo
 callback
 capacity
+cast'd
 cbegin
 cend
 cerr
 cin
 civetweb
+clientprotocol
 condition_variable
 constexpr
 constructor
@@ -27,6 +30,8 @@ dcross
 decltype
 deque
 destructor
+ebuff
+ENTRYNAME
 emplace
 emplace_back
 endl
@@ -38,6 +43,7 @@ fstream
 fullname
 functor
 future
+gameloops
 ifndef
 initializer_list
 int16_t
@@ -60,6 +66,7 @@ mutable
 mutex
 namespace
 namlen
+nodelay
 noexcept
 NPROCESSORS
 nullptr
@@ -71,6 +78,7 @@ pair
 pop_back
 promise
 protos
+psistorm
 ptrdiff_t
 push_back
 push_front
@@ -92,10 +100,13 @@ STARTUPINFO
 std
 string
 stringstream
+STRUCTNAME
+techlab
 template
 thirdparty
 thread
 tuple
+typeids
 typedef
 typeenums
 uint16_t

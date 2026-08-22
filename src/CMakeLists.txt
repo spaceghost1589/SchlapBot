@@ -1,45 +1,69 @@
-# Broadly expose the 'src' folder and the binary output folder to ALL
-# subdirectories added below. This solves both sc2utils and sc2api missing header errors.
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_BINARY_DIR}
-)
+# Expose source and binary directories globally
+include_directories (${CMAKE_CURRENT_SOURCE_DIR} # <[This]> folder
+                     #                     ${CMAKE_CURRENT_BINARY_DIR} #
+                     ${CMAKE_BINARY_DIR} # <root>/out/build/<Preset_Name>
+                     )
 
-# 1. Actually process the subdirectories so their CMakeLists.txt files execute
-add_subdirectory(sc2utils)
-add_subdirectory(sc2lib)
-add_subdirectory(sc2api)
-if (BUILD_SC2_RENDERER)
-    add_subdirectory(sc2renderer)
+add_subdirectory (api)
+add_subdirectory (utils)
+add_subdirectory (lib)
+if (BUILD_SC2_RENDERER) # Process optional Renderer
+	add_subdirectory (renderer)
 endif ()
 
+# Define the bot executable and link everything
+add_executable (SchlapBot main.cpp
+api/interface/action_interface.cppm)
 
-add_executable(SchlapBot main.cpp)
+if (CACHE_DEPENDENCIES)
+	target_precompile_headers (SchlapBot PRIVATE
+	                           <vector>
+	                           <string>
+	                           <memory>
+	                           <unordered_map>
+	                           <iostream>
+	                           <civetweb.h>
+	                           <google/protobuf/message.h>
+	                           $<$<BOOL:${BUILD_SC2_RENDERER}>:<SDL.h$<ANGLE-R>>
+	                           )                              # $<ANGLE-R> is `>`
+endif ()
 
-set (CMAKE_CXX_MODULE_STD 1) # Tells CMake to build `import std`
+target_link_libraries (
+				SchlapBot PUBLIC
+				project_warnings
+				sc2protocol
+				civetweb-c-library
+				$<$<BOOL:${BUILD_SC2_RENDERER}>:sc2renderer>)
+
+file (GLOB_RECURSE LEGACY_FILES CONFIGURE_DEPENDS
+      "api/*.cc" "api/*.h"
+      "lib/*.cc" "lib/*.cpp" "lib/*.h"
+      "utils/*.cc" "utils/*.h")
+target_sources (SchlapBot PRIVATE ${LEGACY_FILES})
+
 set (CMAKE_CXX_SCAN_FOR_MODULES ON)
+file (GLOB_RECURSE MODULES CONFIGURE_DEPENDS
+      "api/*.cppm"
+      "lib/*.cppm"
+      "renderer/*.cppm"
+      "utils/*.cppm"
+      )
+set_source_files_properties ( # Disable PCH force-inclusion for module files
+				${MODULES} # The invisible header interferes with the module header
+				PROPERTIES SKIP_PRECOMPILE_HEADERS ON # which needs to be the first line
+				)
+target_sources (SchlapBot PUBLIC
+                FILE_SET CXX_MODULES
+                FILES
+                ${MODULES}
+                SchlapBot.cppm
+                )
 
-if (MINGW)
-    target_link_options(SchlapBot PRIVATE -mconsole)
+# Platform-specific system networking and threading libraries
+if (WIN32)
+	target_link_libraries (SchlapBot PUBLIC ws2_32 winmm)
 endif ()
-
-target_sources(SchlapBot
-    PUBLIC
-        FILE_SET CXX_MODULES
-        FILES
-        SchlapBot.cppm
-)
-
-target_link_libraries(SchlapBot PUBLIC
-        project_warnings
-        sc2protocol
-        sc2utils
-        sc2lib
-        sc2api
-        $<$<BOOL:${BUILD_SC2_RENDERER}>:sc2renderer>
-)
 
 if (BUILD_FOR_LADDER)
-    target_compile_definitions(SchlapBot PRIVATE BUILD_FOR_LADDER)
+	target_compile_definitions (SchlapBot PRIVATE BUILD_FOR_LADDER)
 endif ()

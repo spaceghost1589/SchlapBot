@@ -1,0 +1,55 @@
+/*! \file server.h
+    \brief A basic websocket server for sc2.
+*/
+
+#pragma once
+
+#include <mutex>
+#include <queue>
+#include <utility>
+#include <vector>
+
+struct mg_connection;
+struct mg_context;
+
+namespace SC2APIProtocol {
+class Request;
+class Response;
+} // namespace SC2APIProtocol
+
+namespace sc2 {
+using RequestData = std::pair<mg_connection*, SC2APIProtocol::Request*>;
+using ResponseData = std::pair<mg_connection*, SC2APIProtocol::Response*>;
+
+class Server {
+    public:
+        ~Server();
+
+        bool Listen(const char* listeningPorts, const char* requestTimeoutMs, const char* websocketTimeoutMs,
+                    const char* numThreads);
+
+        void QueueRequest(mg_connection* conn, SC2APIProtocol::Request*& request);
+        void QueueResponse(mg_connection* conn, SC2APIProtocol::Response*& response);
+
+        // If no connection is provided send it to the first connection attained.
+        void SendRequest(mg_connection* conn = nullptr);
+        void SendResponse(mg_connection* conn = nullptr);
+
+        bool HasRequest();
+        bool HasResponse();
+
+        const RequestData& PeekRequest();
+        const ResponseData& PeekResponse();
+
+        std::vector<const mg_connection*> connections_;
+
+    private:
+        mg_context* mg_context_ = nullptr;
+
+        std::queue<RequestData> requests_;
+        std::queue<ResponseData> responses_;
+
+        std::mutex request_mutex_;
+        std::mutex response_mutex_;
+};
+} // namespace sc2
