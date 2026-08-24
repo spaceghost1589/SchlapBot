@@ -1,12 +1,13 @@
 #pragma once
 
+#include "connection.h"
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
 
-#include "s2clientprotocol/sc2api.pb.h"
+#include <s2clientprotocol/sc2api.pb.h>
 
-#include "connection.h"
 #include "civetweb.h"
 
 using sc2::Connection, std::cout;

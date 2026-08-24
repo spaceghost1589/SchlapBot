@@ -8,7 +8,7 @@ AccessModifierOffset: -4
 IndentWidth: 4
 UseTab: Never
 TabWidth: 4
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 4
 AlignAfterOpenBracket: true
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
@@ -95,11 +95,11 @@ BinPackArguments: false
 BinPackLongBracedList: true
 BinPackParameters: OnePerLine
 BitFieldColonSpacing: After
-BreakBeforeBraces: Attach
+BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: true
-  AfterControlStatement: MultiLine
+  AfterControlStatement: Always
   AfterEnum: false
   AfterFunction: false
   AfterNamespace: false
@@ -184,7 +184,7 @@ LineEnding: LF
 #Macros:
 #MacrosSkippedByRemoveParentheses:
 MainIncludeChar: Any
-MaxEmptyLinesToKeep: 2
+MaxEmptyLinesToKeep: 2 # Can be overridden by RemoveEmptyLinesInUnwrappedLines
 NamespaceIndentation: None
 #NamespaceMacros:
 NumericLiteralCase:
@@ -259,7 +259,7 @@ SpaceAfterOperatorKeyword: true
 SpaceAfterTemplateKeyword: false
 SpaceAroundPointerQualifiers: Default
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeCaseColon: false
+SpaceBeforeCaseColon: true
 SpaceBeforeCpp11BracedList: true
 SpaceBeforeCtorInitializerColon: false
 SpaceBeforeInheritanceColon: true
@@ -289,9 +289,9 @@ SpacesInParens: Custom
 SpacesInParensOptions:
   ExceptDoubleParentheses: true
   InConditionalStatements: true
-  InCStyleCasts: false
+  InCStyleCasts: true
   InEmptyParentheses: true
-  Other: false
+  Other: true
 SpacesInSquareBrackets: false
 StatementAttributeLikeMacros: [ ]
 #StatementMacros:

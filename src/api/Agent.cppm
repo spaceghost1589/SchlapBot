@@ -11,7 +11,7 @@ ObservationInterface, issue blocking commands (such as pathing queries) via the 
 and override library provided events in ClientEvents.
 */
 
-import client;
+import Client;
 namespace sc2 {
 
 class AgentControlImpl;

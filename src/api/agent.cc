@@ -16,7 +16,6 @@ namespace sc2 {
 
 class ActionImpl : public ActionInterface {
 public:
-    ProtocolInterface& proto_;
     GameRequestPtr     request_actions_;
     ControlInterface&  control_;
 
@@ -49,11 +48,11 @@ public:
     Tags commands_;
 };
 
-ActionImpl::ActionImpl(ProtocolInterface& proto, ControlInterface& control) : proto_(proto), control_(control) {}
+ActionImpl::ActionImpl(ControlInterface& control) : control_(control) {}
 
 SC2APIProtocol::RequestAction* ActionImpl::GetRequestAction() {
     if (request_actions_ == nullptr) {
-        request_actions_ = proto_.MakeRequest();
+        request_actions_ = ProtoFace::.MakeRequest();
     }
     return request_actions_->mutable_action();
 }
@@ -69,7 +68,7 @@ void ActionImpl::SendActions() {
         return;
     }
 
-    if (!proto_.SendRequest(request_actions_)) {
+    if (!ProtoFace::.SendRequest(request_actions_)) {
         return;
     }
 
@@ -246,7 +245,6 @@ void ActionImpl::UnitCommand(const Tags& tags, AbilityID ability, const Tag targ
 
 class ActionFeatureLayerImpl : public ActionFeatureLayerInterface {
 public:
-    ProtocolInterface&   proto_;
     ControlInterface& control_;
     GameRequestPtr    request_actions_;
 
@@ -263,12 +261,12 @@ public:
     void SendActions() override;
 };
 
-ActionFeatureLayerImpl::ActionFeatureLayerImpl(ProtocolInterface& proto, ControlInterface& control)
-    : proto_(proto), control_(control) {}
+ActionFeatureLayerImpl::ActionFeatureLayerImpl(ControlInterface& control)
+    : control_(control) {}
 
 SC2APIProtocol::RequestAction* ActionFeatureLayerImpl::GetRequestAction() {
     if (request_actions_ == nullptr) {
-        request_actions_ = proto_.MakeRequest();
+        request_actions_ = ProtoFace::.MakeRequest();
     }
     return request_actions_->mutable_action();
 }
@@ -278,7 +276,7 @@ void ActionFeatureLayerImpl::SendActions() {
         return;
     }
 
-    if (!proto_.SendRequest(request_actions_)) {
+    if (!ProtoFace::.SendRequest(request_actions_)) {
         return;
     }
 

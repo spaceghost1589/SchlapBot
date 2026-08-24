@@ -4,14 +4,15 @@
 
 #include <stdint.h>
 
-#include "s2clientprotocol/common.pb.h"
-#include "s2clientprotocol/raw.pb.h"
-#include "s2clientprotocol/score.pb.h"
+#include <s2clientprotocol/common.pb.h>
+#include <s2clientprotocol/raw.pb.h>
+#include <s2clientprotocol/score.pb.h>
 
 #include "api/unit.h"
 #include "api/unit_filters.h"
 #include "lib/action.h"
 #include "lib/typeids/5.0.14_typeenums.h"
+#include "utils/macro/message_response.h"
 
 import map_info;
 import protocol_interface;

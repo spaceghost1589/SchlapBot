@@ -1,5 +1,5 @@
 #pragma once
-
+#include <functional>
 #include <stdint.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -12,7 +12,8 @@ import points;
 namespace sc2 {
 
 //! An order that is active on a unit.
-struct UnitOrder {
+struct UnitOrder
+{
     //! Ability ID that triggered the order.
     AbilityID ability_id      = ABILITY_ID::INVALID;
     //! Target unit of the order, if there is one.
@@ -24,7 +25,8 @@ struct UnitOrder {
 };
 
 //! A passenger on a transport.
-struct PassengerUnit {
+struct PassengerUnit
+{
     //! The tag of the unit in the transport.
     Tag        tag        = NullTag;
     //! The health of the unit in the transport.
@@ -44,10 +46,11 @@ struct PassengerUnit {
 };
 
 //! A unit. Could be a structure, a worker or a military unit.
-class Unit {
+class Unit
+{
 public:
     //! If the unit is shown on screen or not.
-    enum DisplayType {
+    enum DisplayType : uint8_t {
         //! Unit will be visible.
         Visible     = 1,
         //! Unit is represented by a snapshot in the fog-of-war. This is for
@@ -61,7 +64,7 @@ public:
     };
 
     //! Relationship to this player.
-    enum Alliance {
+    enum Alliance : uint8_t {
         //! Belongs to the player.
         Self    = 1,
         //! Ally of the player.
@@ -73,7 +76,7 @@ public:
     };
 
     //! Unit cloak state.
-    enum CloakState {
+    enum CloakState : uint8_t {
         //! Under the fog, so unknown whether it's cloaked or not.
         CloakedUnknown  = 0,
         //! Cloaked enemy units, invisible until detected.
@@ -197,10 +200,10 @@ public:
 
     //! Whether the unit construction/training completed.
     [[nodiscard]]
-    bool IsBuildFinished () const;
+    bool IsBuildFinished ( ) const;
 
     // ReSharper disable once CppNonExplicitConversionOperator
-    operator Point2D&() {
+    operator Point2D&( ) {
         return pos;
     }
 
@@ -210,84 +213,86 @@ using Units      = std::vector<const Unit*>;
 using Tags       = std::vector<Tag>;
 using UnitIdxMap = std::unordered_map<Tag, size_t>;
 
-Tags ConvertToTags (const Units& units);
+Tags ConvertToTags ( const Units& units );
 
-struct UnitDamage {
+struct UnitDamage
+{
     const Unit* unit;
     float       health;
     float       shields;
 };
 
-
 using UnitsDamaged = std::vector<UnitDamage>;
 
-class UnitPool {
+class UnitPool
+{
 public:
-    Unit* CreateUnit (Tag tag);
+    Unit* CreateUnit ( Tag tag );
     [[nodiscard]]
-    Unit* GetUnit (Tag tag) const;
+    Unit* GetUnit ( Tag tag ) const;
     [[nodiscard]]
-    Unit* GetExistingUnit (Tag tag) const;
-    void  MarkDead (Tag tag);
+    Unit* GetExistingUnit ( Tag tag ) const;
+    void  MarkDead ( Tag tag );
 
     // TODO(?): Change alive -> Exist
     void ForEachExistingUnit (
-            const std::function<void (Unit& unit)>& functor
+        const std::function<void ( Unit& unit )>& functor
     ) const;
-    void ClearExisting ();
-    bool UnitExists (Tag tag);
+    void ClearExisting ( );
+    bool UnitExists ( Tag tag );
 
     [[nodiscard]]
-    const Units& GetNewUnits () const noexcept {
+    const Units& GetNewUnits ( ) const noexcept {
         return units_newly_created_;
     }
 
     [[nodiscard]]
-    const Units& GetUnitsEnteringVision () const noexcept {
+    const Units& GetUnitsEnteringVision ( ) const noexcept {
         return units_entering_vision_;
     }
 
     [[nodiscard]]
-    const Units& GetCompletedBuildings () const noexcept {
+    const Units& GetCompletedBuildings ( ) const noexcept {
         return buildings_constructed_;
     }
 
     [[nodiscard]]
-    const UnitsDamaged& GetDamagedUnits () const noexcept {
+    const UnitsDamaged& GetDamagedUnits ( ) const noexcept {
         return units_damaged_;
     }
 
     [[nodiscard]]
-    const std::unordered_set<const Unit*>& GetIdledUnits () const noexcept {
+    const std::unordered_set<const Unit*>& GetIdledUnits ( ) const noexcept {
         return units_idled_;
     }
 
-    void AddNewUnit (const Unit* u) {
-        units_newly_created_.push_back (u);
+    void AddNewUnit ( const Unit* u ) {
+        units_newly_created_.push_back ( u );
     }
 
-    void AddUnitEnteredVision (const Unit* u) {
-        units_entering_vision_.push_back (u);
+    void AddUnitEnteredVision ( const Unit* u ) {
+        units_entering_vision_.push_back ( u );
     }
 
-    void AddCompletedBuilding (const Unit* u) {
-        buildings_constructed_.push_back (u);
+    void AddCompletedBuilding ( const Unit* u ) {
+        buildings_constructed_.push_back ( u );
     }
 
-    void AddUnitIdled (const Unit* u) {
-        if ( u->alliance == Unit::Alliance::Self ) {
-            units_idled_.insert (u);
+    void AddUnitIdled ( const Unit* u ) {
+        if ( u->alliance == Unit::Alliance::Self )
+        {
+            units_idled_.insert ( u );
         }
     }
 
-    void AddUnitDamaged (const Unit* u, float health, float shield) {
+    void AddUnitDamaged ( const Unit* u, float health, float shield ) {
         units_damaged_.push_back (
-                {.unit = u, .health = health, .shields = shield}
+            { .unit = u, .health = health, .shields = shield }
         );
     }
 
 private:
-    void IncrementIndex ();
+    void IncrementIndex ( );
 
     static constexpr size_t         ENTRY_SIZE = 1000;
     // std::array<Unit, ENTRY_SIZE>

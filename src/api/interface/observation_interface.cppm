@@ -2,6 +2,7 @@ module;
 #include <functional>
 #include <limits>
 
+#include "lib/typeids/5.0.14_typeenums.h"
 // #include "api/control_interfaces.h"
 #include "api/data.h"
 #include "api/proto_to_pods.h"
@@ -9,6 +10,7 @@ module;
 #include "utils/macro/message_response.h"
 export module Client:observation_interface;
 import enum_db;
+import error_handler;
 import map_info;
 import points;
 import score;
@@ -20,16 +22,18 @@ namespace {
 
 using std::function, std::numeric_limits;
 
+
 class ControlInterface;
-class ProtocolInterface;
 
 } // namespace
 
 export namespace sc2 {
 
-class ObservationInterface {
-    ControlInterface&  control_face_;
-    ProtocolInterface& proto_face_;
+//! The ObservationInterface reflects the current state of the game.
+//! Guaranteed to be valid when OnGameStart or OnStep is called.
+class ObservationInterface
+{
+    ControlInterface& control_face_;
 
     ObservationPtr&         observation_ptr_;
     ResponseObservationPtr& response_observation_ptr;
@@ -90,18 +94,16 @@ class ObservationInterface {
 
     ObservationInterface (
             ControlInterface&       control_face,
-            ProtocolInterface&      proto_face,
-            ObservationPtr&         observation_ptr,
+            ObservationPtr&         observation,
             ResponseObservationPtr& response
-
     ):
-            control_face_ (control_face),
-            proto_face_ (proto_face),
-            observation_ptr_ (observation_ptr),
-            response_observation_ptr (response),
-            // Sets game_loop_ to max so that on loop++ it overflows to 0.
-            current_game_loop_ (numeric_limits<uint32_t>::max( )),
-            previous_game_loop (numeric_limits<uint32_t>::max( )) {
+        control_face_ ( control_face ),
+        observation_ptr_ ( observation ),
+        response_observation_ptr ( response ),
+        // Sets game_loop_ to max so that on loop++ it overflows to 0.
+        current_game_loop_ ( numeric_limits<uint32_t>::max( ) ),
+        previous_game_loop ( numeric_limits<uint32_t>::max( ) )
+    {
         ClearFlags( );
     }
 
@@ -133,17 +135,17 @@ class ObservationInterface {
     //! @return List of all ally and visible enemy and neutral units.
     Units GetUnits ( ) const {
         Units units;
-        unit_pool_.ForEachExistingUnit ([&] (const Unit& unit) {
-            units.push_back (&unit);
-        });
+        unit_pool_.ForEachExistingUnit ( [&] ( const Unit& unit ) {
+            units.push_back ( &unit );
+        } );
         return units;
     }
 
     //! Get the unit state as represented by the last call to GetObservation.
     //! @param tag Unique tag of the unit.
     //! @return Pointer to the Unit object.
-    const Unit* GetUnit (Tag tag) const {
-        return unit_pool_.GetExistingUnit (tag);
+    const Unit* GetUnit ( Tag tag ) const {
+        return unit_pool_.GetExistingUnit ( tag );
     }
 
     //! Used to filter out units when querying. You can use this filter to
@@ -154,7 +156,7 @@ class ObservationInterface {
     //! @return Whether or not to filter the unit in or out of the list.
     //! true will add the unit, false will leave it out of the list.
     //! @sa GetUnits()
-    using Filter = function<bool (const Unit& unit)>;
+    using Filter = function<bool ( const Unit& unit )>;
 
     //! Get all units belonging to self that meet the conditions provided by
     //! the filter. The unit structure is const data only. Therefore editing
@@ -164,7 +166,7 @@ class ObservationInterface {
     //! units in the list.
     //! @return A list of units that meet the conditions provided by the
     //! filter.
-    Units GetUnits (const Filter& filter) const;
+    Units GetUnits ( const Filter& filter ) const;
 
     //! Get all units belonging to a certain alliance and meet the
     //! conditions provided by the filter. The unit structure is const data
@@ -175,17 +177,19 @@ class ObservationInterface {
     //! units in the list.
     //! @return A list of units that meet the conditions provided by
     //! alliance and filter.
-    Units GetUnits (Unit::Alliance alliance, const Filter& filter) const {
+    Units GetUnits ( Unit::Alliance alliance, const Filter& filter ) const {
         Units units;
-        unit_pool_.ForEachExistingUnit ([&] (const Unit& unit) {
-            if ( unit.alliance != alliance ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( const Unit& unit ) {
+            if ( unit.alliance != alliance )
+            {
                 return;
             }
 
-            if ( !filter || filter (unit) ) {
-                units.push_back (&unit);
+            if ( !filter || filter ( unit ) )
+            {
+                units.push_back ( &unit );
             }
-        });
+        } );
         return units;
     }
 
@@ -239,41 +243,330 @@ class ObservationInterface {
         return score_;
     }
 
-    virtual const Abilities& GetAbilityData (bool force_refresh = false) const;
-
-    // TODO Refactor
-    AbilityID GetGeneralizedAbilityID (uint32_t ability_id) const {
-        if ( ability_id == 0 ) // ABILITY_ID::INVALID
+    const Abilities& GetAbilityData ( bool force_refresh = false ) const {
+        if ( force_refresh || abilities_.size( ) < 1 )
         {
-            return AbilityID (ability_id);
+            abilities_cached_ = false;
         }
 
-        const Abilities& abilities = GetAbilityData( );
-        if ( ability_id >= abilities.size( ) ) {
-            assert (0);
-            return AbilityID (ability_id);
+        if ( abilities_cached_ )
+        {
+            return abilities_;
         }
 
-        if ( const AbilityData& ability = abilities[ability_id];
-             ability.remaps_to_ability_id != 0 ) {
-            return AbilityID (ability.remaps_to_ability_id);
+        abilities_.clear( );
+
+        // Send a request for ability ids.
+        const GameRequestPtr         request      = ProtoFace::MakeRequest( );
+        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        request_data->set_ability_id ( true );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return abilities_;
         }
 
-        return AbilityID (ability_id);
+        const GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseDataPtr       response_data;
+        SET_MESSAGE_RESPONSE ( response_data, response, data );
+        if ( response_data.HasErrors( ) ||
+             response_data->abilities_size( ) == 0 )
+        {
+            return abilities_;
+        }
+
+        abilities_.resize ( response_data->abilities_size( ) );
+        for ( int i = 0; i < response_data->abilities_size( ); ++i )
+        {
+            AbilityData& ability_data = abilities_[i];
+            ability_data.ability_id   = i;
+            ability_data.remaps_from_ability_id.clear( );
+            ability_data.ReadFromProto ( response_data->abilities ( i ) );
+        }
+
+        for ( AbilityData& ability_data : abilities_ )
+        {
+            if ( ability_data.remaps_to_ability_id == 0 ) continue;
+
+            if ( ability_data.remaps_to_ability_id >= abilities_.size( ) )
+            {
+                Error::Log ( ClientError::InvalidAbilityRemap );
+                ability_data.remaps_to_ability_id = 0;
+                continue;
+            }
+
+            abilities_[ability_data.remaps_to_ability_id]
+                    .remaps_from_ability_id.push_back (
+                            ability_data.ability_id
+                    );
+        }
+
+        abilities_cached_ = true;
+        return abilities_;
     }
 
-    virtual const UnitTypes& GetUnitTypeData (
-            bool force_refresh = false
-    ) const = 0;
-    ;
+    // // TODO Refactor
+    // AbilityID GetGeneralizedAbilityID ( uint32_t ability_id ) const {
+    //     if ( ability_id == 0 ) // ABILITY_ID::INVALID
+    //     {
+    //         return AbilityID ( ability_id );
+    //     }
+    //
+    //     generalize_ability
+    //
+    //     const Abilities& abilities = GetAbilityData( );
+    //     if ( ability_id >= abilities.size( ) )
+    //     {
+    //         assert ( 0 );
+    //         return AbilityID ( ability_id );
+    //     }
+    //
+    //     if ( const AbilityData& ability = abilities[ability_id];
+    //          ability.remaps_to_ability_id != 0 )
+    //     {
+    //         return AbilityID ( ability.remaps_to_ability_id );
+    //     }
+    //
+    //     return AbilityID ( ability_id );
+    // }
 
-    virtual const Upgrades& GetUpgradeData (bool force_refresh) const;
+    //! Gets metadata of units. Array can be indexed directly by UnitID.
+    //! \param force_refresh forces a full query from the game, may
+    //! otherwise cache data from a previous call.
+    //! \return Data about all units possible for the current game session.
+    const UnitTypes& GetUnitTypeData ( bool force_refresh = false ) {
+        if ( force_refresh || unit_types_.size( ) < 1 )
+        {
+            unit_types_cached = false;
+        }
 
-    virtual const Buffs& GetBuffData (bool force_refresh = false) const;
+        if ( unit_types_cached )
+        {
+            return unit_types_;
+        }
 
-    virtual const Effects& GetEffectData (bool force_refresh = false) const;
+        unit_types_.clear( );
 
-    virtual const GameInfo& GetGameInfo ( ) const = 0;
+        // Send a request for unit_type ids.
+        GameRequestPtr               request      = ProtoFace::MakeRequest( );
+        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        request_data->set_unit_type_id ( true );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return unit_types_;
+        }
+
+        GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseDataPtr response_data;
+        SET_MESSAGE_RESPONSE ( response_data, response, data );
+        if ( response_data.HasErrors( ) )
+        {
+            return unit_types_;
+        }
+
+        if ( response_data.HasErrors( ) || response_data->units_size( ) == 0 )
+        {
+            return unit_types_;
+        }
+
+        unit_types_.resize ( response_data->units_size( ) );
+        for ( int i = 0; i < response_data->units_size( ); ++i )
+        {
+            UnitTypeData& unit = unit_types_[i];
+            unit.unit_type_id  = i;
+            unit.ReadFromProto ( response_data->units ( i ) );
+        }
+
+        unit_types_cached = true;
+        return unit_types_;
+    }
+
+    //! Gets metadata of upgrades. Array can be indexed directly by
+    //! UpgradeID.
+    //! @param force_refresh forces a full query from the game, may
+    //! otherwise cache data from a previous call.
+    //! @return Data about all upgrades possible for the current game
+    //! session.
+    const Upgrades& GetUpgradeData ( bool force_refresh = false ) const {
+        if ( force_refresh || upgrade_ids_.size( ) < 1 )
+        {
+            upgrades_cached_ = false;
+        }
+
+        if ( upgrades_cached_ )
+        {
+            return upgrade_ids_;
+        }
+
+        upgrade_ids_.clear( );
+
+        GameRequestPtr               request      = ProtoFace::MakeRequest( );
+        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        request_data->set_upgrade_id ( true );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return upgrade_ids_;
+        }
+
+        const GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseDataPtr       response_data;
+        SET_MESSAGE_RESPONSE ( response_data, response, data );
+        if ( response_data.HasErrors( ) )
+        {
+            return upgrade_ids_;
+        }
+
+        if ( response_data.HasErrors( ) ||
+             response_data->upgrades_size( ) == 0 )
+        {
+            return upgrade_ids_;
+        }
+
+        upgrade_ids_.resize ( response_data->upgrades_size( ) );
+        for ( int i = 0; i < response_data->upgrades_size( ); ++i )
+        {
+            UpgradeData& upgrade = upgrade_ids_[i];
+            upgrade.upgrade_id   = i;
+            upgrade.ReadFromProto ( response_data->upgrades ( i ) );
+        }
+
+        upgrades_cached_ = true;
+        return upgrade_ids_;
+    }
+
+    //! Gets metadata of buffs. Array can be indexed directly by BuffID.
+    //! \param force_refresh forces a full query from the game, may
+    //! otherwise cache data from a previous call.
+    //! \return Data about all buffs possible for the current game session.
+    const Buffs& GetBuffData ( bool force_refresh = false ) const {
+        if ( force_refresh || buff_ids_.size( ) < 1 )
+        {
+            buffs_cached_ = false;
+        }
+
+        if ( buffs_cached_ )
+        {
+            return buff_ids_;
+        }
+
+        buff_ids_.clear( );
+
+        GameRequestPtr               request      = ProtoFace::MakeRequest( );
+        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        request_data->set_buff_id ( true );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return buff_ids_;
+        }
+
+        GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseDataPtr response_data;
+        SET_MESSAGE_RESPONSE ( response_data, response, data );
+        if ( response_data.HasErrors( ) )
+        {
+            return buff_ids_;
+        }
+
+        if ( response_data.HasErrors( ) || response_data->buffs_size( ) == 0 )
+        {
+            return buff_ids_;
+        }
+
+        buff_ids_.resize ( response_data->buffs_size( ) );
+        for ( int i = 0; i < response_data->buffs_size( ); ++i )
+        {
+            BuffData& buff = buff_ids_[i];
+            buff.buff_id   = i;
+            buff.ReadFromProto ( response_data->buffs ( i ) );
+        }
+
+        buffs_cached_ = true;
+        return buff_ids_;
+    }
+
+    //! @brief Gets metadata of effects. Array can be indexed directly by
+    //! EffectID.
+    //! @param force_refresh { forces a full query from the game, may
+    //! otherwise cache data from a previous call. }
+    //! @return Effects Data about all effects possible for the current game
+    //! session.
+    const Effects& GetEffectData ( bool force_refresh = false ) const {
+        if ( force_refresh || effect_ids_.empty( ) )
+        {
+            effects_cached_ = false;
+        }
+
+        if ( effects_cached_ )
+        {
+            return effect_ids_;
+        }
+
+        effect_ids_.clear( );
+
+        GameRequestPtr               request      = ProtoFace::MakeRequest( );
+        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        request_data->set_effect_id ( true );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return effect_ids_;
+        }
+
+        const GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseDataPtr       response_data;
+        SET_MESSAGE_RESPONSE ( response_data, response, data );
+        if ( response_data.HasErrors( ) )
+        {
+            return effect_ids_;
+        }
+
+        if ( response_data.HasErrors( ) || response_data->effects_size( ) == 0 )
+        {
+            return effect_ids_;
+        }
+
+        effect_ids_.resize ( response_data->effects_size( ) );
+        for ( int i = 0; i < response_data->effects_size( ); ++i )
+        {
+            effect_ids_[i].ReadFromProto ( response_data->effects ( i ) );
+        }
+
+        effects_cached_ = true;
+        return effect_ids_;
+    }
+
+    //! Gets the GameInfo struct for the current map.
+    //! \return The current GameInfo struct.
+    const GameInfo& GetGameInfo ( ) const {
+        if ( game_info_cached_ )
+        {
+            return game_info_;
+        }
+
+        GameRequestPtr request = ProtoFace::MakeRequest( );
+        request->mutable_game_info( );
+
+        if ( !ProtoFace::SendRequest ( request ) )
+        {
+            return game_info_;
+        }
+
+        const GameResponsePtr response = control_face_.WaitForResponse( );
+        ResponseGameInfoPtr   response_game_info;
+        SET_MESSAGE_RESPONSE ( response_game_info, response, game_info );
+        if ( response_game_info.HasErrors( ) )
+        {
+            return game_info_;
+        }
+
+        Convert ( response_game_info, game_info_ );
+
+        game_info_cached_ = true;
+        return game_info_;
+    }
 
     //! Returns 'true' if the given point has creep.
     //! \param point Position to sample.
@@ -308,10 +601,11 @@ class ObservationInterface {
     //! Returns visibility value of the given point for the current player.
     //! \param point Position to sample.
     //! \return Visibility.
-    Visibility GetVisibility (const Point2D& point) const {
+    Visibility GetVisibility ( const Point2D& point ) const {
         ObservationRawPtr observation_raw;
-        SET_SUBMESSAGE_RESPONSE (observation_raw, observation_ptr_, raw_data);
-        if ( observation_raw.HasErrors( ) ) {
+        SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_ptr_, raw_data );
+        if ( observation_raw.HasErrors( ) )
+        {
             return Visibility::FullHidden;
         }
 
@@ -320,13 +614,14 @@ class ObservationInterface {
         const SC2APIProtocol::ImageData& visibility = map_state.visibility( );
 
         unsigned char* value { };
-        if ( !ImageDataLocal (visibility)
-                      .GetBit<unsigned char*> (point, value) )
+        if ( !ImageDataLocal ( visibility )
+                      .GetBit<unsigned char*> ( point, value ) )
             return Visibility::FullHidden;
-        switch ( value ) {
-            case 0: return Visibility::Hidden;
-            case 1: return Visibility::Fogged;
-            case 2: return Visibility::Visible;
+        switch ( value )
+        {
+            case 0 : return Visibility::Hidden;
+            case 1 : return Visibility::Fogged;
+            case 2 : return Visibility::Visible;
         }
         return Visibility::FullHidden;
     }
@@ -336,8 +631,8 @@ class ObservationInterface {
     //! pathing results use QueryInterface::PathingDistance.
     //! \param point Position to sample.
     //! \return Pathable.
-    bool IsPathable (const Point2D& point) const {
-        return PathingGrid (GetGameInfo( )).IsPathable (point);
+    bool IsPathable ( const Point2D& point ) const {
+        return PathingGrid ( GetGameInfo( ) ).IsPathable ( point );
     }
 
     //! Returns 'true' if the given point on the terrain is buildable. This
@@ -345,15 +640,15 @@ class ObservationInterface {
     //! building placement results use QueryInterface::Placement.
     //! \param point Position to sample.
     //! \return Placable.
-    bool IsPlacable (const Point2D& point) const {
-        return PlacementGrid (GetGameInfo( )).IsPlacable (point);
+    bool IsPlacable ( const Point2D& point ) const {
+        return PlacementGrid ( GetGameInfo( ) ).IsPlacable ( point );
     }
 
     //! Returns terrain height of the given point.
     //! \param point Position to sample.
     //! \return Height.
-    float TerrainHeight (const Point2D& point) const {
-        return HeightMap (GetGameInfo( )).TerrainHeight (point);
+    float TerrainHeight ( const Point2D& point ) const {
+        return HeightMap ( GetGameInfo( ) ).TerrainHeight ( point );
     }
 
     //! The mineral count of the player.
@@ -454,7 +749,8 @@ class ObservationInterface {
 
     bool UpdateObservation ( ) {
         // Convert observation into data.
-        if ( !Convert (observation_ptr_, score_) ) {
+        if ( !Convert ( observation_ptr_, score_ ) )
+        {
             return false;
         }
 
@@ -465,8 +761,9 @@ class ObservationInterface {
 
         const SC2APIProtocol::PlayerCommon& player_common =
                 observation_ptr_->player_common( );
-        assert (player_common.has_player_id( ));
-        if ( player_common.has_player_id( ) ) {
+        assert ( player_common.has_player_id( ) );
+        if ( player_common.has_player_id( ) )
+        {
             player_id_ = player_common.player_id( );
         }
 
@@ -485,43 +782,50 @@ class ObservationInterface {
         larva_count_       = player_common.larva_count( );
 
         // Actions first, as the actions apply to the previous selection.
-        if ( is_new_frame ) {
+        if ( is_new_frame )
+        {
             raw_actions_.clear( );
             feature_layer_actions_ = SpatialActions( );
             rendered_actions_      = SpatialActions( );
         }
 
-        ConvertRawActions (response_observation_ptr, raw_actions_);
+        ConvertRawActions ( response_observation_ptr, raw_actions_ );
         ConvertFeatureLayerActions (
                 response_observation_ptr,
                 feature_layer_actions_
         );
-        ConvertRenderedActions (response_observation_ptr, rendered_actions_);
+        ConvertRenderedActions ( response_observation_ptr, rendered_actions_ );
 
         { // Remap ability ids.
-            for ( ActionRaw& action : raw_actions_ ) {
-                action.ability_id = GetGeneralizedAbilityID (action.ability_id);
+            for ( ActionRaw& action : raw_actions_ )
+            {
+                action.ability_id =
+                        GetGeneralizedAbilityID ( action.ability_id );
             }
             for ( SpatialUnitCommand& spatial_action :
-                  feature_layer_actions_.unit_commands ) {
+                  feature_layer_actions_.unit_commands )
+            {
                 spatial_action.ability_id =
-                        GetGeneralizedAbilityID (spatial_action.ability_id);
+                        GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
             for ( SpatialUnitCommand& spatial_action :
-                  rendered_actions_.unit_commands ) {
+                  rendered_actions_.unit_commands )
+            {
                 spatial_action.ability_id =
-                        GetGeneralizedAbilityID (spatial_action.ability_id);
+                        GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
         }
 
         chat_.clear( );
-        for ( const auto& message : response_observation_ptr->chat( ) ) {
-            chat_.push_back ({message.player_id( ), message.message( )});
+        for ( const auto& message : response_observation_ptr->chat( ) )
+        {
+            chat_.push_back ( { message.player_id( ), message.message( ) } );
         }
 
         ObservationRawPtr observation_raw;
-        SET_SUBMESSAGE_RESPONSE (observation_raw, observation_ptr_, raw_data);
-        if ( observation_raw.HasErrors( ) ) {
+        SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_ptr_, raw_data );
+        if ( observation_raw.HasErrors( ) )
+        {
             return false;
         }
 
@@ -534,28 +838,33 @@ class ObservationInterface {
         );
 
         // Remap ability ids in orders.
-        unit_pool_.ForEachExistingUnit ([&] (Unit& unit) {
-            for ( UnitOrder& unit_order : unit.orders ) {
-                if ( use_generalized_ability_ ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( Unit& unit ) {
+            for ( UnitOrder& unit_order : unit.orders )
+            {
+                if ( use_generalized_ability_ )
+                {
                     unit_order.ability_id =
-                            GetGeneralizedAbilityID (unit_order.ability_id);
+                            GetGeneralizedAbilityID ( unit_order.ability_id );
                 }
             }
-        });
+        } );
 
         effects_.clear( );
-        effects_.resize (observation_raw->effects_size( ));
-        for ( int i = 0; i < observation_raw->effects_size( ); ++i ) {
-            effects_[i].ReadFromProto (observation_raw->effects (i));
+        effects_.resize ( observation_raw->effects_size( ) );
+        for ( int i = 0; i < observation_raw->effects_size( ); ++i )
+        {
+            effects_[i].ReadFromProto ( observation_raw->effects ( i ) );
         }
 
-        if ( !observation_raw->has_player( ) ) {
+        if ( !observation_raw->has_player( ) )
+        {
             return false;
         }
 
         const SC2APIProtocol::PlayerRaw& player_raw =
                 observation_raw->player( );
-        if ( !player_raw.has_camera( ) ) {
+        if ( !player_raw.has_camera( ) )
+        {
             return false;
         }
 
@@ -563,32 +872,32 @@ class ObservationInterface {
         camera_pos_.y = player_raw.camera( ).y( );
 
         power_sources_.clear( );
-        for ( int i = 0, e = player_raw.power_sources_size( ); i < e; ++i ) {
+        for ( int i = 0, e = player_raw.power_sources_size( ); i < e; ++i )
+        {
             const SC2APIProtocol::PowerSource& power_source =
-                    player_raw.power_sources (i);
-            power_sources_.push_back (PowerSource (
-                    Point2D (
-                            power_source.pos( ).x( ),
-                            power_source.pos( ).y( )
-                    ),
+                    player_raw.power_sources ( i );
+            power_sources_.push_back ( PowerSource (
+                    Point2D ( power_source.pos( ) ),
                     power_source.radius( ),
                     power_source.tag( )
-            ));
+            ) );
         }
 
         upgrades_previous_ = upgrades_;
         upgrades_.clear( );
-        for ( int i = 0; i < player_raw.upgrade_ids_size( ); ++i ) {
-            upgrades_.push_back (player_raw.upgrade_ids (i));
+        for ( int i = 0; i < player_raw.upgrade_ids_size( ); ++i )
+        {
+            upgrades_.push_back ( player_raw.upgrade_ids ( i ) );
         }
 
         player_results_.clear( );
         for ( const auto& player_result :
-              response_observation_ptr->player_result( ) ) {
-            player_results_.push_back (PlayerResult (
+              response_observation_ptr->player_result( ) )
+        {
+            player_results_.push_back ( PlayerResult (
                     player_result.player_id( ),
-                    ConvertGameResultFromProto (player_result.result( ))
-            ));
+                    ConvertGameResultFromProto ( player_result.result( ) )
+            ) );
         }
 
         return true;
@@ -606,13 +915,14 @@ static bool ImageDataLocal (
 ) {
     const Point2DI pointI = point;
     // Check to see that the point is within the map space
-    if ( pointI.x >= width || pointI.y >= height ) {
+    if ( pointI.x >= width || pointI.y >= height )
+    {
         return false;
     }
 
     // Image data is stored with an upper left origin.
-    assert (data.size( ) == width * height);
-    result = data[pointI.x + (height - 1 - pointI.y) * width];
+    assert ( data.size( ) == width * height );
+    result = data[pointI.x + ( height - 1 - pointI.y ) * width];
     return true;
 }
 

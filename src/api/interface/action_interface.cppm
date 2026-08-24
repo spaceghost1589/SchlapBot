@@ -1,9 +1,8 @@
-//
-// Created by Sean on 20-Aug-26.
-//
-
+module;
+#include "api/unit.h"
 export module action_interface;
 
+namespace sc2 {
 //! The ActionInterface issues actions to units in a game. Not available in
 //! replays. Guaranteed to be valid when the OnStep event is called.
 class ActionInterface {
@@ -158,3 +157,4 @@ public:
     //! batch all of those unit commands and send them at once.
     virtual void SendActions() = 0;
 };
+} // namespace sc2

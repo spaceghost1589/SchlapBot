@@ -12,8 +12,7 @@ if (BUILD_SC2_RENDERER) # Process optional Renderer
 endif ()
 
 # Define the bot executable and link everything
-add_executable (SchlapBot main.cpp
-api/interface/action_interface.cppm)
+add_executable (SchlapBot main.cpp)
 
 if (CACHE_DEPENDENCIES)
 	target_precompile_headers (SchlapBot PRIVATE

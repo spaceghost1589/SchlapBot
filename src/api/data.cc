@@ -12,19 +12,12 @@
 using std::string, std::to_string;
 
 namespace sc2 {
-AbilityData::AbilityData()
-    : available(false),
-      ability_id(0),
-      link_index(0),
-      remaps_to_ability_id(0),
-      target(Target::None),
-      allow_minimap(false),
-      allow_autocast(false),
-      is_building(false),
-      footprint_radius(0.0f),
-      is_instant_placement(false),
-      cast_range(0.0f) {
-}
+AbilityData::AbilityData( ):
+    ability_id ( 0 ),
+    target ( Target::None ),
+    available ( false ),
+    is_structure ( false ),
+    is_instant_placement ( false ) {}
 
 void AbilityData::ReadFromProto(const SC2APIProtocol::AbilityData& ability_data) {
     // ability_id_
@@ -36,38 +29,6 @@ void AbilityData::ReadFromProto(const SC2APIProtocol::AbilityData& ability_data)
     available = false;
     if (ability_data.has_available()) {
         available = ability_data.available();
-    }
-
-    // link_name_
-    if (ability_data.has_link_name()) {
-        link_name = ability_data.link_name();
-    }
-
-    // link_index_
-    link_index = 0;
-    if (ability_data.has_link_index()) {
-        link_index = ability_data.link_index();
-    }
-
-    // button_name_
-    if (ability_data.has_button_name()) {
-        button_name = ability_data.button_name();
-    }
-
-    // friendly_name_
-    if (ability_data.has_friendly_name()) {
-        friendly_name = ability_data.friendly_name();
-    }
-
-    // hotkey_
-    if (ability_data.has_hotkey()) {
-        hotkey = ability_data.hotkey();
-    }
-
-    // Remaps.
-    remaps_to_ability_id = 0;
-    if (ability_data.has_remaps_to_ability_id()) {
-        remaps_to_ability_id = ability_data.remaps_to_ability_id();
     }
 
     // target_
@@ -97,22 +58,10 @@ void AbilityData::ReadFromProto(const SC2APIProtocol::AbilityData& ability_data)
         }
     }
 
-    // allow_minimap_
-    allow_minimap = false;
-    if (ability_data.has_allow_minimap()) {
-        allow_minimap = ability_data.allow_minimap();
-    }
-
-    // allow_minimap_
-    allow_autocast = false;
-    if (ability_data.has_allow_autocast()) {
-        allow_autocast = ability_data.allow_autocast();
-    }
-
     // is_building_
-    is_building = false;
+    is_structure = false;
     if (ability_data.has_is_building()) {
-        is_building = ability_data.is_building();
+        is_structure = ability_data.is_building();
     }
 
     // footprint_radius_
@@ -133,40 +82,23 @@ void AbilityData::ReadFromProto(const SC2APIProtocol::AbilityData& ability_data)
 }
 
 string AbilityData::Log() const {
-    string str_out = ability_id.to_string() + ":\n";
-    if (button_name.length() > 0) {
-        str_out += "  Button: " + button_name + "\n";
-    }
-    if (hotkey.length() > 0) {
-        str_out += "  Hotkey: " + hotkey + "\n";
-    }
-    str_out += "  " + (link_name.length() > 0 ? link_name : "Null") + ", " + to_string(link_index) + "\n";
-    if (is_building) {
-        str_out += "  Building footprint: " + to_string(footprint_radius) + "\n";
-    }
+    std::string str_out;
 
-    switch (target) {
-        case Target::Point: {
-            str_out += "  Target: Point\n";
-            break;
-        }
-        case Target::Unit: {
-            str_out += "  Target: Unit\n";
-            break;
-        }
-        case Target::PointOrUnit: {
-            str_out += "  Target: Point or unit\n";
-            break;
-        }
-        case Target::None:
-        default: {
-            str_out += "  Target: None\n";
-            break;
-        }
-    }
-
-    str_out += "  Autocast: " + string(allow_autocast ? "Yes" : "No") + "\n";
-    str_out += "  Minimap: " + string(allow_minimap ? "Yes" : "No") + "\n";
+    str_out = ability_id.to_string() + ":\n";
+    str_out += std::format("  Available: {}\n", available ? "true" : "false");
+    str_out += "  Link Name: " + link_name + "\n";
+    str_out += "  Link Index: " + std::to_string(link_index) + "\n";
+    str_out += "  Button: " + button_name + "\n";
+    str_out += "  Friendly Name: " + friendly_name + "\n";
+    str_out += "  Hotkey: " + hotkey + "\n";
+    str_out += "  General: " + std::to_string(remaps_to_ability_id) + "\n";
+    str_out += "  Target: " + TargetToName(target) + "\n";
+    str_out += std::format("  Minimap: {}\n", allow_minimap ? "true" : "false");
+    str_out += std::format("  Autocast: {}\n", allow_autocast ? "true" : "false");
+    str_out += std::format("  Building: {}\n", is_building ? "true" : "false");
+    str_out += "  Radius: " + std::to_string(footprint_radius) + "\n";
+    str_out += std::format("  Instant Placement: {}\n", is_instant_placement ? "true" : "false");
+    str_out += "  Cast Range: " + std::to_string(cast_range) + "\n";
 
     return str_out;
 }
