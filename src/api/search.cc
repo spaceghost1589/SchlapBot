@@ -1,12 +1,10 @@
+#include "api/search.h"
+
 #include <cmath>
 #include <limits>
 #include <numbers>
 #include <vector>
-
-#include "search.h"
-#include "interfaces.h"
-
-import points;
+import common;
 
 namespace {
 constexpr float PI = std::numbers::pi_v<float>;

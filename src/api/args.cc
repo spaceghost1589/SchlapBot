@@ -4,10 +4,10 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "lib/game_settings.h"
 #include "utils/arg_parser.h"
 #include "utils/manage_process.h"
 #include "utils/property_reader.h"
+import game_settings;
 
 namespace sc2 {
 

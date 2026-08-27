@@ -1,18 +1,16 @@
-#include "api/agent.h"
-
-#include "api/control_interfaces.h"
-#include "api/interfaces.h"
 #include "api/unit.h"
 #include "lib/gametypes.h"
 #include "lib/typeids/5.0.14_typeenums.h"
 
-import points;
+import common;
 import protocol_interface;
 
 namespace sc2 {
-//-------------------------------------------------------------------------------------------------
-// ActionImpl: an implementation of an ActionInterface.
-//-------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+// ActionInterface.
+
+//------------------------------------------------------------------------------
 
 class ActionImpl : public ActionInterface {
 public:
@@ -239,39 +237,83 @@ void ActionImpl::UnitCommand(const Tags& tags, AbilityID ability, const Tag targ
     }
 }
 
-//-------------------------------------------------------------------------------------------------
-// ActionFeatureLayerImp: an implementation of an ActionFeatureLayerInterface.
-//-------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-class ActionFeatureLayerImpl : public ActionFeatureLayerInterface {
+// ActionFeatureLayerInterface.
+
+//------------------------------------------------------------------------------
+
+//! The ActionFeatureLayerInterface emulates UI actions in feature layer. Not
+//! available in replays. Guaranteed to be valid when the OnStep event is
+//! called.
+class ActionFeatureLayerInterface {
 public:
     ControlInterface& control_;
     GameRequestPtr    request_actions_;
 
-    ActionFeatureLayerImpl(ProtocolInterface& proto, ControlInterface& control);
+    ActionFeatureLayerInterface (
+        ProtocolInterface& proto, ControlInterface& control
+    );
 
-    SC2APIProtocol::RequestAction* GetRequestAction();
+    virtual ~ActionFeatureLayerInterface ( ) = default;
 
-    void UnitCommand(AbilityID ability) override;
-    void UnitCommand(AbilityID ability, const Point2DI& point, bool minimap) override;
-    void CameraMove(const Point2DI& center) override;
-    void Select(const Point2DI& center, PointSelectionType selection_type) override;
-    void Select(const Point2DI& p0, const Point2DI& p1, bool add_to_selection) override;
+    SC2APIProtocol::RequestAction* ActionImp::GetRequestAction() {
+        if (request_actions_ == nullptr) {
+            request_actions_ = proto_.MakeRequest();
+        }
+        return request_actions_->mutable_action();
+    }
 
-    void SendActions() override;
+    //! Issues a command to whatever is selected. Self targeting.
+    //! @param ability The ability id of the command.
+    virtual void UnitCommand ( AbilityID ability ) = 0;
+
+    //! Issues a command to whatever is selected. Uses a point as a target for
+    //! the command.
+    //! @param ability The ability id of the command.
+    //! @param point The 2D world position to target.
+    //! @param minimap Target in the minimap instead of the map.
+    virtual void UnitCommand (
+        AbilityID ability, const Point2DI& point, bool minimap = false
+    ) = 0;
+
+    //! Moves the camera to be centered around a position. Coordinate is
+    //! position on minimap feature layer.
+    virtual void CameraMove ( const Point2DI& center ) = 0;
+
+    v//! Selection of a point, equivalent to clicking the mouse on a unit.
+    //! @param center The feature layer 'pixel' being clicked on.
+    //! @param selection_type Any modifier keys, for example if 'shift-click'
+    //! is desired.
+    virtual void Select (
+        const Point2DI& center, PointSelectionType selection_type
+    ) = 0;
+
+    //! Selection of an area, equivalent to click-dragging the mouse over an
+    //! area of the screen.
+    //! @param p0 The feature layer pixel where the first click occurs (mouse
+    //! button down).
+    //! @param p1 The feature layer pixel where the drag release occurs (mouse
+    //! button up).
+    //! @param add_to_selection Will add newly selected units to an existing
+    //! selection.
+    virtual void Select (
+        const Point2DI& p0, const Point2DI& p1, bool add_to_selection = false
+    ) = 0;
+
+    //! This function sends out all batched selection and unit commands. You DO
+    //! NOT need to call this function in non real time simulations since it is
+    //! automatically called when stepping the simulation forward. You only need
+    //! to call this function in a real time simulation.
+    virtual void SendActions ( ) = 0;
 };
 
-ActionFeatureLayerImpl::ActionFeatureLayerImpl(ControlInterface& control)
-    : control_(control) {}
 
-SC2APIProtocol::RequestAction* ActionFeatureLayerImpl::GetRequestAction() {
-    if (request_actions_ == nullptr) {
-        request_actions_ = ProtoFace::.MakeRequest();
-    }
-    return request_actions_->mutable_action();
+
+
 }
 
-void ActionFeatureLayerImpl::SendActions() {
+void SendActions() {
     if (request_actions_ == nullptr) {
         return;
     }
@@ -284,7 +326,7 @@ void ActionFeatureLayerImpl::SendActions() {
     control_.WaitForResponse();
 }
 
-void ActionFeatureLayerImpl::UnitCommand(AbilityID ability) {
+void UnitCommand(AbilityID ability) {
     SC2APIProtocol::RequestAction*            request_action       = GetRequestAction();
     SC2APIProtocol::Action*                   action               = request_action->add_actions();
     SC2APIProtocol::ActionSpatial*            action_feature_layer = action->mutable_action_feature_layer();
@@ -292,7 +334,7 @@ void ActionFeatureLayerImpl::UnitCommand(AbilityID ability) {
     unit_command->set_ability_id(ability);
 }
 
-void ActionFeatureLayerImpl::UnitCommand(AbilityID ability, const Point2DI& point, bool minimap) {
+void UnitCommand(AbilityID ability, const Point2DI& point, bool minimap) {
     SC2APIProtocol::RequestAction*            request_action       = GetRequestAction();
     SC2APIProtocol::Action*                   action               = request_action->add_actions();
     SC2APIProtocol::ActionSpatial*            action_feature_layer = action->mutable_action_feature_layer();
@@ -310,7 +352,7 @@ void ActionFeatureLayerImpl::UnitCommand(AbilityID ability, const Point2DI& poin
     unit_command->set_ability_id(ability);
 }
 
-void ActionFeatureLayerImpl::CameraMove(const Point2DI& center) {
+void CameraMove(const Point2DI& center) {
     SC2APIProtocol::RequestAction*           request_action       = GetRequestAction();
     SC2APIProtocol::Action*                  action               = request_action->add_actions();
     SC2APIProtocol::ActionSpatial*           action_feature_layer = action->mutable_action_feature_layer();
@@ -321,7 +363,7 @@ void ActionFeatureLayerImpl::CameraMove(const Point2DI& center) {
     center_proto->set_y(center.y);
 }
 
-void ActionFeatureLayerImpl::Select(const Point2DI& center, PointSelectionType selection_type) {
+void Select(const Point2DI& center, PointSelectionType selection_type) {
     SC2APIProtocol::RequestAction*                   request_action = GetRequestAction();
     SC2APIProtocol::Action*                          action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial*                   action_feature_layer = action->mutable_action_feature_layer();
@@ -333,7 +375,7 @@ void ActionFeatureLayerImpl::Select(const Point2DI& center, PointSelectionType s
     select_pt->set_type(static_cast<SC2APIProtocol::ActionSpatialUnitSelectionPoint_Type>(selection_type));
 }
 
-void ActionFeatureLayerImpl::Select(const Point2DI& p0, const Point2DI& p1, bool /*add_to_selection*/) {
+void Select(const Point2DI& p0, const Point2DI& p1, bool /*add_to_selection*/) {
     SC2APIProtocol::RequestAction*                  request_action = GetRequestAction();
     SC2APIProtocol::Action*                         action = request_action->add_actions();
     SC2APIProtocol::ActionSpatial*                  action_feature_layer = action->mutable_action_feature_layer();
@@ -347,11 +389,13 @@ void ActionFeatureLayerImpl::Select(const Point2DI& p0, const Point2DI& p1, bool
     selection_p1->set_y(p1.y);
 }
 
-//-------------------------------------------------------------------------------------------------
-// AgentControlImpl: an implementation of AgentControlInterface.
-//-------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-class AgentControlImpl : public AgentControlInterface {
+// AgentControlInterface.
+
+//------------------------------------------------------------------------------
+
+class AgentControlInterface {
 public:
     ControlInterface*                       control_interface_;
     std::unique_ptr<ActionImpl>             actions_;
@@ -359,9 +403,9 @@ public:
     Agent*                                  agent_;
 
     AgentControlImpl(Agent* agent, ControlInterface* control_interface);
-    ~AgentControlImpl() override = default;
+    virtual ~AgentControlInterface ( ) = default;
 
-    bool Restart() override;
+    virtual bool Restart ( ) = 0;
 };
 
 AgentControlImpl::AgentControlImpl(Agent* agent, ControlInterface* control_interface)
@@ -399,9 +443,11 @@ bool AgentControlImpl::Restart() {
     return control_interface_->IsInGame();
 }
 
-//-------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
 // Agent implementation.
-//-------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
 
 Agent::Agent() : agent_control_impl_(new AgentControlImpl(this, Control())) {}
 

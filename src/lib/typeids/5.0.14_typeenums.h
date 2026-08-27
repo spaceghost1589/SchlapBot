@@ -7,11 +7,9 @@ All units and abilities are represented as unsigned numbers in the StarCraft II 
 #pragma once
 #include "types.h"
 
-using std::flat_map;
-
 namespace sc2 {
 
-enum class UNIT_TYPEID {
+enum class UNIT_TYPEID : uint16_t{
     ABANDONEDBUILDING = 1720,
     ACCELERATIONZONEFLYINGLARGE = 1990,
     ACCELERATIONZONEFLYINGMEDIUM = 1989,
@@ -1821,7 +1819,7 @@ enum class UNIT_TYPEID {
     _8SLOTBAG = 1788,
 };
 
-enum class ABILITY_ID : uint16_t{
+enum class ABILITY_ID : uint16_t {
     ADVANCEDCONSTRUCTION_CANCEL = 2840,
     AGGRESSIVEMUTATION = 2540,
     AIURLIGHTBRIDGEABANDONEDNE10OUT_BRIDGEEXTEND = 2568,
@@ -3048,7 +3046,7 @@ enum class ABILITY_ID : uint16_t{
     _330MMBARRAGECANNONS_CANCEL = 3321,
 };
 
-enum class UPGRADE_ID {
+enum class UPGRADE_ID : uint16_t {
     ABDOMINALFORTITUDE = 93,
     ADEPTKILLBOUNCE = 129,
     ADEPTPIERCINGATTACK = 130,
@@ -3355,7 +3353,7 @@ enum class UPGRADE_ID {
     _330MMBARRAGECANNONS = 151,
 };
 
-enum class BUFF_ID {
+enum class BUFF_ID : uint16_t {
     ACCELERATIONZONEFLYINGTEMPORALFIELD = 290,
     ACCELERATIONZONETEMPORALFIELD = 289,
     ADEPTDEATHCHECK = 135,
@@ -3660,7 +3658,7 @@ enum class BUFF_ID {
     _330MMBARRAGECANNONS = 209,
 };
 
-enum class EFFECT_ID {
+enum class EFFECT_ID : uint16_t {
     BLINDINGCLOUD = 10,
     CORROSIVEBILE = 11,
     GUARDIANSHIELD = 2,
@@ -3676,7 +3674,7 @@ enum class EFFECT_ID {
     THERMALLANCE = 5,
 };
 
-using UnitTypeID = SC2Type<UNIT_TYPEID>;
+using UnitTypeID =  SC2Type<UNIT_TYPEID>;
 using AbilityID = SC2Type<ABILITY_ID>;
 using UpgradeID = SC2Type<UPGRADE_ID>;
 using BuffID = SC2Type<BUFF_ID>;

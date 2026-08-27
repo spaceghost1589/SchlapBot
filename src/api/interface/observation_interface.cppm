@@ -4,15 +4,17 @@ module;
 
 #include "lib/typeids/5.0.14_typeenums.h"
 // #include "api/control_interfaces.h"
-#include "api/data.h"
+
 #include "api/proto_to_pods.h"
 #include "api/unit.h"
 #include "utils/macro/message_response.h"
-export module Client:observation_interface;
+export module observation_interface;
+// import control_interface;
+import data;
 import enum_db;
 import error_handler;
 import map_info;
-import points;
+import common;
 import score;
 
 using std::function;
@@ -33,8 +35,6 @@ export namespace sc2 {
 //! Guaranteed to be valid when OnGameStart or OnStep is called.
 class ObservationInterface
 {
-    ControlInterface& control_face_;
-
     ObservationPtr&         observation_ptr_;
     ResponseObservationPtr& response_observation_ptr;
     uint32_t                player_id_ { };
@@ -58,16 +58,16 @@ class ObservationInterface
     mutable bool     use_generalized_ability_ = true;
 
     // Player data.
-    uint32_t minerals_ { };
-    uint32_t vespene_ { };
-    uint32_t supply_cap_ { };
-    uint32_t supply_used_ { };
-    uint32_t supply_army_ { };
-    uint32_t supply_workers_ { };
-    uint32_t idle_worker_count_ { };
-    uint32_t army_count_ { };
-    uint32_t warp_gate_count_ { };
-    uint32_t larva_count_ { };
+    uint32_t minerals_ { 0 };
+    uint32_t vespene_ { 0 };
+    uint32_t supply_cap_ { 0 };
+    uint32_t supply_used_ { 0 };
+    uint32_t supply_army_ { 0 };
+    uint32_t supply_workers_ { 0 };
+    uint32_t idle_worker_count_ { 0 };
+    uint32_t army_count_ { 0 };
+    uint32_t warp_gate_count_ { 0 };
+    uint32_t larva_count_ { 0 };
     Point2D  camera_pos_;
     Point3D  start_location_;
 
@@ -82,28 +82,24 @@ class ObservationInterface
     Score score_;
 
     // Cached data.
-    mutable bool abilities_cached_ { };
-    mutable bool unit_types_cached { };
-    mutable bool upgrades_cached_ { };
-    mutable bool buffs_cached_ { };
-    mutable bool effects_cached_ { };
+    mutable bool abilities_cached_ { false };
+    mutable bool unit_types_cached { false };
+    mutable bool upgrades_cached_ { false };
+    mutable bool buffs_cached_ { false };
+    mutable bool effects_cached_ { false };
 
     vector<PlayerResult> player_results_;
 
     ObservationInterface ( );
 
     ObservationInterface (
-            ControlInterface&       control_face,
-            ObservationPtr&         observation,
-            ResponseObservationPtr& response
+        ObservationPtr& observation, ResponseObservationPtr& response
     ):
-        control_face_ ( control_face ),
         observation_ptr_ ( observation ),
         response_observation_ptr ( response ),
         // Sets game_loop_ to max so that on loop++ it overflows to 0.
         current_game_loop_ ( numeric_limits<uint32_t>::max( ) ),
-        previous_game_loop ( numeric_limits<uint32_t>::max( ) )
-    {
+        previous_game_loop ( numeric_limits<uint32_t>::max( ) ) {
         ClearFlags( );
     }
 
@@ -249,6 +245,7 @@ class ObservationInterface
             abilities_cached_ = false;
         }
 
+        // Returns
         if ( abilities_cached_ )
         {
             return abilities_;
@@ -266,7 +263,7 @@ class ObservationInterface
             return abilities_;
         }
 
-        const GameResponsePtr response = control_face_.WaitForResponse( );
+        const GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
         if ( response_data.HasErrors( ) ||
@@ -296,9 +293,7 @@ class ObservationInterface
             }
 
             abilities_[ability_data.remaps_to_ability_id]
-                    .remaps_from_ability_id.push_back (
-                            ability_data.ability_id
-                    );
+                .remaps_from_ability_id.push_back ( ability_data.ability_id );
         }
 
         abilities_cached_ = true;
@@ -331,9 +326,9 @@ class ObservationInterface
     // }
 
     //! Gets metadata of units. Array can be indexed directly by UnitID.
-    //! \param force_refresh forces a full query from the game, may
+    //! @param force_refresh forces a full query from the game, may
     //! otherwise cache data from a previous call.
-    //! \return Data about all units possible for the current game session.
+    //! @return Data about all units possible for the current game session.
     const UnitTypes& GetUnitTypeData ( bool force_refresh = false ) {
         if ( force_refresh || unit_types_.size( ) < 1 )
         {
@@ -357,7 +352,7 @@ class ObservationInterface
             return unit_types_;
         }
 
-        GameResponsePtr response = control_face_.WaitForResponse( );
+        GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseDataPtr response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
         if ( response_data.HasErrors( ) )
@@ -410,7 +405,7 @@ class ObservationInterface
             return upgrade_ids_;
         }
 
-        const GameResponsePtr response = control_face_.WaitForResponse( );
+        const GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
         if ( response_data.HasErrors( ) )
@@ -437,9 +432,9 @@ class ObservationInterface
     }
 
     //! Gets metadata of buffs. Array can be indexed directly by BuffID.
-    //! \param force_refresh forces a full query from the game, may
+    //! @param force_refresh forces a full query from the game, may
     //! otherwise cache data from a previous call.
-    //! \return Data about all buffs possible for the current game session.
+    //! @return Data about all buffs possible for the current game session.
     const Buffs& GetBuffData ( bool force_refresh = false ) const {
         if ( force_refresh || buff_ids_.size( ) < 1 )
         {
@@ -462,7 +457,7 @@ class ObservationInterface
             return buff_ids_;
         }
 
-        GameResponsePtr response = control_face_.WaitForResponse( );
+        GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseDataPtr response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
         if ( response_data.HasErrors( ) )
@@ -515,7 +510,7 @@ class ObservationInterface
             return effect_ids_;
         }
 
-        const GameResponsePtr response = control_face_.WaitForResponse( );
+        const GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
         if ( response_data.HasErrors( ) )
@@ -539,7 +534,7 @@ class ObservationInterface
     }
 
     //! Gets the GameInfo struct for the current map.
-    //! \return The current GameInfo struct.
+    //! @return The current GameInfo struct.
     const GameInfo& GetGameInfo ( ) const {
         if ( game_info_cached_ )
         {
@@ -554,7 +549,7 @@ class ObservationInterface
             return game_info_;
         }
 
-        const GameResponsePtr response = control_face_.WaitForResponse( );
+        const GameResponsePtr response = CTRL_Face::WaitForResponse( );
         ResponseGameInfoPtr   response_game_info;
         SET_MESSAGE_RESPONSE ( response_game_info, response, game_info );
         if ( response_game_info.HasErrors( ) )
@@ -569,8 +564,8 @@ class ObservationInterface
     }
 
     //! Returns 'true' if the given point has creep.
-    //! \param point Position to sample.
-    //! \return Creep.
+    //! @param point Position to sample.
+    //! @return Creep.
     // bool HasCreep (const Point2D& point) const
     // {
     //     ObservationRawPtr observation_raw;
@@ -584,7 +579,7 @@ class ObservationInterface
     //     const SC2APIProtocol::ImageData& creep = map_state.creep( );
     //
     //     unsigned char value;
-    //     if ( !ImageDataLocal (creep, point, value) ) return false;
+    //     if ( !ImageData (creep, point, value) ) return false;
     //
     //     return value > 0 ? true : false;
     // }
@@ -599,8 +594,8 @@ class ObservationInterface
     //    }
 
     //! Returns visibility value of the given point for the current player.
-    //! \param point Position to sample.
-    //! \return Visibility.
+    //! @param point Position to sample.
+    //! @return Visibility.
     Visibility GetVisibility ( const Point2D& point ) const {
         ObservationRawPtr observation_raw;
         SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_ptr_, raw_data );
@@ -610,12 +605,12 @@ class ObservationInterface
         }
 
         const SC2APIProtocol::MapState& map_state =
-                observation_raw->map_state( );
+            observation_raw->map_state( );
         const SC2APIProtocol::ImageData& visibility = map_state.visibility( );
 
         unsigned char* value { };
-        if ( !ImageDataLocal ( visibility )
-                      .GetBit<unsigned char*> ( point, value ) )
+        if ( !ImageData ( visibility )
+                  .GetBit<unsigned char*> ( point, value ) )
             return Visibility::FullHidden;
         switch ( value )
         {
@@ -629,8 +624,8 @@ class ObservationInterface
     //! Returns 'true' if the given point on the terrain is pathable. This
     //! does not include pathing blockers like structures. For more accurate
     //! pathing results use QueryInterface::PathingDistance.
-    //! \param point Position to sample.
-    //! \return Pathable.
+    //! @param point Position to sample.
+    //! @return Pathable.
     bool IsPathable ( const Point2D& point ) const {
         return PathingGrid ( GetGameInfo( ) ).IsPathable ( point );
     }
@@ -638,33 +633,33 @@ class ObservationInterface
     //! Returns 'true' if the given point on the terrain is buildable. This
     //! does not include blockers like other structures. For more accurate
     //! building placement results use QueryInterface::Placement.
-    //! \param point Position to sample.
-    //! \return Placable.
+    //! @param point Position to sample.
+    //! @return Placable.
     bool IsPlacable ( const Point2D& point ) const {
         return PlacementGrid ( GetGameInfo( ) ).IsPlacable ( point );
     }
 
     //! Returns terrain height of the given point.
-    //! \param point Position to sample.
-    //! \return Height.
+    //! @param point Position to sample.
+    //! @return Height.
     float TerrainHeight ( const Point2D& point ) const {
         return HeightMap ( GetGameInfo( ) ).TerrainHeight ( point );
     }
 
     //! The mineral count of the player.
-    //! \return The mineral count.
+    //! @return The mineral count.
     uint32_t GetMinerals ( ) const {
         return minerals_;
     }
 
     //! The vespene count of the player.
-    //! \return The vespene count.
+    //! @return The vespene count.
     uint32_t GetVespene ( ) const {
         return vespene_;
     }
 
     //! The total supply cap given the players max possible supply.
-    //! \return Supply cap.
+    //! @return Supply cap.
     //! \sa GetSupplyUsed() GetSupplyArmy() GetSupplyWorkers()
     uint32_t GetSupplyCap ( ) const {
         return supply_cap_;
@@ -672,7 +667,7 @@ class ObservationInterface
 
     //! The total supply used by the player as defined: GetSupplyArmy() +
     //! GetSupplyWorkers().
-    //! \return Supply used.
+    //! @return Supply used.
     //! \sa GetSupplyArmy() GetSupplyWorkers()
     uint32_t GetSupplyUsed ( ) const {
         return supply_used_;
@@ -680,58 +675,58 @@ class ObservationInterface
 
     //! The total supply consumed by army units alone.
     //! \sa GetSupplyUsed() GetSupplyWorkers()
-    //! \return Supply used by army units.
+    //! @return Supply used by army units.
     uint32_t GetSupplyArmy ( ) const {
         return supply_army_;
     }
 
     //! The total supply consumed by workers units alone.
     //! \sa GetSupplyArmy() GetSupplyUsed()
-    //! \return Supply used by worker units.
+    //! @return Supply used by worker units.
     uint32_t GetSupplyWorkers ( ) const {
         return supply_workers_;
     }
 
     //! The number of workers that currently have no orders.
-    //! \return Count of idle workers.
+    //! @return Count of idle workers.
     uint32_t GetIdleWorkerCount ( ) const {
         return idle_worker_count_;
     }
 
     //! The number of army units.
-    //! \return Count of army units.
+    //! @return Count of army units.
     uint32_t GetArmyCount ( ) const {
         return army_count_;
     }
 
     //! Number of warp gates owned by the player. This value should only be
     //! nonzero for Protoss.
-    //! \return Count of warp gates.
+    //! @return Count of warp gates.
     uint32_t GetWarpGateCount ( ) const {
         return warp_gate_count_;
     }
 
     //! Number of larva owned by the player. This value should only be
     //! nonzero for Zerg.
-    //! \return Count of larva.
+    //! @return Count of larva.
     uint32_t GetLarvaCount ( ) const {
         return larva_count_;
     }
 
     //! Position of the center of the camera.
-    //! \return Camera position.
+    //! @return Camera position.
     Point2D GetCameraPos ( ) const {
         return camera_pos_;
     }
 
     //! Gets the initial start location of the player.
-    //! \return Player start position.
+    //! @return Player start position.
     Point3D GetStartLocation ( ) const {
         return start_location_;
     }
 
     //! Gets the results of the game.
-    //! \return Player results if the game ended, an empty vector otherwise.
+    //! @return Player results if the game ended, an empty vector otherwise.
     const vector<PlayerResult>& GetResults ( ) const {
         return player_results_;
     }
@@ -741,7 +736,7 @@ class ObservationInterface
     //! this pointer it is highly discouraged. It should only be used for
     //! extracting feature layers because
     //!     it would be inefficient to copy these each frame.
-    //! \return A const pointer to the Observation.
+    //! @return A const pointer to the Observation.
     //! \sa Observation GetObservation()
     const SC2APIProtocol::Observation* GetRawObservation ( ) const {
         return observation_ptr_.get( );
@@ -760,7 +755,7 @@ class ObservationInterface
         current_game_loop_      = next_game_loop;
 
         const SC2APIProtocol::PlayerCommon& player_common =
-                observation_ptr_->player_common( );
+            observation_ptr_->player_common( );
         assert ( player_common.has_player_id( ) );
         if ( player_common.has_player_id( ) )
         {
@@ -791,8 +786,8 @@ class ObservationInterface
 
         ConvertRawActions ( response_observation_ptr, raw_actions_ );
         ConvertFeatureLayerActions (
-                response_observation_ptr,
-                feature_layer_actions_
+            response_observation_ptr,
+            feature_layer_actions_
         );
         ConvertRenderedActions ( response_observation_ptr, rendered_actions_ );
 
@@ -800,19 +795,19 @@ class ObservationInterface
             for ( ActionRaw& action : raw_actions_ )
             {
                 action.ability_id =
-                        GetGeneralizedAbilityID ( action.ability_id );
+                    GetGeneralizedAbilityID ( action.ability_id );
             }
             for ( SpatialUnitCommand& spatial_action :
                   feature_layer_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                        GetGeneralizedAbilityID ( spatial_action.ability_id );
+                    GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
             for ( SpatialUnitCommand& spatial_action :
                   rendered_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                        GetGeneralizedAbilityID ( spatial_action.ability_id );
+                    GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
         }
 
@@ -831,10 +826,10 @@ class ObservationInterface
 
         unit_pool_.ClearExisting( );
         Convert (
-                observation_raw,
-                unit_pool_,
-                current_game_loop_,
-                previous_game_loop
+            observation_raw,
+            unit_pool_,
+            current_game_loop_,
+            previous_game_loop
         );
 
         // Remap ability ids in orders.
@@ -844,7 +839,7 @@ class ObservationInterface
                 if ( use_generalized_ability_ )
                 {
                     unit_order.ability_id =
-                            GetGeneralizedAbilityID ( unit_order.ability_id );
+                        GetGeneralizedAbilityID ( unit_order.ability_id );
                 }
             }
         } );
@@ -862,7 +857,7 @@ class ObservationInterface
         }
 
         const SC2APIProtocol::PlayerRaw& player_raw =
-                observation_raw->player( );
+            observation_raw->player( );
         if ( !player_raw.has_camera( ) )
         {
             return false;
@@ -875,11 +870,11 @@ class ObservationInterface
         for ( int i = 0, e = player_raw.power_sources_size( ); i < e; ++i )
         {
             const SC2APIProtocol::PowerSource& power_source =
-                    player_raw.power_sources ( i );
+                player_raw.power_sources ( i );
             power_sources_.push_back ( PowerSource (
-                    Point2D ( power_source.pos( ) ),
-                    power_source.radius( ),
-                    power_source.tag( )
+                Point2D ( power_source.pos( ) ),
+                power_source.radius( ),
+                power_source.tag( )
             ) );
         }
 
@@ -895,8 +890,8 @@ class ObservationInterface
               response_observation_ptr->player_result( ) )
         {
             player_results_.push_back ( PlayerResult (
-                    player_result.player_id( ),
-                    ConvertGameResultFromProto ( player_result.result( ) )
+                player_result.player_id( ),
+                ConvertGameResultFromProto ( player_result.result( ) )
             ) );
         }
 
@@ -906,12 +901,12 @@ class ObservationInterface
 }; // class ObservationImplementation
 
 [[maybe_unused]]
-static bool ImageDataLocal (
-        const string&  data,
-        int            width,
-        int            height,
-        const Point2D& point,
-        unsigned char& result
+static bool ImageData (
+    const string&  data,
+    int            width,
+    int            height,
+    const Point2D& point,
+    unsigned char& result
 ) {
     const Point2DI pointI = point;
     // Check to see that the point is within the map space
@@ -927,25 +922,25 @@ static bool ImageDataLocal (
 }
 
 [[maybe_unused]]
-static bool ImageDataLocal (
-        const SC2APIProtocol::ImageData& i_data,
-        const Point2D&                   point,
-        unsigned char&                   result
+static bool ImageData (
+    const SC2APIProtocol::ImageData& i_data,
+    const Point2D&                   point,
+    unsigned char&                   result
 ) {
-    return ImageDataLocal (
-            i_data.data( ),
-            i_data.size( ).x( ),
-            i_data.size( ).y( ),
-            point,
-            result
+    return ImageData (
+        i_data.data( ),
+        i_data.size( ).x( ),
+        i_data.size( ).y( ),
+        point,
+        result
     );
 }
 
 // [[maybe_unused]]
-// static bool ImageDataLocal( const ImageDataLocal& i_data,
+// static bool ImageData( const ImageData& i_data,
 //                             const Point2D&        point,
 //                             unsigned char&        result ) {
-//     return ImageDataLocal( i_data.data, i_data.width, i_data.height, point,
+//     return ImageData( i_data.data, i_data.width, i_data.height, point,
 //     result );
 // }
 

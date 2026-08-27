@@ -87,7 +87,7 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
@@ -98,16 +98,16 @@ BitFieldColonSpacing: After
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
-  AfterClass: true
+  AfterClass: false
   AfterControlStatement: Always
   AfterEnum: false
-  AfterFunction: false
+  AfterFunction: true
   AfterNamespace: false
   AfterStruct: true
   AfterUnion: false
   AfterExternBlock: false
   BeforeCatch: true
-  BeforeElse: true
+  BeforeElse: false
   BeforeLambdaBody: false
   BeforeWhile: false
   IndentBraces: false
@@ -116,14 +116,14 @@ BraceWrapping:
   SplitEmptyNamespace: false
 BracedInitializerIndentWidth: 4
 BreakAdjacentStringLiterals: true
-BreakAfterAttributes: Always
+BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: true
 BreakAfterOpenBracketBracedList: true
 BreakAfterOpenBracketFunction: true
 BreakAfterOpenBracketIf: false
 BreakAfterOpenBracketLoop: false
 BreakAfterOpenBracketSwitch: false
-BreakAfterReturnType: Automatic
+BreakAfterReturnType: All
 BreakBeforeBinaryOperators: None
 BreakBeforeCloseBracketBracedList: true
 BreakBeforeCloseBracketFunction: true
@@ -134,14 +134,14 @@ BreakBeforeConceptDeclarations: Always
 BreakBeforeTemplateCloser: true
 BreakBeforeTernaryOperators: false
 BreakBinaryOperations: RespectPrecedence
-BreakConstructorInitializers: AfterColon
-BreakFunctionDefinitionParameters: false
+BreakConstructorInitializers: BeforeColon
+BreakFunctionDefinitionParameters: true
 BreakInheritanceList: AfterComma
 BreakStringLiterals: true
 BreakTemplateDeclarations: MultiLine
 CommentPragmas: "#"
 CompactNamespaces: true
-ConstructorInitializerIndentWidth: 4
+ConstructorInitializerIndentWidth: 6
 #Cpp11BracedListStyle:
 #DerivePointerAlignment: ###############################
 IncludeBlocks: Regroup #https://clang.llvm.org/docs/ClangFormatStyleOptions.html
@@ -155,18 +155,8 @@ IncludeCategories:
   - Regex: '^".*"'
     Priority: 3
     SortPriority: 3
-#IncludeCategories:
-#  - Regex: '^<.*'
-#    Priority: 1
-#    SortPriority: 1
-#  - Regex: '.*pb.*'
-#    Priority: 2
-#    SortPriority: 2
-#  - Regex: '".*'
-#    Priority: 3
-#    SortPriority: 3
 #IncludeIsMainRegex: '([-_](test|unittest))?$'
-IndentRequiresClause: false # Applies if RequiresClausePosition: OwnLine, OwnLineWithBrace, WithFollowing.
+IndentRequiresClause: true # Applies if RequiresClausePosition: OwnLine, OwnLineWithBrace, WithFollowing.
 IndentWrappedFunctionNames: true
 InsertBraces: false # true could lead to incorrect code formatting due to lack of complete semantic information.
 InsertNewlineAtEOF: true
@@ -201,7 +191,7 @@ ObjCSpaceAfterProperty: true
 ObjCSpaceBeforeProtocolList: true
 #OneLineFormatOffRegex:
 PPIndentWidth: 2
-PackConstructorInitializers: NextLineOnly
+PackConstructorInitializers: Never
 
 #PenaltyBreakAssignment:
 #PenaltyBreakBeforeFirstCallParameter:

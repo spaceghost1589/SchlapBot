@@ -7,7 +7,7 @@
 
 #include "lib/gametypes.h"
 #include "lib/type_enums.h"
-import points;
+import common;
 
 namespace sc2 {
 

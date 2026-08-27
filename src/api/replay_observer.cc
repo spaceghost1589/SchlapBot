@@ -1,10 +1,9 @@
+#include "api/replay_observer.h"
+
 #include <iostream>
 
-#include "replay_observer.h"
-#include "control_interfaces.h"
-#include "interfaces.h"
-#include "proto_to_pods.h"
-#include "lib/game_settings.h"
+#include "api/proto_to_pods.h"
+import game_settings;
 
 namespace sc2 {
 //-------------------------------------------------------------------------------------------------
@@ -264,24 +263,40 @@ const ReplayInfo& ReplayControlImpl::GetReplayInfo() const {
     return replay_info_;
 }
 
-//-------------------------------------------------------------------------------------------------
-// ObserverActionImp: an implementation of an ObserverActionInterface.
-//-------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
-class ObserverActionImpl : public ObserverActionInterface {
-    public:
+// ObserverActionInterface.
+
+//------------------------------------------------------------------------------
+
+//! The ObserverActionInterface corresponds to the actions available in the
+//! observer UI.
+class  ObserverActionInterface {
+public:
         ControlInterface* control_;
         GameRequestPtr request_;
 
-        explicit ObserverActionImpl(ControlInterface* control);
+    explicit ObserverActionInterface(ControlInterface* control);
+
+    virtual ~ObserverActionInterface ( ) = default;
 
         SC2APIProtocol::RequestObserverAction* GetRequest();
 
-        virtual void CameraMove(const Point2D& point, float distance = 0.0F) final;
+    //! Moves the observer camera to a target location. Will cause the camera to
+    //! stop following the observed player's perspective.
+    //! @param point The 2D world position to target.
+    //! @param distance Distance between camera and terrain. Larger value zooms
+    //! out camera. Defaults to standard camera distance if set to 0.
+    virtual void CameraMove ( const Point2D& point, float distance = 0.0F ) = 0;
 
-        virtual void CameraFollowPlayer() final;
 
-        virtual void SendActions() final;
+    //! Makes the observer camera follow the observed player's perspective.
+    virtual void CameraFollowPlayer ( ) = 0;
+
+    //! This function sends out all batched commands. You DO NOT need to call
+    //! this function. it is automatically called when stepping the simulation
+    //! forward.
+    virtual void SendActions ( ) = 0;
 };
 
 ObserverActionImpl::ObserverActionImpl(ControlInterface* control) : control_(control) {}
@@ -294,7 +309,12 @@ SC2APIProtocol::RequestObserverAction* ObserverActionImpl::GetRequest() {
     return request_->mutable_obs_action();
 }
 
-void ObserverActionImpl::CameraMove(const Point2D& point, float distance) {
+//! Moves the observer camera to a target location. Will cause the camera to
+//! stop following the observed player's perspective.
+//! @param point The 2D world position to target.
+//! @param distance Distance between camera and terrain. Larger value zooms
+//! out camera. Defaults to standard camera distance if set to 0.
+void ObserverActionImpl::CameraMove(const Point2D& point, float distance = 0.0F) {
     SC2APIProtocol::RequestObserverAction* request = GetRequest();
     SC2APIProtocol::ObserverAction* action = request->add_actions();
     SC2APIProtocol::ActionObserverCameraMove* camera_move = action->mutable_camera_move();
@@ -303,12 +323,16 @@ void ObserverActionImpl::CameraMove(const Point2D& point, float distance) {
     camera_move->mutable_world_pos()->set_y(point.y);
 }
 
+//! Makes the observer camera follow the observed player's perspective.
 void ObserverActionImpl::CameraFollowPlayer() {
     SC2APIProtocol::RequestObserverAction* request = GetRequest();
     SC2APIProtocol::ObserverAction* action = request->add_actions();
     action->mutable_camera_follow_player();
 }
 
+//! This function sends out all batched commands. You DO NOT need to call
+//! this function. it is automatically called when stepping the simulation
+//! forward.
 void ObserverActionImpl::SendActions() {
     if (request_ == nullptr)
     {

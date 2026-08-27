@@ -1,17 +1,20 @@
 module;
-#include <s2clientprotocol/debug.pb.h>
-#include <s2clientprotocol/raw.pb.h>
 #include <s2clientprotocol/sc2api.pb.h>
 
-#include "api/interfaces.h"
 #include "api/unit.h"
 export module Client:debug_interface;
 import protocol_interface;
-import points;
+import common;
 import enum_db;
+import control_interface;
+
+namespace {
 
 class ObservationInterface;
 class ControlInterface;
+enum class AppTest;
+
+} // namespace
 
 namespace sc2 {
 
@@ -109,21 +112,24 @@ public:
     virtual ~DebugInterface ( );
 
     DebugInterface (
-            ObservationInterface& observation, ControlInterface& control
-    ):
-        observation_ ( observation ),
-        control_ ( control ),
-        has_move_camera ( false ),
-        app_test_set_ ( false ),
-        endgame_surrender_ ( false ),
-        endgame_victory_ ( false ),
-        set_score_ ( false ),
-        score_ ( 0.0f ) {}
+        ObservationInterface& observation, ControlInterface& control
+    )
+          : observation_ ( observation ),
+            control_ ( control ),
+            has_move_camera ( false ),
+            app_test_set_ ( false ),
+            endgame_surrender_ ( false ),
+            endgame_victory_ ( false ),
+            set_score_ ( false ),
+            score_ ( 0.0f )
+    {}
 
     //! Outputs text at the top, left of the screen.
-    //! \param out The string of text to display.
-    //! \param color (Optional) Color of the text.
-    virtual void DebugTextOut ( const string& out, Color color = White ) {
+    //! @param out The string of text to display.
+    //! @param color (Optional) Color of the text.
+    virtual void
+        DebugTextOut ( const string& out, Color color = White )
+    {
         DebugText debug_text;
         debug_text.text       = out;
         debug_text.has_coords = false;
@@ -135,16 +141,18 @@ public:
 
     //! Outputs text at any 2D point on the screen. Coordinate ranges are 0..1
     //! in X and Y.
-    //! \param out The string of text to display.
-    //! \param pt_virtual_2D The screen position to draw text at.
-    //! \param color (Optional) Color of the text.
-    //! \param size (Optional) Pixel height of the text.
-    virtual void DebugTextOut (
+    //! @param out The string of text to display.
+    //! @param pt_virtual_2D The screen position to draw text at.
+    //! @param color (Optional) Color of the text.
+    //! @param size (Optional) Pixel height of the text.
+    virtual void
+        DebugTextOut (
             const string&  out,
             const Point2D& pt_virtual_2D,
             Color          color = White,
             uint32_t       size  = 8
-    ) {
+        )
+    {
         DebugText debug_text;
         debug_text.text       = out;
         debug_text.has_coords = true;
@@ -158,16 +166,18 @@ public:
 
     //! Outputs text at any 3D point in the game world. Map coordinates are
     //! used.
-    //! \param out The string of text to display.
-    //! \param pt3D The world position to draw text at.
-    //! \param color (Optional) Color of the text.
-    //! \param size (Optional) Pixel height of the text.
-    virtual void DebugTextOut (
+    //! @param out The string of text to display.
+    //! @param pt3D The world position to draw text at.
+    //! @param color (Optional) Color of the text.
+    //! @param size (Optional) Pixel height of the text.
+    virtual void
+        DebugTextOut (
             const string&  out,
             const Point3D& pt3D,
             Color          color = White,
             uint32_t       size  = 8
-    ) {
+        )
+    {
         DebugText debug_text;
         debug_text.text       = out;
         debug_text.has_coords = true;
@@ -182,12 +192,14 @@ public:
 
     //! Outputs a line between two 3D points in the game world. Map coordinates
     //! are used.
-    //! \param p0 The starting position of the line.
-    //! \param p1 The ending position of the line.
-    //! \param color (Optional) Color of the line.
-    virtual void DebugLineOut (
+    //! @param p0 The starting position of the line.
+    //! @param p1 The ending position of the line.
+    //! @param color (Optional) Color of the line.
+    virtual void
+        DebugLineOut (
             const Point3D& p0, const Point3D& p1, Color color = White
-    ) {
+        )
+    {
         DebugLine line;
         line.p0    = p0;
         line.p1    = p1;
@@ -198,12 +210,14 @@ public:
     // TODO these two (above & below) may be the same
     //! Outputs a box specified as two 3D points in the game world. Map
     //! coordinates are used.
-    //! \param p_min One corner of the box.
-    //! \param p_max The far corner of the box.
-    //! \param color (Optional) Color of the lines.
-    virtual void DebugBoxOut (
+    //! @param p_min One corner of the box.
+    //! @param p_max The far corner of the box.
+    //! @param color (Optional) Color of the lines.
+    virtual void
+        DebugBoxOut (
             const Point3D& p_min, const Point3D& p_max, Color color = White
-    ) {
+        )
+    {
         DebugBox box;
         box.p_min = p_min;
         box.p_max = p_max;
@@ -213,12 +227,12 @@ public:
 
     //! Outputs a sphere specified as a 3D point in the game world and a radius.
     //! Map coordinates are used.
-    //! \param p Center of the sphere.
-    //! \param r Radius of the sphere.
-    //! \param color (Optional) Color of the lines.
-    virtual void DebugSphereOut (
-            const Point3D& p, float r, Color color = White
-    ) {
+    //! @param p Center of the sphere.
+    //! @param r Radius of the sphere.
+    //! @param color (Optional) Color of the lines.
+    virtual void
+        DebugSphereOut ( const Point3D& p, float r, Color color = White )
+    {
         DebugSphere sphere;
         sphere.p_     = p;
         sphere.r_     = r;
@@ -229,16 +243,18 @@ public:
     // Cheats.
 
     //! Creates a unit at the given position.
-    //! \param unit_type Type of unit to create.
-    //! \param p Position to create the unit at.
-    //! \param player_id Player the unit should belong to.
-    //! \param count Number of units to create.
-    virtual void DebugCreateUnit (
+    //! @param unit_type Type of unit to create.
+    //! @param p Position to create the unit at.
+    //! @param player_id Player the unit should belong to.
+    //! @param count Number of units to create.
+    virtual void
+        DebugCreateUnit (
             UnitTypeID     unit_type,
             const Point2D& p,
             uint32_t       player_id = 1,
             uint32_t       count     = 1
-    ) {
+        )
+    {
         DebugUnit create_unit;
         create_unit.unit_type = unit_type;
         create_unit.pos       = p;
@@ -248,8 +264,10 @@ public:
     }
 
     //! Destroy a unit.
-    //! \param unit Unit to destroy.
-    virtual void DebugKillUnit ( const Unit* unit ) {
+    //! @param unit Unit to destroy.
+    virtual void
+        DebugKillUnit ( const Unit* unit )
+    {
         if ( !unit )
         {
             return;
@@ -258,85 +276,112 @@ public:
     }
 
     //! Makes the entire map visible, i.e., removes the fog-of-war.
-    virtual void DebugShowMap ( ) {
+    virtual void
+        DebugShowMap ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::show_map );
     }
 
     //! Enables commands to be issued to enemy units.
-    virtual void DebugEnemyControl ( ) {
+    virtual void
+        DebugEnemyControl ( )
+    {
         debug_state_.push_back (
-                SC2APIProtocol::DebugGameState::control_enemy
+            SC2APIProtocol::DebugGameState::control_enemy
         );
     }
 
     //! Disables the supply check.
-    virtual void DebugIgnoreSupply ( ) {
+    virtual void
+        DebugIgnoreSupply ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::food );
     }
 
     //! Disables resource checks.
-    virtual void DebugIgnoreResourceCost ( ) {
+    virtual void
+        DebugIgnoreResourceCost ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::free );
     }
 
     //! Gives a bunch of minerals and gas.
-    virtual void DebugGiveAllResources ( ) {
+    virtual void
+        DebugGiveAllResources ( )
+    {
         debug_state_.push_back (
-                SC2APIProtocol::DebugGameState::all_resources
+            SC2APIProtocol::DebugGameState::all_resources
         );
     }
 
     //! Makes the units of a player indestructible.
-    virtual void DebugGodMode ( ) {
+    virtual void
+        DebugGodMode ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::god );
     }
 
     //! Ignores mineral costs.
-    virtual void DebugIgnoreMineral ( ) {
+    virtual void
+        DebugIgnoreMineral ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::minerals );
     }
 
     //! Ignores gas costs.
-    virtual void DebugIgnoreGas ( ) {
+    virtual void
+        DebugIgnoreGas ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::gas );
     }
 
     //! Cooldowns become instant.
-    virtual void DebugNoCooldowns ( ) {
+    virtual void
+        DebugNoCooldowns ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::cooldown );
     }
 
     //! All tech becomes available.
-    virtual void DebugGiveAllTech ( ) {
+    virtual void
+        DebugGiveAllTech ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::tech_tree );
     }
 
     //! All upgrades are available.
-    virtual void DebugGiveAllUpgrades ( ) {
+    virtual void
+        DebugGiveAllUpgrades ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::upgrade );
     }
 
     //! Structures and units are built much faster.
-    virtual void DebugFastBuild ( ) {
+    virtual void
+        DebugFastBuild ( )
+    {
         debug_state_.push_back ( SC2APIProtocol::DebugGameState::fast_build );
     }
 
     //! Sets the scripted "curriculum" score.
-    virtual void DebugSetScore ( float score ) {
+    virtual void
+        DebugSetScore ( float score )
+    {
         set_score_ = true;
         score_     = score;
     }
 
     //! Ends a game.
-    //! \param victory If true, this player is victorious. If false, this player
+    //! @param victory If true, this player is victorious. If false, this player
     //! surrenders.
-    virtual void DebugEndGame ( bool victory = false ) {
+    virtual void
+        DebugEndGame ( bool victory = false )
+    {
         if ( victory )
         {
             endgame_surrender_ = false;
             endgame_victory_   = true;
-        }
-        else
+        } else
         {
             endgame_surrender_ = true;
             endgame_victory_   = false;
@@ -344,9 +389,11 @@ public:
     }
 
     //! Sets the energy level on a unit.
-    //! \param value The new energy level.
-    //! \param unit
-    virtual void DebugSetEnergy ( float value, const Unit* unit ) {
+    //! @param value The new energy level.
+    //! @param unit
+    virtual void
+        DebugSetEnergy ( float value, const Unit* unit )
+    {
         if ( !unit )
         {
             return;
@@ -359,9 +406,11 @@ public:
     }
 
     //! Sets the life on a unit.
-    //! \param value The new life.
-    //! \param unit
-    virtual void DebugSetLife ( float value, const Unit* unit ) {
+    //! @param value The new life.
+    //! @param unit
+    virtual void
+        DebugSetLife ( float value, const Unit* unit )
+    {
         if ( !unit )
         {
             return;
@@ -374,9 +423,11 @@ public:
     }
 
     //! Sets shields on a unit.
-    //! \param value The new shields.
-    //! \param unit
-    virtual void DebugSetShields ( float value, const Unit* unit ) {
+    //! @param value The new shields.
+    //! @param unit
+    virtual void
+        DebugSetShields ( float value, const Unit* unit )
+    {
         if ( !unit )
         {
             return;
@@ -389,16 +440,20 @@ public:
     }
 
     //! Sets the position of the camera.
-    //! \param pos The camera position in world space.
-    virtual void DebugMoveCamera ( const Point2D& pos ) {
+    //! @param pos The camera position in world space.
+    virtual void
+        DebugMoveCamera ( const Point2D& pos )
+    {
         has_move_camera    = true;
         debug_move_camera_ = pos;
     }
 
     //! Cause the game to fail; useful to test library behavior.
-    //! \param app_test State to put the game into.
-    //! \param delay_ms Time to elapse before invoking the game state.
-    void DebugTestApp ( AppTest app_test, int delay_ms = 0 ) {
+    //! @param app_test State to put the game into.
+    //! @param delay_ms Time to elapse before invoking the game state.
+    void
+        DebugTestApp ( AppTest app_test, int delay_ms = 0 )
+    {
         app_test_set_      = true;
         app_test_          = app_test;
         app_test_delay_ms_ = delay_ms;
@@ -407,7 +462,9 @@ public:
     /*! Dispatch all queued debug commands. No debug commands will be sent until
      * this is called. This will also clear or set new debug primitives like
      * text and lines.*/
-    void SendDebug ( ) {
+    void
+        SendDebug ( )
+    {
         const GameRequestPtr          request       = ProtoFace::MakeRequest( );
         SC2APIProtocol::RequestDebug* request_debug = request->mutable_debug( );
 
@@ -415,7 +472,7 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugText*    debug_text =
-                    command->mutable_draw( )->add_text( );
+                command->mutable_draw( )->add_text( );
             debug_text->set_text ( entry.text );
             debug_text->set_size ( entry.size );
             if ( entry.has_coords )
@@ -423,30 +480,29 @@ public:
                 if ( entry.is_3d )
                 {
                     SC2APIProtocol::Point* pos =
-                            debug_text->mutable_world_pos( );
+                        debug_text->mutable_world_pos( );
                     pos->set_x ( entry.pt.x );
                     pos->set_y ( entry.pt.y );
                     pos->set_z ( entry.pt.z );
-                }
-                else
+                } else
                 {
                     SC2APIProtocol::Point* pos =
-                            debug_text->mutable_virtual_pos( );
+                        debug_text->mutable_virtual_pos( );
                     pos->set_x ( entry.pt.x );
                     pos->set_y ( entry.pt.y );
                 }
             }
             SC2APIProtocol::Color* color_text = debug_text->mutable_color( );
-            color_text->set_r ( entry.color.r );
-            color_text->set_g ( entry.color.g );
-            color_text->set_b ( entry.color.b );
+            color_text->set_r ( entry.color.R );
+            color_text->set_g ( entry.color.G );
+            color_text->set_b ( entry.color.B );
         }
 
         for ( const DebugLine& line : debug_line_ )
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugLine*    debug_line =
-                    command->mutable_draw( )->add_lines( );
+                command->mutable_draw( )->add_lines( );
             SC2APIProtocol::Line* proto_line = debug_line->mutable_line( );
 
             SC2APIProtocol::Point* p0 = proto_line->mutable_p0( );
@@ -460,16 +516,16 @@ public:
             p1->set_z ( line.p1.z );
 
             SC2APIProtocol::Color* color_line = debug_line->mutable_color( );
-            color_line->set_r ( line.color.r );
-            color_line->set_g ( line.color.g );
-            color_line->set_b ( line.color.b );
+            color_line->set_r ( line.color.R );
+            color_line->set_g ( line.color.G );
+            color_line->set_b ( line.color.B );
         }
 
         for ( const DebugBox& box : debug_box_ )
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugBox*     debug_box =
-                    command->mutable_draw( )->add_boxes( );
+                command->mutable_draw( )->add_boxes( );
 
             SC2APIProtocol::Point* p_min = debug_box->mutable_min( );
             p_min->set_x ( box.p_min.x );
@@ -482,16 +538,16 @@ public:
             p_max->set_z ( box.p_max.z );
 
             SC2APIProtocol::Color* color_box = debug_box->mutable_color( );
-            color_box->set_r ( box.color.r );
-            color_box->set_g ( box.color.g );
-            color_box->set_b ( box.color.b );
+            color_box->set_r ( box.color.R );
+            color_box->set_g ( box.color.G );
+            color_box->set_b ( box.color.B );
         }
 
         for ( const DebugSphere& sphere : debug_sphere_ )
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugSphere*  debug_sphere =
-                    command->mutable_draw( )->add_spheres( );
+                command->mutable_draw( )->add_spheres( );
 
             SC2APIProtocol::Point* p = debug_sphere->mutable_p( );
             p->set_x ( sphere.p_.x );
@@ -501,32 +557,32 @@ public:
             debug_sphere->set_r ( sphere.r_ );
 
             SC2APIProtocol::Color* color_sphere =
-                    debug_sphere->mutable_color( );
-            color_sphere->set_r ( sphere.color_.r );
-            color_sphere->set_g ( sphere.color_.g );
-            color_sphere->set_b ( sphere.color_.b );
+                debug_sphere->mutable_color( );
+            color_sphere->set_r ( sphere.color_.R );
+            color_sphere->set_g ( sphere.color_.G );
+            color_sphere->set_b ( sphere.color_.B );
         }
 
         for ( const DebugSetUnitValue& set_unit_value : debug_unit_values_ )
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugSetUnitValue* unit_value =
-                    command->mutable_unit_value( );
+                command->mutable_unit_value( );
             switch ( set_unit_value.unit_value )
             {
                 case DebugSetUnitValue::UnitValue::Energy :
                     unit_value->set_unit_value (
-                            SC2APIProtocol::DebugSetUnitValue_UnitValue_Energy
+                        SC2APIProtocol::DebugSetUnitValue_UnitValue_Energy
                     );
                     break;
                 case DebugSetUnitValue::UnitValue::Life :
                     unit_value->set_unit_value (
-                            SC2APIProtocol::DebugSetUnitValue_UnitValue_Life
+                        SC2APIProtocol::DebugSetUnitValue_UnitValue_Life
                     );
                     break;
                 case DebugSetUnitValue::UnitValue::Shields :
                     unit_value->set_unit_value (
-                            SC2APIProtocol::DebugSetUnitValue_UnitValue_Shields
+                        SC2APIProtocol::DebugSetUnitValue_UnitValue_Shields
                     );
                     break;
             }
@@ -549,7 +605,7 @@ public:
 
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugCreateUnit* create_unit =
-                    command->mutable_create_unit( );
+                command->mutable_create_unit( );
             create_unit->set_unit_type ( unit.unit_type );
             create_unit->set_owner ( unit.player_id );
             SC2APIProtocol::Point2D* pt = create_unit->mutable_pos( );
@@ -562,7 +618,7 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugKillUnit* debug_kill_unit =
-                    command->mutable_kill_unit( );
+                command->mutable_kill_unit( );
             for ( auto tag : debug_kill_tag_ )
             {
                 debug_kill_unit->add_tag ( tag );
@@ -573,11 +629,9 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugTestProcess* test_process =
-                    command->mutable_test_process( );
+                command->mutable_test_process( );
             test_process->set_test (
-                    static_cast<SC2APIProtocol::DebugTestProcess_Test> (
-                            app_test_
-                    )
+                static_cast<SC2APIProtocol::DebugTestProcess_Test> ( app_test_ )
             );
             test_process->set_delay_ms ( app_test_delay_ms_ );
         }
@@ -586,7 +640,7 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugSetScore* set_score =
-                    command->mutable_score( );
+                command->mutable_score( );
             set_score->set_score ( score_ );
         }
         set_score_ = false;
@@ -596,9 +650,9 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugEndGame* end_game =
-                    command->mutable_end_game( );
+                command->mutable_end_game( );
             end_game->set_end_result (
-                    SC2APIProtocol::DebugEndGame_EndResult_Surrender
+                SC2APIProtocol::DebugEndGame_EndResult_Surrender
             );
         }
         endgame_surrender_ = false;
@@ -607,9 +661,9 @@ public:
         {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
             SC2APIProtocol::DebugEndGame* end_game =
-                    command->mutable_end_game( );
+                command->mutable_end_game( );
             end_game->set_end_result (
-                    SC2APIProtocol::DebugEndGame_EndResult_DeclareVictory
+                SC2APIProtocol::DebugEndGame_EndResult_DeclareVictory
             );
         }
         endgame_victory_ = false;
@@ -626,21 +680,21 @@ public:
         debug_unit_values_.clear( );
 
         // Wait for the response.
-        control_.WaitForResponse( );
+        CTRL_Face::WaitForResponse( );
 
         if ( has_move_camera )
         {
             const GameRequestPtr camera_request = ProtoFace::MakeRequest( );
             SC2APIProtocol::RequestAction* request_action =
-                    camera_request->mutable_action( );
+                camera_request->mutable_action( );
             SC2APIProtocol::Action*    action = request_action->add_actions( );
             SC2APIProtocol::ActionRaw* action_raw =
-                    action->mutable_action_raw( );
+                action->mutable_action_raw( );
             SC2APIProtocol::ActionRawCameraMove* camera_move =
-                    action_raw->mutable_camera_move( );
+                action_raw->mutable_camera_move( );
 
             SC2APIProtocol::Point* point =
-                    camera_move->mutable_center_world_space( );
+                camera_move->mutable_center_world_space( );
             point->set_x ( debug_move_camera_.x );
             point->set_y ( debug_move_camera_.y );
 

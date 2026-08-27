@@ -86,13 +86,7 @@ struct ClientConnectionError : std::runtime_error
 
 } // namespace sc2
 
-namespace {
 
-
-
-// mutex error_mutex_;
-
-} // namespace
 
 /*! @brief Error handling namespace to implement a "static class".\n
  * Handles errors that may have occurred during calls to the various
@@ -107,7 +101,7 @@ vector<string>           protocol_errors_;
 
 mutex error_mutex_;
 
-inline void Log (
+inline void Error::Log (
     const ClientError client_error = ClientError::NULL_ERROR,
     [[maybe_unused]] const vector<string>& protocol_errors = { }
 ) {
@@ -123,6 +117,11 @@ inline void Log (
     {
         protocol_errors_.push_back ( err );
     }
+
+// TODO Refactor this for LADDER_BUILD and custom assert
+// #ifdef SC2API_ASSERT_ON_ERROR
+//     assert(0);
+// #endif
 }
 
 inline vector<ClientError>& GetClientErrors ( ) {

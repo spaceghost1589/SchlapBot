@@ -9,7 +9,7 @@ module;
 #include <random>
 // Avoiding use of "thread_local" as that isn't supported in older versions of Xcode.
 
-export module math;
+export module common:math;
 
 
 

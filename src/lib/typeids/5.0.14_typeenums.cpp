@@ -6088,7 +6088,7 @@ const char* AbilityTypeToName(const AbilityID id) {
 }
 
 const std::flat_map<ABILITY_ID, ABILITY_ID> generalize_ability {
-        { ABILITY_ID::STOP_STOP,
+    { ABILITY_ID::STOP_STOP,
         ABILITY_ID::STOP },
     { ABILITY_ID::STOP_HOLDFIRESPECIAL,
         ABILITY_ID::STOP },

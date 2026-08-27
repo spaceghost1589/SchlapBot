@@ -2,8 +2,8 @@
 
 #include <span>
 
-#include "lib/game_settings.h"
 #include "utils/arg_parser.h"
+import game_settings;
 
 namespace sc2 {
 

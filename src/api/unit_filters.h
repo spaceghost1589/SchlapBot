@@ -82,16 +82,16 @@ struct IsVisible {
 
 //! Helper function used to discover whether a unit is carrying minerals or not. You could use this function in GetUnits
 //! to get all units carrying minerals: Units units = GetUnits(Alliance::Self, IsCarryingMinerals);
-//!< \param unit The unit.
-//!< \param observation Not needed for this function, only exists for Filter parameters, leave nullptr (its default).
-//!< \return Returns true if the unit is carrying minerals, false otherwise.
+//! @param unit The unit.
+//! @param observation Not needed for this function, only exists for Filter parameters, leave nullptr (its default).
+//! @return Returns true if the unit is carrying minerals, false otherwise.
 bool IsCarryingMinerals(const Unit& unit);
 
 //! Helper function used to discover whether a unit is carrying vespene or not. You could use this function in GetUnits
 //! to get all units carrying vespene: Units units = GetUnits(Alliance::Self, IsCarryingVespene);
-//!< \param unit The unit.
-//!< \param observation Not needed for this function, only exists for Filter parameters, leave nullptr (its default).
-//!< \return Returns true if the unit is carrying vespene, false otherwise.
+//! @param unit The unit.
+//! @param observation Not needed for this function, only exists for Filter parameters, leave nullptr (its default).
+//! @return Returns true if the unit is carrying vespene, false otherwise.
 bool IsCarryingVespene(const Unit& unit);
 
 }  // namespace sc2

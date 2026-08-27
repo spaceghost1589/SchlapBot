@@ -15,7 +15,7 @@
 #                PUBLIC
 #                FILE_SET CXX_MODULES
 #                FILES
-#                points.cppm
+#                point.cppm
 #                scan_directory.cppm
 #                )
 #

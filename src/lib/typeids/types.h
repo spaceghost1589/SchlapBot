@@ -11,53 +11,54 @@ namespace sc2 {
 //! This means, for example, that a unit type ID can be converted back and forth
 //! from an integer, but can't be used when another type ID, e.g., an ability
 //! ID, is required as a parameter.
-template<class T> class SC2Type {
+template<class T>
+class SC2Type {
 public:
     //! Default constructor.
     SC2Type ( ) = default;
 
     //! Construct from an integer, corresponds to the enum value.
-    SC2Type (const uint32_t type_id):
+    SC2Type (const short type_id):
         type_id_ (type_id) {}
 
     //! Construct from the enum.
     SC2Type (T type_id):
-        type_id_ (static_cast<uint32_t> (type_id)) {}
+        type_id_ (static_cast<short> (type_id)) {}
 
     //! Test equivalence.
-    //!< \return 'true' if the values are equal.
+    //! @return 'true' if the values are equal.
     bool operator == (SC2Type type_id) const {
         return type_id_ == type_id.type_id_;
     }
 
     bool operator == (T type_id) const {
-        return type_id_ == static_cast<uint32_t> (type_id);
+        return type_id_ == static_cast<short> (type_id);
     }
 
-    bool operator == (const uint32_t type_id) const {
+    bool operator == (const short type_id) const {
         return type_id_ == type_id;
     }
 
     bool operator == (const int type_id) const {
-        return static_cast<uint32_t> (type_id_) == type_id;
+        return static_cast<short> (type_id_) == type_id;
     }
 
     //! Test non-equivalence.
-    //!< \return 'true' if the values are not equal.
+    //! @return 'true' if the values are not equal.
     bool operator != (SC2Type type_id) const {
         return type_id_ != type_id.type_id_;
     }
 
     bool operator != (T type_id) const {
-        return type_id_ != static_cast<uint32_t> (type_id);
+        return type_id_ != static_cast<short> (type_id);
     }
 
-    bool operator != (const uint32_t type_id) const {
+    bool operator != (const short type_id) const {
         return type_id_ != type_id;
     }
 
     bool operator != (const int type_id) const {
-        return static_cast<uint32_t> (type_id_) != type_id;
+        return static_cast<short> (type_id_) != type_id;
     }
 
     //! Test comparison.
@@ -66,7 +67,7 @@ public:
     }
 
     //! Cast to integer.
-    operator uint32_t ( ) const {
+    operator short ( ) const {
         return type_id_;
     }
 
@@ -76,27 +77,27 @@ public:
     }
 
     //! Determines if the value contained is valid.
-    //!< \return 'true' if the value is valid.
+    //! @return 'true' if the value is valid.
     [[nodiscard]]
     bool IsValid ( ) const {
         return type_id_ != 0;
     }
 
     //! String of the integer value.
-    //!< \return The string of the value.
+    //! @return The string of the value.
     [[nodiscard]]
     std::string to_string ( ) const {
         return std::to_string (type_id_);
     }
 
     //! Explicit conversion to the enum type.
-    //!< \return The enum.
+    //! @return The enum.
     T ToType ( ) const {
         return static_cast<T> (type_id_);
     }
 
 private:
-    uint32_t type_id_ = 0;
+    uint16_t type_id_ = 0;
 };
 
 } // namespace sc2

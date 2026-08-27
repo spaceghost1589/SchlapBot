@@ -14,13 +14,12 @@ module;
 #include <iostream>
 #include <thread>
 
-#include "api/agent.h"
 #include "api/args.h"
 #include "api/replay_observer.h"
-#include "lib/game_settings.h"
 #include "utils/manage_process.h"
 export module Coordinator;
 import enum_db;
+import game_settings;
 import protocol_interface;
 
 
@@ -424,7 +423,7 @@ public:
 
         const ProcessInfo& pi_new = control->GetProcessInfo( );
 
-        return control->Connect (
+        return CTRL_Face::Connect (
                 process_settings_.net_address,
                 pi_new.port,
                 process_settings_.timeout_ms

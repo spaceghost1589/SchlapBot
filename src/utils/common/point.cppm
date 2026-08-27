@@ -9,12 +9,12 @@ module;
 #include <variant>
 
 #include <s2clientprotocol/common.pb.h>
-export module points;
+export module common:point;
 
 using std::is_arithmetic, std::is_arithmetic_v, std::is_integral_v,
-        std::is_same_v, std::convertible_to, std::format, std::function,
-        std::ostream, std::ranges::max, std::ranges::min, std::roundf,
-        std::string, std::to_string, std::variant;
+    std::is_same_v, std::convertible_to, std::format, std::function,
+    std::ostream, std::ranges::max, std::ranges::min, std::roundf, std::string,
+    std::to_string, std::variant;
 
 namespace {
 
@@ -72,17 +72,23 @@ template<PointLike2D PL2D> constexpr float get_y ( const PL2D& p ) {
 //! @function Normalize2D(Point2D& a) \n
 //! @function Dot2D(const Point2D& a, const Point2D& b) \n
 template<typename T>
-requires is_same_v<T, unsigned int> || is_same_v<T, float>
+requires is_same_v<T, int> || is_same_v<T, float>
 struct Point2D
 {
-    T x;
-    T y;
+    T x {0};
+    T y {0};
 
     // Constructors
-    Point2D ( ):
-        x ( 0 ), y ( 0 ) {}
+    Point2D ( ) = default;
+
+    Point2D ( T x_in, T y_in ):
+        x ( x_in ), y ( y_in ) {}
+
+    Point2D ( const SC2APIProtocol::PointI& pt ):
+        x ( pt.x( ) ), y ( pt.y( ) ) {}
 
     template<typename T_x, typename T_y>
+    requires ( !is_same_v<T_x, T> || !is_same_v<T_y, T> )
     Point2D ( T_x x_in, T_y y_in ):
         x ( convert_coord ( x_in ) ), y ( convert_coord ( y_in ) ) {}
 
@@ -107,7 +113,7 @@ struct Point2D
 
     [[nodiscard]]
     friend constexpr Point2D operator + (
-            Point2D lhs, const Point2D& rhs
+        Point2D lhs, const Point2D& rhs
     ) noexcept {
         return lhs += rhs;
     }
@@ -120,7 +126,7 @@ struct Point2D
 
     [[nodiscard]]
     friend constexpr Point2D operator - (
-            const Point2D& lhs, const Point2D& rhs
+        const Point2D& lhs, const Point2D& rhs
     ) noexcept {
         return lhs -= rhs;
     }
@@ -145,19 +151,20 @@ struct Point2D
 
     [[nodiscard]]
     friend constexpr Point2D operator / (
-            Point2D lhs, const float rhs
+        Point2D lhs, const float rhs
     ) noexcept {
         return ( lhs /= rhs );
     }
 
     [[nodiscard]]
     friend constexpr Point2D operator / (
-            const float lhs, Point2D rhs
+        const float lhs, Point2D rhs
     ) noexcept {
         return Point2D { lhs / rhs.x, lhs / rhs.y };
     }
 
     // Boolean Operators
+
     bool operator == ( const Point2D& rhs ) const {
         return x == rhs.x && y == rhs.y;
     }
@@ -172,7 +179,7 @@ struct Point2D
 
     [[nodiscard]]
     friend constexpr float Distance (
-            Point2D lhs, const Point2D rhs
+        Point2D lhs, const Point2D rhs
     ) noexcept {
         return hypotf ( lhs.x - rhs.x, lhs.y - rhs.y );
     }
@@ -191,7 +198,7 @@ struct Point2D
 
     // Overload operator
     friend std::ostream& operator << (
-            std::ostream& stream, const Point2D& pt
+        std::ostream& stream, const Point2D& pt
     ) {
         return stream << pt.to_string( );
     }
@@ -211,6 +218,7 @@ struct Point2D
     void Normalize ( Point2D& a ) {
         a /= sqrt ( Dot2D ( a, a ) );
     }
+
 private:
     //! @brief Type conversion and conditional int grid-rounding
     //! @param value one coordinate component (i.e. x or y).
@@ -232,8 +240,6 @@ private:
 
 }; // Point2D
 
-
-
 //------------------------------------------------------------------------------
 
 //    Rect2D - Rect2D - Rect2D - Rect2D - Rect2D - Rect2D - Rect2D - Rect2D
@@ -246,7 +252,7 @@ private:
 //! @param pt_max Top-Right corner of the rectangle.
 // TODO Check against map size
 template<typename T>
-requires is_same_v<T, unsigned int> || is_same_v<T, float>
+requires is_same_v<T, int> || is_same_v<T, float>
 struct Rect2D
 {
     Point2D<T> pt_min; // Bottom-Left corner
@@ -259,14 +265,18 @@ struct Rect2D
     Rect2D ( const Point2D<T>& pt ):
         pt_min { 0, 0 }, pt_max { pt } {}
 
+    Rect2D ( const SC2APIProtocol::PointI& pt ):
+        pt_min { 0, 0 }, pt_max { pt } {}
+
     //! Converts the input Point2D into min/max relative to (0, 0).
     Rect2D ( const Point2D<T>& pt_1, const Point2D<T>& pt_2 ):
         pt_min { min ( pt_1.x, pt_2.x ), min ( pt_1.y, pt_2.y ) },
         pt_max { max ( pt_1.x, pt_2.x ), max ( pt_1.y, pt_2.y ) } {}
 
     Rect2D ( const SC2APIProtocol::RectangleI& rectangle_i ):
-        Rect2D ( Point2D<T> ( rectangle_i.p0( ) ),
-                 Point2D<T> ( rectangle_i.p1( ) ) ) {}
+        Rect2D (
+            Point2D<T> ( rectangle_i.p0( ) ), Point2D<T> ( rectangle_i.p1( ) )
+        ) {}
 
     [[nodiscard]]
     T Width ( ) const {
@@ -286,10 +296,12 @@ struct Rect2D
     //! @brief Checks to see if a Point2D is contained within the Rectangle.
     [[nodiscard]]
     bool Contain ( const Point2D<T>& point ) const {
-        return ( point.x >= pt_min.x &&
-                 point.y >= pt_min.y &&
-                 point.x <= pt_max.x &&
-                 point.y <= pt_max.y );
+        return (
+            point.x >= pt_min.x &&
+            point.y >= pt_min.y &&
+            point.x <= pt_max.x &&
+            point.y <= pt_max.y
+        );
     }
 };
 
@@ -300,28 +312,38 @@ struct Rect2D
 //------------------------------------------------------------------------------
 
 //! 3D point.
-//!< \sa Distance3D(const Point3D& a, const Point3D& b) DistanceSquared3D(const
-//!< Point3D& a, const Point3D& b) Normalize3D(Point3D& a) Dot3D(const Point3D&
-//!< a, const Point3D& b)
+//! \sa Distance3D(const Point3D& a, const Point3D& b) DistanceSquared3D(const
+//! Point3D& a, const Point3D& b) Normalize3D(Point3D& a) Dot3D(const Point3D&
+//! a, const Point3D& b)
+template<typename T>
+requires is_same_v<T, unsigned int> || is_same_v<T, float>
 struct Point3D : Point2D<float>
 {
-    float z { 0.0f };
+    float z { 0.0F };
 
-    constexpr Point3D ( ) {}
+    constexpr Point3D ( ) =default;
 
     constexpr Point3D ( float in_x, float in_y, float in_z ):
-        Point2D { in_x, in_y  }, z ( in_z ) {}
+        Point2D ( in_x, in_y ), z ( in_z ) {}
 
     constexpr explicit Point3D ( const Point2D& p2d, float in_z = 0.0f ):
         Point2D ( p2d ), z ( in_z ) {}
 
     // TODO: Implement map height check auto-z
 
+    // Arithmetic Operators
     Point3D& operator += ( const Point3D& rhs ) {
         x += rhs.x;
         y += rhs.y;
         z += rhs.z;
         return *this;
+    }
+
+    [[nodiscard]]
+    friend constexpr Point3D operator + (
+        const Point3D& lhs, const Point3D& rhs
+    ) {
+        return lhs += rhs;
     }
 
     Point3D& operator -= ( const Point3D& rhs ) {
@@ -331,11 +353,23 @@ struct Point3D : Point2D<float>
         return *this;
     }
 
+    [[nodiscard]]
+    friend constexpr Point3D operator - (
+        const Point3D& lhs, const Point3D& rhs
+    ) {
+        return lhs -= rhs;
+    }
+
     Point3D& operator *= ( float rhs ) {
         x *= rhs;
         y *= rhs;
         z *= rhs;
         return *this;
+    }
+
+    [[nodiscard]]
+    friend constexpr Point3D operator * ( const Point3D& lhs, float rhs ) {
+        return lhs *= rhs;
     }
 
     Point3D& operator /= ( float rhs ) {
@@ -345,67 +379,56 @@ struct Point3D : Point2D<float>
         return *this;
     }
 
+    [[nodiscard]]
+    friend constexpr Point3D operator / ( const Point3D& lhs, float rhs ) {
+        return lhs /= rhs;
+    }
+
+    [[nodiscard]]
+    friend constexpr Point3D operator / ( float lhs, const Point3D& rhs ) {
+        return { lhs / rhs.x, lhs / rhs.y, lhs / rhs.z };
+    }
+
+    // Boolean Operators
+
+    [[nodiscard]]
     bool operator == ( const Point3D& rhs ) const {
         return x == rhs.x && y == rhs.y && z == rhs.z;
     }
 
+    [[nodiscard]]
     bool operator != ( const Point3D& rhs ) const {
         return !( *this == rhs );
     }
 
+    static float Dot3D ( const Point3D& a, const Point3D& b ) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    float Distance3D ( const Point3D& a, const Point3D& b ) {
+        const Point3D diff = a - b;
+        return sqrt ( Dot3D ( diff, diff ) );
+    }
+
+    float DistanceSquared3D ( const Point3D& a, const Point3D& b ) {
+        const Point3D diff = a - b;
+        return Dot3D ( diff, diff );
+    }
+
+    void Normalize3D ( Point3D& a ) {
+        a /= sqrt ( Dot3D ( a, a ) );
+    }
+
 }; // struct Point3D
-
-Point3D operator + ( const Point3D& lhs, const Point3D& rhs ) {
-    return { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
-}
-
-Point3D operator - ( const Point3D& lhs, const Point3D& rhs ) {
-    return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
-}
-
-Point3D operator * ( const Point3D& lhs, float rhs ) {
-    return { lhs.x * rhs, lhs.y * rhs, lhs.z * rhs };
-}
-
-Point3D operator * ( float lhs, const Point3D& rhs ) {
-    return rhs * lhs;
-}
-
-Point3D operator / ( const Point3D& lhs, float rhs ) {
-    return { lhs.x / rhs, lhs.y / rhs, lhs.z / rhs };
-}
-
-Point3D operator / ( float lhs, const Point3D& rhs ) {
-    return rhs / lhs;
-}
-
-float Dot3D ( const Point3D& a, const Point3D& b ) {
-    return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-
-float Distance3D ( const Point3D& a, const Point3D& b ) {
-    const Point3D diff = a - b;
-    return sqrt ( Dot3D ( diff, diff ) );
-}
-
-float DistanceSquared3D ( const Point3D& a, const Point3D& b ) {
-    const Point3D diff = a - b;
-    return Dot3D ( diff, diff );
-}
-
-void Normalize3D ( Point3D& a ) {
-    a /= sqrt ( Dot3D ( a, a ) );
-}
-
 
 } // namespace points
 
 using Point2D  = points::Point2D<float>;
-using Point2DI = points::Point2D<unsigned int>;
+using Point2DI = points::Point2D<int>;
 
 using Rect2D  = points::Rect2D<float>;
-using Rect2DI = points::Rect2D<unsigned int>;
+using Rect2DI = points::Rect2D<int>;
 
-using Point3D = points::Point3D;
+using Point3D = points::Point3D<float>;
 
 } // namespace sc2

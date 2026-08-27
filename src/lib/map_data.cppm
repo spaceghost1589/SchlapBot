@@ -5,7 +5,7 @@ module;
 
 export module map_data;
 
-import points;
+import common;
 using Point2D = sc2::points::Point2D<float>;
 
 // #ifndef SCHLAPBOT_MAP_DATA_H

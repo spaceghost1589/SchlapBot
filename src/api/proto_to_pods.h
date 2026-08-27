@@ -6,26 +6,14 @@
 #include <s2clientprotocol/spatial.pb.h>
 
 #include "api/unit.h"
-#include "lib/action.h"
-
+import action;
 import map_info;
-// import protocol_interface;
 import score;
+import protocol_interface;
 
 using std::uint32_t;
 
 namespace sc2 {
-
-using ResponseObservationPtr =
-        MessageResponsePtr<SC2APIProtocol::ResponseObservation>;
-using ObservationPtr    = MessageResponsePtr<SC2APIProtocol::Observation>;
-using ObservationRawPtr = MessageResponsePtr<SC2APIProtocol::ObservationRaw>;
-using ObservationRenderPtr =
-        MessageResponsePtr<SC2APIProtocol::ObservationRender>;
-using ResponsePingPtr = MessageResponsePtr<SC2APIProtocol::ResponsePing>;
-using ResponseGameInfoPtr =
-        MessageResponsePtr<SC2APIProtocol::ResponseGameInfo>;
-using ResponseQueryPtr = MessageResponsePtr<SC2APIProtocol::ResponseQuery>;
 
 bool Convert ( const ObservationPtr& observation_ptr, Score& score );
 bool Convert (

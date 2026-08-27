@@ -1,15 +1,14 @@
 #pragma once
 
+#include "utils/arg_parser.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <span>
 #include <string>
 #include <utility>
-
-#include "arg_parser.h"
-#include "lib/game_settings.h"
-
+import game_settings;
 namespace sc2 {
 
 using std::cout,

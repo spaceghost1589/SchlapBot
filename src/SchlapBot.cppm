@@ -3,14 +3,13 @@ module;
 #include <string>
 #include <vector>
 
-#include "api/agent.h"
 #include "api/unit.h"
 #include "lib/gametypes.h"
 #include "lib/typeids/5.0.14_typeenums.h"
 export module SchlapBot;
 import map_info;
 import map_data;
-import points;
+import common;
 
 using enum sc2::Unit::Alliance;
 

@@ -2,12 +2,6 @@ export module enum_db;
 
 export namespace sc2 {
 
-
-
-enum class AppTest { hang = 0, crash = 1, exit = 2 };
-
-
-
 // using UnitTypeID = SC2Type<UNIT_TYPEID>;
 // using AbilityID = SC2Type<ABILITY_ID>;
 // using UpgradeID = SC2Type<UPGRADE_ID>;

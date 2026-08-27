@@ -7,9 +7,11 @@ module;
 #include <s2clientprotocol/sc2api.pb.h>
 
 #include "api/connection.h"
+#include "utils/manage_process.h"
 export module protocol_interface;
 import enum_db;
 import error_handler;
+import game_settings;
 
 using std::cerr, std::function, std::make_shared, std::shared_ptr, std::string,
     std::vector;
@@ -18,7 +20,9 @@ using Response = SC2APIProtocol::Response::ResponseCase;
 using Request  = SC2APIProtocol::Request::RequestCase;
 
 //! Helper to produce a string for the protocol type.
-const char* RequestResponseIDToName ( int type ) {
+const char*
+    RequestResponseIDToName ( int type )
+{
     switch ( type )
     {
         case 1  : return "CreateGame";
@@ -43,8 +47,8 @@ const char* RequestResponseIDToName ( int type ) {
         case 20 : return "Debug";
         case 21 : return "kObsAction";
         case 22 : return "kMapCommand";
+        default : return "RESPONSE_NOT_SET";
     }
-    return "RESPONSE_NOT_SET"; // case 0
 }
 
 export namespace sc2 {
@@ -58,15 +62,20 @@ using GameResponsePtr = shared_ptr<SC2APIProtocol::Response>;
 template<class MessageType> class MessageResponsePtr
 {
 public:
-    MessageResponsePtr ( ):
-        message_ ( nullptr ) {}
+    MessageResponsePtr ( )
+          : message_ ( nullptr )
+    {}
 
-    void Set ( const GameResponsePtr& response, const MessageType* message ) {
+    void
+        Set ( const GameResponsePtr& response, const MessageType* message )
+    {
         response_ = response;
         message_  = message;
     }
 
-    bool HasErrors ( ) const {
+    bool
+        HasErrors ( ) const
+    {
         if ( !HasResponse( ) )
             return true;
         else if ( response_->error_size( ) > 0 )
@@ -77,30 +86,42 @@ public:
         return false;
     }
 
-    void Clear ( ) {
+    void
+        Clear ( )
+    {
         message_  = nullptr;
         response_ = nullptr;
     }
 
-    const MessageType* operator ->( ) const {
+    const MessageType*
+        operator ->( ) const
+    {
         Assert ( message_ );
         return message_;
     }
 
-    const MessageType* get ( ) const {
+    const MessageType*
+        get ( ) const
+    {
         Assert ( message_ );
         return message_;
     }
 
-    GameResponsePtr GetResponse ( ) const {
+    GameResponsePtr
+        GetResponse ( ) const
+    {
         return response_;
     }
 
-    bool HasResponse ( ) const {
+    bool
+        HasResponse ( ) const
+    {
         return response_.get( ) != nullptr;
     }
 
-    bool HasMessage ( ) const {
+    bool
+        HasMessage ( ) const
+    {
         return message_ != nullptr;
     }
 
@@ -113,10 +134,12 @@ private:
 namespace ProtoFace {
 
 Connection   connection_;
-string       address_ ( "127.0.0.1" );
-int          port_ ( 5000 );
+string       address_ { "127.0.0.1" };
+int          port_ { 5000 };
 unsigned int default_timeout_ms_ ( kDefaultProtoInterfaceTimeout );
 function<void ( const string& error_str )> error_callback_;
+
+ProcessInfo pi_;
 
 SC2APIProtocol::Status latest_status_ ( SC2APIProtocol::Status::unknown );
 SC2APIProtocol::Response::ResponseCase response_pending_ (
@@ -127,51 +150,74 @@ vector<uint32_t> count_uses_;
 uint32_t         base_build_ { 0 };
 string           data_version_;
 
-static GameRequestPtr MakeRequest ( ) {
+//! Creates an empty Request. Needs to be set.
+GameRequestPtr
+    MakeRequest ( )
+{
     return make_shared<SC2APIProtocol::Request> ( SC2APIProtocol::Request( ) );
 }
 
-void SetErrorCallback (
-    const function<void ( const string& error_str )>& error_callback
-) {
+void
+    SetErrorCallback (
+        const function<void ( const string& error_str )>& error_callback
+    )
+{
     error_callback_ = error_callback;
 }
 
-bool PollResponse ( ) {
+bool
+    PollResponse ( )
+{
     return connection_.PollResponse( );
 }
 
-SC2APIProtocol::Status GetLastStatus ( ) {
+SC2APIProtocol::Status
+    GetLastStatus ( )
+{
     return latest_status_;
 }
 
-bool HasResponsePending ( ) {
+bool
+    HasResponsePending ( )
+{
     return response_pending_ != Response::RESPONSE_NOT_SET;
 }
 
-SC2APIProtocol::Response::ResponseCase GetResponsePending ( ) {
+SC2APIProtocol::Response::ResponseCase
+    GetResponsePending ( )
+{
     return response_pending_;
 }
 
-int GetAssignedPort ( ) {
+int
+    GetAssignedPort ( )
+{
     return port_;
 }
 
-const vector<uint32_t>& GetStats ( ) {
+const vector<uint32_t>&
+    GetStats ( )
+{
     return count_uses_;
 }
 
-uint32_t GetBaseBuild ( ) {
+uint32_t
+    GetBaseBuild ( )
+{
     return base_build_;
 }
 
-const string& GetDataVersion ( ) {
+const string&
+    GetDataVersion ( )
+{
     return data_version_;
 }
 
-bool SendRequest (
-    const GameRequestPtr& request, bool ignore_pending_requests = false
-) {
+bool
+    SendRequest (
+        const GameRequestPtr& request, bool ignore_pending_requests = false
+    )
+{
     const uint32_t request_type = ( request->request_case( ) );
     if ( request_type >= count_uses_.size( ) )
     {
@@ -216,7 +262,9 @@ bool SendRequest (
     return true;
 }
 
-GameResponsePtr WaitForResponseInternal ( ) {
+GameResponsePtr
+    WaitForResponseInternal ( )
+{
     latest_status_                     = SC2APIProtocol::Status::unknown;
     SC2APIProtocol::Response* response = nullptr;
     if ( !connection_.Receive ( response, default_timeout_ms_ ) )
@@ -246,8 +294,7 @@ GameResponsePtr WaitForResponseInternal ( ) {
             {
                 cerr << "LogError: " << response->error ( i ) << '\n';
             }
-        }
-        else
+        } else
         {
             if ( const Response actual_response = response->response_case( );
                  response_pending_ != actual_response )
@@ -264,7 +311,106 @@ GameResponsePtr WaitForResponseInternal ( ) {
     return GameResponsePtr ( response );
 }
 
-inline bool PingGame ( ) {
+GameResponsePtr
+    WaitForResponse ( )
+{
+    assert ( app_state == AppState::Normal );
+
+    GameResponsePtr response = WaitForResponseInternal( );
+
+    if ( response.get( ) && response->error_size( ) < 1 )
+    {
+        // Everything is good. No need for any error handling.
+        return response;
+    }
+
+    if ( response.get( ) && response->error_size( ) > 0 )
+    {
+        std::vector<std::string> errors;
+        for ( int i = 0; i < response->error_size( ); ++i )
+        {
+            errors.push_back ( response->error ( i ) );
+        }
+
+        Error::Log ( ClientError::SC2ProtocolError, errors );
+        return response;
+    }
+    assert ( !response.get( ) );
+
+    // The game application did not responded, the previous request was
+    // either not sent or the app is non-responsive.
+
+    // Step 1: distinguish between a hang and a crash. Lots of time has
+    // elapsed, so if there was a crash it should have finished by now.
+    assert ( pi_.process_id );
+    if ( !IsProcessRunning ( pi_.process_id ) )
+    {
+        app_state = AppState::Crashed;
+        std::cout << "Game application has terminated unexpectedly."
+                  << std::endl;
+        Error::Log ( ClientError::SC2AppFailure );
+        return response;
+    }
+
+    // Step 2: distinguish between a non-responsive app and a failure to
+    // deliver a valid request.
+    {
+        const GameRequestPtr ping_request = MakeRequest( );
+        ping_request->mutable_ping( );
+
+        if ( !SendRequest ( ping_request, true ) )
+        {
+            // Mark the game app as unresponsive.
+            app_state = AppState::Timeout;
+            Error::Log ( ClientError::SC2ProtocolTimeout );
+        } else
+        {
+            // Wait for a ping response. If this fails, the game is
+            // unresponsive.
+            // TODO (?): Implement a timeout parameter for this wait.
+            const GameResponsePtr response_ping = WaitForResponseInternal( );
+            if ( response_ping )
+            {
+                if ( GetLastStatus( ) == SC2APIProtocol::Status::unknown )
+                {
+                    Error::Log ( ClientError::SC2UnknownStatus );
+                }
+
+                // The game is responsive, but there was another problem.
+                // This isn't the right place to handle another type of
+                // problem. Just return the nullptr.
+                Error::Log ( ClientError::SC2UnknownStatus );
+                return response;
+            }
+
+            app_state = AppState::Timeout;
+            Error::Log ( ClientError::SC2ProtocolTimeout );
+        }
+    }
+
+    // The game application has hanged. Try and terminate it.
+    app_state = AppState::Timeout;
+    for ( int i = 0; i < 10 && IsProcessRunning ( pi_.process_id ); ++i )
+    {
+        TerminateProcess ( pi_.process_id );
+        SleepFor ( 2000 );
+    }
+
+    if ( IsProcessRunning ( pi_.process_id ) )
+    {
+        // Failed to kill the running process.
+        app_state = AppState::Timeout_Zombie;
+    }
+
+    std::cout << "Game application has been terminated due to unresponsiveness."
+              << std::endl;
+    Error::Log ( ClientError::SC2AppFailure );
+    return response;
+}
+
+inline bool
+    PingGame ( )
+{
     // Send the request.
     const GameRequestPtr request = MakeRequest( );
     request->mutable_ping( );
@@ -287,7 +433,9 @@ inline bool PingGame ( ) {
     return true;
 }
 
-bool ConnectToGame ( const string& address, int port, int timeout_ms ) {
+bool
+    ConnectToGame ( const string& address, int port, int timeout_ms )
+{
     latest_status_      = SC2APIProtocol::Status::unknown;
     address_            = address;
     port_               = port;
@@ -302,7 +450,9 @@ bool ConnectToGame ( const string& address, int port, int timeout_ms ) {
     return PingGame( );
 }
 
-void Quit ( ) {
+void
+    Quit ( )
+{
     // Tell the game to close
     const GameRequestPtr request = MakeRequest( );
     request->mutable_quit( );
@@ -317,51 +467,30 @@ void Quit ( ) {
 
 // clang-format off
 using ResponseDataPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseData>;
+    MessageResponsePtr<SC2APIProtocol::ResponseData>;
 using ResponseGameInfoPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseGameInfo>;
+    MessageResponsePtr<SC2APIProtocol::ResponseGameInfo>;
 using ResponseObservationPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseObservation>;
+    MessageResponsePtr<SC2APIProtocol::ResponseObservation>;
 using ResponsePingPtr  =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponsePing>;
+    MessageResponsePtr<SC2APIProtocol::ResponsePing>;
 using ResponseQueryPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseQuery>;
+    MessageResponsePtr<SC2APIProtocol::ResponseQuery>;
 using ObservationPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::Observation>;
+    MessageResponsePtr<SC2APIProtocol::Observation>;
 using ObservationRawPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ObservationRaw>;
+    MessageResponsePtr<SC2APIProtocol::ObservationRaw>;
 using ObservationRenderPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ObservationRender>;
+    MessageResponsePtr<SC2APIProtocol::ObservationRender>;
 using ScorePtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::Score>;
+    MessageResponsePtr<SC2APIProtocol::Score>;
 using ScoreDetailsPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ScoreDetails>;
+    MessageResponsePtr<SC2APIProtocol::ScoreDetails>;
 // clang-format on
 
 } // namespace sc2
 
 // clang-format off
-using ResponseDataPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseData>;
-using ResponseGameInfoPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseGameInfo>;
-using ResponseObservationPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseObservation>;
-using ResponsePingPtr  =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponsePing>;
-using ResponseQueryPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ResponseQuery>;
-using ObservationPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::Observation>;
-using ObservationRawPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ObservationRaw>;
-using ObservationRenderPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ObservationRender>;
-using ScorePtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::Score>;
-using ScoreDetailsPtr =
-    sc2::MessageResponsePtr<SC2APIProtocol::ScoreDetails>;
-
 using Response = SC2APIProtocol::Response::ResponseCase;
 using Request  = SC2APIProtocol::Request::RequestCase;
 
