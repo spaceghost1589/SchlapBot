@@ -1,10 +1,7 @@
 #pragma once
-
 #include <vector>
-
-#include "unit.h"
-#include "lib/type_enums.h"
-
+import unit;
+import type_enums;
 namespace sc2 {
 //! Determines if the unit matches the unit type.
 struct IsUnit {explicit IsUnit(UNIT_TYPEID type_);

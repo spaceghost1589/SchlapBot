@@ -2,13 +2,12 @@ module;
 #include <cstdint>
 #include <string>
 #include <vector>
-
-#include "lib/gametypes.h"
 export module game_settings;
+import game_types;
 
-using std::string, std::vector;
 
 export namespace sc2 {
+using namespace std;
 
 //! Information about a running process.
 struct ProcessInfo
@@ -52,8 +51,8 @@ struct ProcessSettings
         const string& in_net_address,
         int           in_timeout_ms,
         int           in_port_start,
-        bool          in_multi_threaded,
-        bool          in_full_screen
+        bool          in_multi_threaded = false,
+        bool          in_full_screen = false
     )
           : realtime ( in_real_time ),
             step_size ( in_step_size ),
@@ -109,7 +108,7 @@ struct FeatureLayerSettings
 
     //! The width of the camera view as it would appear in the world. The size
     //! is in game world units.
-    float camera_width = 24.0f;
+    float camera_width = 24.0F;
     //! X size of the feature layer bitmap for the world screen.
     int   map_x        = 64;
     //! Y size of the feature layer bitmap for the world screen.

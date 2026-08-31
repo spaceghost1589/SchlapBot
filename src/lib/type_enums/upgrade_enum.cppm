@@ -1,0 +1,735 @@
+module;
+#include "types.h"
+export module type_enums:upgrade_enum;
+
+export namespace sc2 {
+
+enum class UPGRADE_ID : uint16_t {
+    ABDOMINALFORTITUDE                         = 93,
+    ADEPTKILLBOUNCE                            = 129,
+    ADEPTPIERCINGATTACK                        = 130,
+    ADEPTSHIELDUPGRADE                         = 126,
+    ADVANCEDCONSTRUCTION                       = 175,
+    ADVANCEDHEALINGAI                          = 182,
+    ADVANCEDMEDICTRAINING                      = 176,
+    AMPLIFIEDSHIELDING                         = 301,
+    ANABOLICSYNTHESIS                          = 88,
+    ANIONPULSECRYSTALS                         = 112,
+    ARESCLASSWEAPONSSYSTEM                     = 245,
+    ARESCLASSWEAPONSSYSTEMVIKING               = 145,
+    ARMORPIERCINGROCKETS                       = 290,
+    AUTOHARVESTER                              = 146,
+    AUXILIARYMEDBOTS                           = 231,
+    BANELINGBURROWMOVE                         = 95,
+    BANSHEECLOAK                               = 20,
+    BANSHEECLOAKEDDAMAGE                       = 166,
+    BANSHEESPEED                               = 136,
+    BATTLECRUISERBEHEMOTHREACTOR               = 77,
+    BATTLECRUISERENABLESPECIALIZATIONS         = 76,
+    BEARCLAWNOZZLES                            = 239,
+    BLINKTECH                                  = 87,
+    BURROW                                     = 64,
+    BURSTCAPACITORS                            = 217,
+    CAMPAIGNJOTUNBOOSTERS                      = 194,
+    CARRIERCARRIERCAPACITY                     = 294,
+    CARRIERLAUNCHSPEEDUPGRADE                  = 1,
+    CARRIERLEASHRANGEUPGRADE                   = 295,
+    CELLULARREACTORS                           = 165,
+    CENTRIFICALHOOKS                           = 75,
+    CERBERUSMINES                              = 185,
+    CHARGE                                     = 86,
+    CHITINOUSPLATING                           = 4,
+    CINEMATICMODE                              = 131,
+    CLOAKDISTORTIONFIELD                       = 211,
+    CLUSTERBOMB                                = 158,
+    CLUSTERWARHEADS                            = 210,
+    COMBATDRUGS                                = 96,
+    COMBATSHIELD                               = 234,
+    COMMANDCENTERREACTOR                       = 163,
+    CROSSSPECTRUMDAMPENERS                     = 156,
+    CURSORDEBUG                                = 132,
+    CYCLONEAIRUPGRADE                          = 124,
+    CYCLONELOCKONDAMAGEUPGRADE                 = 144,
+    CYCLONELOCKONRANGEUPGRADE                  = 123,
+    CYCLONERAPIDFIRELAUNCHERS                  = 291,
+    DARKPROTOSS                                = 260,
+    DARKTEMPLARBLINKUPGRADE                    = 141,
+    DARKTEMPLARTACTICS                         = 209,
+    DEFENSIVEMATRIX                            = 259,
+    DEVASTATORMISSILES                         = 212,
+    DIGGINGCLAWS                               = 293,
+    DISTORTIONBLASTERS                         = 167,
+    DISTORTIONSENSORS                          = 227,
+    DISTORTIONTHRUSTERS                        = 213,
+    DRILLCLAWS                                 = 122,
+    DUALFUSIONWELDERS                          = 174,
+    DURABLEMATERIALS                           = 24,
+    DYNAMICPOWERROUTING                        = 214,
+    EMPTOWER                                   = 168,
+    ENERGYSTORAGE                              = 192,
+    ENHANCEDSHOCKWAVES                         = 304,
+    EVOLVEGROOVEDSPINES                        = 134,
+    EVOLVEMUSCULARAUGMENTS                     = 135,
+    EXPANDEDHULL                               = 252,
+    EXTENDEDTHERMALLANCE                       = 50,
+    EXTRAMINES                                 = 244,
+    FIREBATJUGGERNAUTPLATING                   = 224,
+    FIRESUPPRESSIONSYSTEMS                     = 249,
+    FLARERESEARCH                              = 250,
+    FLYINGLOCUSTS                              = 119,
+    FORTIFIEDBUNKERCARAPACE                    = 171,
+    FULLBORECANISTERAMMO                       = 193,
+    GHOSTMOEBIUSREACTOR                        = 26,
+    GLIALRECONSTITUTION                        = 2,
+    GRAVITICDRIVE                              = 49,
+    GRAVITICTHRUSTERS                          = 257,
+    HAILSTORMMISSILEPODS                       = 218,
+    HALOROCKETS                                = 242,
+    HALTECH                                    = 85,
+    HELLIONCAMPAIGNINFERNALPREIGNITER          = 229,
+    HIGHCAPACITYBARRELS                        = 19,
+    HIGHTEMPLARKHAYDARINAMULET                 = 51,
+    HIREDEVILDOGSPH                            = 280,
+    HIREDUKESREVENGE                           = 286,
+    HIREDUSKWINGPH                             = 285,
+    HIREHAMMERSECURITIESPH                     = 282,
+    HIREHELSANGELSPH                           = 284,
+    HIREKELMORIANMINERSPH                      = 279,
+    HIRESIEGEBREAKERSPH                        = 283,
+    HIRESPARTANCOMPANYPH                       = 281,
+    HISECAUTOTRACKING                          = 5,
+    HIVEMINDEMULATOR                           = 170,
+    HUNTERSEEKER                               = 23,
+    HURRICANEMISSILES                          = 206,
+    HURRICANETHRUSTERS                         = 296,
+    HYBRIDCPLASMAUPGRADEHARD                   = 147,
+    HYBRIDCPLASMAUPGRADEINSANE                 = 148,
+    HYDRALISKSPEED                             = 67,
+    HYDRALISKSPEEDUPGRADE                      = 94,
+    HYPERFLUXOR                                = 186,
+    IMMORTALBARRIER                            = 128,
+    IMMORTALREVIVE                             = 121,
+    IMPALERROUNDS                              = 215,
+    INCREASEDRANGE                             = 110,
+    INFERNALPREIGNITERS                        = 228,
+    INFESTORENERGYUPGRADE                      = 74,
+    INFESTORPERISTALSIS                        = 92,
+    INTERCEPTORLIMIT4                          = 149,
+    INTERCEPTORLIMIT6                          = 150,
+    INTERFERENCEMATRIX                         = 299,
+    INVALID                                    = 0,
+    JACKHAMMERCONCUSSIONGRENADES               = 248,
+    JUGGERNAUTPLATING                          = 232,
+    KINETICFIELDS                              = 216,
+    LIBERATORAGRANGEUPGRADE                    = 140,
+    LIBERATORMORPH                             = 125,
+    LOCUSTLIFETIMEINCREASE                     = 102,
+    LURKERRANGE                                = 127,
+    MAELSTROMROUNDS                            = 236,
+    MAGFIELDLAUNCHERS                          = 133,
+    MARAUDERLIFEBOOST                          = 233,
+    MARINESTIMPACK                             = 208,
+    MECHANICALREBIRTH                          = 207,
+    MEDIVACCADUCEUSREACTOR                     = 21,
+    MEDIVACINCREASESPEEDBOOST                  = 139,
+    MEDIVACRAPIDDEPLOYMENT                     = 137,
+    MICROBIALSHROUD                            = 298,
+    MICROFILTERING                             = 195,
+    MICROFUSIONREACTORS                        = 254,
+    MODULARCONSTRUCTION                        = 251,
+    MULE                                       = 179,
+    MULTILOCKTARGETINGSYSTEMS                  = 225,
+    NANOBOTINJECTORS                           = 240,
+    NANOCONSTRUCTOR                            = 184,
+    NAPALMFUELTANKS                            = 230,
+    NEOSTEELANDSHRIKETURRETICONUPGRADE         = 154,
+    NEOSTEELFRAME                              = 10,
+    NEURALPARASITE                             = 101,
+    NOTPOSSIBLESIEGEMODE                       = 152,
+    OBSERVERGRAVITICBOOSTER                    = 48,
+    OBVERSEINCUBATION                          = 89,
+    OCULARIMPLANTS                             = 155,
+    ORACLEENERGYUPGRADE                        = 104,
+    ORBITALRELAY                               = 180,
+    ORBITALSTRIKE                              = 157,
+    ORGANICCARAPACE                            = 91,
+    OVERLORDSPEED                              = 62,
+    OVERLORDTRANSPORT                          = 63,
+    PARTICLECANNONAIR                          = 196,
+    PERMANENTCLOAKGHOST                        = 188,
+    PERMANENTCLOAKSPECTRE                      = 189,
+    PERSONALCLOAKING                           = 25,
+    PHOENIXRANGEUPGRADE                        = 99,
+    PREDATOR                                   = 172,
+    PROJECTILEACCELERATORS                     = 177,
+    PROTOSSAIRARMORSLEVEL1                     = 81,
+    PROTOSSAIRARMORSLEVEL2                     = 82,
+    PROTOSSAIRARMORSLEVEL3                     = 83,
+    PROTOSSAIRWEAPONSLEVEL1                    = 78,
+    PROTOSSAIRWEAPONSLEVEL2                    = 79,
+    PROTOSSAIRWEAPONSLEVEL3                    = 80,
+    PROTOSSGROUNDARMORSLEVEL1                  = 42,
+    PROTOSSGROUNDARMORSLEVEL2                  = 43,
+    PROTOSSGROUNDARMORSLEVEL3                  = 44,
+    PROTOSSGROUNDWEAPONSLEVEL1                 = 39,
+    PROTOSSGROUNDWEAPONSLEVEL2                 = 40,
+    PROTOSSGROUNDWEAPONSLEVEL3                 = 41,
+    PROTOSSHEROSHIPDETECTOR                    = 107,
+    PROTOSSHEROSHIPSPELL                       = 108,
+    PROTOSSHEROSHIPWEAPON                      = 106,
+    PROTOSSSHIELDSLEVEL1                       = 45,
+    PROTOSSSHIELDSLEVEL2                       = 46,
+    PROTOSSSHIELDSLEVEL3                       = 47,
+    PSIDISRUPTOR                               = 198,
+    PSIONICAMPLIFIERS                          = 302,
+    PSISTORMTECH                               = 52,
+    PUNISHERGRENADES                           = 17,
+    RAPIDDEPLOYMENT                            = 219,
+    RAVAGERRANGE                               = 142,
+    RAVENCORVIDREACTOR                         = 22,
+    RAVENDAMAGEUPGRADE                         = 143,
+    RAVENENHANCEDMUNITIONS                     = 292,
+    RAVENRECALIBRATEDEXPLOSIVES                = 138,
+    RAZORWIRE                                  = 181,
+    REAPERD8CHARGE                             = 221,
+    REAPERJUMP                                 = 109,
+    REAPERSPEED                                = 14,
+    REAPERSTIMPACK                             = 220,
+    REAPERU238ROUNDS                           = 235,
+    REGENERATIVEBIOSTEEL                       = 164,
+    REINFORCEDSUPERSTRUCTURE                   = 178,
+    RESTORESHIELDS                             = 105,
+    ROACHSUPPLY                                = 120,
+    SCAVENGINGSYSTEMS                          = 243,
+    SCIENCEVESSEL                              = 173,
+    SCIENCEVESSELENERGYMANIPULATION            = 199,
+    SCIENCEVESSELPLASMAWEAPONRY                = 200,
+    SECRETEDCOATING                            = 303,
+    SHAPEDHULL                                 = 159,
+    SHIELDWALL                                 = 16,
+    SHOWGATLINGGUN                             = 201,
+    SHRIKETURRET                               = 253,
+    SIEGETANKSHAPEDBLAST                       = 237,
+    SIEGETECH                                  = 18,
+    SINGULARITYCHARGE                          = 256,
+    SMARTSERVOS                                = 289,
+    SPECTRETOOLTIPUPGRADE                      = 160,
+    STABILIZERMEDPACKS                         = 241,
+    STIMPACK                                   = 15,
+    STRIKECANNONS                              = 97,
+    SUNDERINGIMPACT                            = 300,
+    SUPPLYDEPOTDROP                            = 169,
+    SURVIVALPODS                               = 191,
+    TECHREACTOR                                = 202,
+    TECHREACTORAI                              = 203,
+    TEMPESTGROUNDATTACKUPGRADE                 = 297,
+    TEMPESTRANGEUPGRADE                        = 100,
+    TERRANBUILDINGARMOR                        = 6,
+    TERRANDEFENSERANGEBONUS                    = 204,
+    TERRANINFANTRYARMORSLEVEL1                 = 11,
+    TERRANINFANTRYARMORSLEVEL2                 = 12,
+    TERRANINFANTRYARMORSLEVEL3                 = 13,
+    TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL1  = 264,
+    TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL2  = 265,
+    TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL3  = 266,
+    TERRANINFANTRYWEAPONSLEVEL1                = 7,
+    TERRANINFANTRYWEAPONSLEVEL2                = 8,
+    TERRANINFANTRYWEAPONSLEVEL3                = 9,
+    TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL1 = 261,
+    TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL2 = 262,
+    TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL3 = 263,
+    TERRANSHIPARMORSLEVEL1                     = 33,
+    TERRANSHIPARMORSLEVEL2                     = 34,
+    TERRANSHIPARMORSLEVEL3                     = 35,
+    TERRANSHIPARMORSVANADIUMPLATINGLEVEL1      = 276,
+    TERRANSHIPARMORSVANADIUMPLATINGLEVEL2      = 277,
+    TERRANSHIPARMORSVANADIUMPLATINGLEVEL3      = 278,
+    TERRANSHIPWEAPONSLEVEL1                    = 36,
+    TERRANSHIPWEAPONSLEVEL2                    = 37,
+    TERRANSHIPWEAPONSLEVEL3                    = 38,
+    TERRANSHIPWEAPONSULTRACAPACITORSLEVEL1     = 273,
+    TERRANSHIPWEAPONSULTRACAPACITORSLEVEL2     = 274,
+    TERRANSHIPWEAPONSULTRACAPACITORSLEVEL3     = 275,
+    TERRANVEHICLEANDSHIPARMORSLEVEL1           = 116,
+    TERRANVEHICLEANDSHIPARMORSLEVEL2           = 117,
+    TERRANVEHICLEANDSHIPARMORSLEVEL3           = 118,
+    TERRANVEHICLEANDSHIPWEAPONSLEVEL1          = 113,
+    TERRANVEHICLEANDSHIPWEAPONSLEVEL2          = 114,
+    TERRANVEHICLEANDSHIPWEAPONSLEVEL3          = 115,
+    TERRANVEHICLEARMORSLEVEL1                  = 27,
+    TERRANVEHICLEARMORSLEVEL2                  = 28,
+    TERRANVEHICLEARMORSLEVEL3                  = 29,
+    TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL1   = 270,
+    TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL2   = 271,
+    TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL3   = 272,
+    TERRANVEHICLEWEAPONSLEVEL1                 = 30,
+    TERRANVEHICLEWEAPONSLEVEL2                 = 31,
+    TERRANVEHICLEWEAPONSLEVEL3                 = 32,
+    TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL1  = 267,
+    TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL2  = 268,
+    TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL3  = 269,
+    TOSHEASYMODE                               = 287,
+    TRANSFORMATIONSERVOS                       = 98,
+    TRILITHIUMPOWERCELLS                       = 187,
+    TUNGSTENSPIKES                             = 238,
+    TUNNELINGCLAWS                             = 3,
+    TURBOCHARGEDENGINES                        = 226,
+    TWINLINKEDFLAMETHROWERS                    = 183,
+    TYCHUS05BATTLECRUISERPENETRATION           = 222,
+    ULTRACAPACITORS                            = 161,
+    ULTRALISKBURROWCHARGEUPGRADE               = 103,
+    ULTRASONICPULSE                            = 190,
+    VANADIUMPLATING                            = 162,
+    VIKINGJOTUNBOOSTERS                        = 90,
+    VIRALMUNITIONS                             = 247,
+    VIRALPLASMA                                = 223,
+    VOIDRAYSPEEDUPGRADE                        = 288,
+    VULTUREAUTOREPAIR                          = 197,
+    WARPGATERESEARCH                           = 84,
+    WHITENAPALM                                = 246,
+    WRAITHCLOAK                                = 255,
+    X88TNAPALMUPGRADE                          = 205,
+    YAMATOCANNON                               = 258,
+    ZERGBURROWMOVE                             = 111,
+    ZERGFLYERARMORSLEVEL1                      = 71,
+    ZERGFLYERARMORSLEVEL2                      = 72,
+    ZERGFLYERARMORSLEVEL3                      = 73,
+    ZERGFLYERWEAPONSLEVEL1                     = 68,
+    ZERGFLYERWEAPONSLEVEL2                     = 69,
+    ZERGFLYERWEAPONSLEVEL3                     = 70,
+    ZERGGROUNDARMORSLEVEL1                     = 56,
+    ZERGGROUNDARMORSLEVEL2                     = 57,
+    ZERGGROUNDARMORSLEVEL3                     = 58,
+    ZERGLINGATTACKSPEED                        = 65,
+    ZERGLINGMOVEMENTSPEED                      = 66,
+    ZERGMELEEWEAPONSLEVEL1                     = 53,
+    ZERGMELEEWEAPONSLEVEL2                     = 54,
+    ZERGMELEEWEAPONSLEVEL3                     = 55,
+    ZERGMISSILEWEAPONSLEVEL1                   = 59,
+    ZERGMISSILEWEAPONSLEVEL2                   = 60,
+    ZERGMISSILEWEAPONSLEVEL3                   = 61,
+    _330MMBARRAGECANNONS                       = 151,
+};
+
+using UpgradeID = SC2Type<UPGRADE_ID>;
+
+//! Converts a UPGRADE_ID into a string of the same name.
+const char* UpgradeIDToName ( const UpgradeID id ) {
+    switch ( static_cast<UPGRADE_ID> ( id ) ) {
+        case UPGRADE_ID::ABDOMINALFORTITUDE    : return "ABDOMINALFORTITUDE";
+        case UPGRADE_ID::ADEPTKILLBOUNCE       : return "ADEPTKILLBOUNCE";
+        case UPGRADE_ID::ADEPTPIERCINGATTACK   : return "ADEPTPIERCINGATTACK";
+        case UPGRADE_ID::ADEPTSHIELDUPGRADE    : return "ADEPTSHIELDUPGRADE";
+        case UPGRADE_ID::ADVANCEDCONSTRUCTION  : return "ADVANCEDCONSTRUCTION";
+        case UPGRADE_ID::ADVANCEDHEALINGAI     : return "ADVANCEDHEALINGAI";
+        case UPGRADE_ID::ADVANCEDMEDICTRAINING : return "ADVANCEDMEDICTRAINING";
+        case UPGRADE_ID::AMPLIFIEDSHIELDING    : return "AMPLIFIEDSHIELDING";
+        case UPGRADE_ID::ANABOLICSYNTHESIS     : return "ANABOLICSYNTHESIS";
+        case UPGRADE_ID::ANIONPULSECRYSTALS    : return "ANIONPULSECRYSTALS";
+        case UPGRADE_ID::ARESCLASSWEAPONSSYSTEM :
+            return "ARESCLASSWEAPONSSYSTEM";
+        case UPGRADE_ID::ARESCLASSWEAPONSSYSTEMVIKING :
+            return "ARESCLASSWEAPONSSYSTEMVIKING";
+        case UPGRADE_ID::ARMORPIERCINGROCKETS : return "ARMORPIERCINGROCKETS";
+        case UPGRADE_ID::AUTOHARVESTER        : return "AUTOHARVESTER";
+        case UPGRADE_ID::AUXILIARYMEDBOTS     : return "AUXILIARYMEDBOTS";
+        case UPGRADE_ID::BANELINGBURROWMOVE   : return "BANELINGBURROWMOVE";
+        case UPGRADE_ID::BANSHEECLOAK         : return "BANSHEECLOAK";
+        case UPGRADE_ID::BANSHEECLOAKEDDAMAGE : return "BANSHEECLOAKEDDAMAGE";
+        case UPGRADE_ID::BANSHEESPEED         : return "BANSHEESPEED";
+        case UPGRADE_ID::BATTLECRUISERBEHEMOTHREACTOR :
+            return "BATTLECRUISERBEHEMOTHREACTOR";
+        case UPGRADE_ID::BATTLECRUISERENABLESPECIALIZATIONS :
+            return "BATTLECRUISERENABLESPECIALIZATIONS";
+        case UPGRADE_ID::BEARCLAWNOZZLES       : return "BEARCLAWNOZZLES";
+        case UPGRADE_ID::BLINKTECH             : return "BLINKTECH";
+        case UPGRADE_ID::BURROW                : return "BURROW";
+        case UPGRADE_ID::BURSTCAPACITORS       : return "BURSTCAPACITORS";
+        case UPGRADE_ID::CAMPAIGNJOTUNBOOSTERS : return "CAMPAIGNJOTUNBOOSTERS";
+        case UPGRADE_ID::CARRIERCARRIERCAPACITY :
+            return "CARRIERCARRIERCAPACITY";
+        case UPGRADE_ID::CARRIERLAUNCHSPEEDUPGRADE :
+            return "CARRIERLAUNCHSPEEDUPGRADE";
+        case UPGRADE_ID::CARRIERLEASHRANGEUPGRADE :
+            return "CARRIERLEASHRANGEUPGRADE";
+        case UPGRADE_ID::CELLULARREACTORS     : return "CELLULARREACTORS";
+        case UPGRADE_ID::CENTRIFICALHOOKS     : return "CENTRIFICALHOOKS";
+        case UPGRADE_ID::CERBERUSMINES        : return "CERBERUSMINES";
+        case UPGRADE_ID::CHARGE               : return "CHARGE";
+        case UPGRADE_ID::CHITINOUSPLATING     : return "CHITINOUSPLATING";
+        case UPGRADE_ID::CINEMATICMODE        : return "CINEMATICMODE";
+        case UPGRADE_ID::CLOAKDISTORTIONFIELD : return "CLOAKDISTORTIONFIELD";
+        case UPGRADE_ID::CLUSTERBOMB          : return "CLUSTERBOMB";
+        case UPGRADE_ID::CLUSTERWARHEADS      : return "CLUSTERWARHEADS";
+        case UPGRADE_ID::COMBATDRUGS          : return "COMBATDRUGS";
+        case UPGRADE_ID::COMBATSHIELD         : return "COMBATSHIELD";
+        case UPGRADE_ID::COMMANDCENTERREACTOR : return "COMMANDCENTERREACTOR";
+        case UPGRADE_ID::CROSSSPECTRUMDAMPENERS :
+            return "CROSSSPECTRUMDAMPENERS";
+        case UPGRADE_ID::CURSORDEBUG       : return "CURSORDEBUG";
+        case UPGRADE_ID::CYCLONEAIRUPGRADE : return "CYCLONEAIRUPGRADE";
+        case UPGRADE_ID::CYCLONELOCKONDAMAGEUPGRADE :
+            return "CYCLONELOCKONDAMAGEUPGRADE";
+        case UPGRADE_ID::CYCLONELOCKONRANGEUPGRADE :
+            return "CYCLONELOCKONRANGEUPGRADE";
+        case UPGRADE_ID::CYCLONERAPIDFIRELAUNCHERS :
+            return "CYCLONERAPIDFIRELAUNCHERS";
+        case UPGRADE_ID::DARKPROTOSS : return "DARKPROTOSS";
+        case UPGRADE_ID::DARKTEMPLARBLINKUPGRADE :
+            return "DARKTEMPLARBLINKUPGRADE";
+        case UPGRADE_ID::DARKTEMPLARTACTICS  : return "DARKTEMPLARTACTICS";
+        case UPGRADE_ID::DEFENSIVEMATRIX     : return "DEFENSIVEMATRIX";
+        case UPGRADE_ID::DEVASTATORMISSILES  : return "DEVASTATORMISSILES";
+        case UPGRADE_ID::DIGGINGCLAWS        : return "DIGGINGCLAWS";
+        case UPGRADE_ID::DISTORTIONBLASTERS  : return "DISTORTIONBLASTERS";
+        case UPGRADE_ID::DISTORTIONSENSORS   : return "DISTORTIONSENSORS";
+        case UPGRADE_ID::DISTORTIONTHRUSTERS : return "DISTORTIONTHRUSTERS";
+        case UPGRADE_ID::DRILLCLAWS          : return "DRILLCLAWS";
+        case UPGRADE_ID::DUALFUSIONWELDERS   : return "DUALFUSIONWELDERS";
+        case UPGRADE_ID::DURABLEMATERIALS    : return "DURABLEMATERIALS";
+        case UPGRADE_ID::DYNAMICPOWERROUTING : return "DYNAMICPOWERROUTING";
+        case UPGRADE_ID::EMPTOWER            : return "EMPTOWER";
+        case UPGRADE_ID::ENERGYSTORAGE       : return "ENERGYSTORAGE";
+        case UPGRADE_ID::ENHANCEDSHOCKWAVES  : return "ENHANCEDSHOCKWAVES";
+        case UPGRADE_ID::EVOLVEGROOVEDSPINES : return "EVOLVEGROOVEDSPINES";
+        case UPGRADE_ID::EVOLVEMUSCULARAUGMENTS :
+            return "EVOLVEMUSCULARAUGMENTS";
+        case UPGRADE_ID::EXPANDEDHULL         : return "EXPANDEDHULL";
+        case UPGRADE_ID::EXTENDEDTHERMALLANCE : return "EXTENDEDTHERMALLANCE";
+        case UPGRADE_ID::EXTRAMINES           : return "EXTRAMINES";
+        case UPGRADE_ID::FIREBATJUGGERNAUTPLATING :
+            return "FIREBATJUGGERNAUTPLATING";
+        case UPGRADE_ID::FIRESUPPRESSIONSYSTEMS :
+            return "FIRESUPPRESSIONSYSTEMS";
+        case UPGRADE_ID::FLARERESEARCH : return "FLARERESEARCH";
+        case UPGRADE_ID::FLYINGLOCUSTS : return "FLYINGLOCUSTS";
+        case UPGRADE_ID::FORTIFIEDBUNKERCARAPACE :
+            return "FORTIFIEDBUNKERCARAPACE";
+        case UPGRADE_ID::FULLBORECANISTERAMMO : return "FULLBORECANISTERAMMO";
+        case UPGRADE_ID::GHOSTMOEBIUSREACTOR  : return "GHOSTMOEBIUSREACTOR";
+        case UPGRADE_ID::GLIALRECONSTITUTION  : return "GLIALRECONSTITUTION";
+        case UPGRADE_ID::GRAVITICDRIVE        : return "GRAVITICDRIVE";
+        case UPGRADE_ID::GRAVITICTHRUSTERS    : return "GRAVITICTHRUSTERS";
+        case UPGRADE_ID::HAILSTORMMISSILEPODS : return "HAILSTORMMISSILEPODS";
+        case UPGRADE_ID::HALOROCKETS          : return "HALOROCKETS";
+        case UPGRADE_ID::HALTECH              : return "HALTECH";
+        case UPGRADE_ID::HELLIONCAMPAIGNINFERNALPREIGNITER :
+            return "HELLIONCAMPAIGNINFERNALPREIGNITER";
+        case UPGRADE_ID::HIGHCAPACITYBARRELS : return "HIGHCAPACITYBARRELS";
+        case UPGRADE_ID::HIGHTEMPLARKHAYDARINAMULET :
+            return "HIGHTEMPLARKHAYDARINAMULET";
+        case UPGRADE_ID::HIREDEVILDOGSPH  : return "HIREDEVILDOGSPH";
+        case UPGRADE_ID::HIREDUKESREVENGE : return "HIREDUKESREVENGE";
+        case UPGRADE_ID::HIREDUSKWINGPH   : return "HIREDUSKWINGPH";
+        case UPGRADE_ID::HIREHAMMERSECURITIESPH :
+            return "HIREHAMMERSECURITIESPH";
+        case UPGRADE_ID::HIREHELSANGELSPH      : return "HIREHELSANGELSPH";
+        case UPGRADE_ID::HIREKELMORIANMINERSPH : return "HIREKELMORIANMINERSPH";
+        case UPGRADE_ID::HIRESIEGEBREAKERSPH   : return "HIRESIEGEBREAKERSPH";
+        case UPGRADE_ID::HIRESPARTANCOMPANYPH  : return "HIRESPARTANCOMPANYPH";
+        case UPGRADE_ID::HISECAUTOTRACKING     : return "HISECAUTOTRACKING";
+        case UPGRADE_ID::HIVEMINDEMULATOR      : return "HIVEMINDEMULATOR";
+        case UPGRADE_ID::HUNTERSEEKER          : return "HUNTERSEEKER";
+        case UPGRADE_ID::HURRICANEMISSILES     : return "HURRICANEMISSILES";
+        case UPGRADE_ID::HURRICANETHRUSTERS    : return "HURRICANETHRUSTERS";
+        case UPGRADE_ID::HYBRIDCPLASMAUPGRADEHARD :
+            return "HYBRIDCPLASMAUPGRADEHARD";
+        case UPGRADE_ID::HYBRIDCPLASMAUPGRADEINSANE :
+            return "HYBRIDCPLASMAUPGRADEINSANE";
+        case UPGRADE_ID::HYDRALISKSPEED        : return "HYDRALISKSPEED";
+        case UPGRADE_ID::HYDRALISKSPEEDUPGRADE : return "HYDRALISKSPEEDUPGRADE";
+        case UPGRADE_ID::HYPERFLUXOR           : return "HYPERFLUXOR";
+        case UPGRADE_ID::IMMORTALBARRIER       : return "IMMORTALBARRIER";
+        case UPGRADE_ID::IMMORTALREVIVE        : return "IMMORTALREVIVE";
+        case UPGRADE_ID::IMPALERROUNDS         : return "IMPALERROUNDS";
+        case UPGRADE_ID::INCREASEDRANGE        : return "INCREASEDRANGE";
+        case UPGRADE_ID::INFERNALPREIGNITERS   : return "INFERNALPREIGNITERS";
+        case UPGRADE_ID::INFESTORENERGYUPGRADE : return "INFESTORENERGYUPGRADE";
+        case UPGRADE_ID::INFESTORPERISTALSIS   : return "INFESTORPERISTALSIS";
+        case UPGRADE_ID::INTERCEPTORLIMIT4     : return "INTERCEPTORLIMIT4";
+        case UPGRADE_ID::INTERCEPTORLIMIT6     : return "INTERCEPTORLIMIT6";
+        case UPGRADE_ID::INTERFERENCEMATRIX    : return "INTERFERENCEMATRIX";
+        case UPGRADE_ID::INVALID               : return "INVALID";
+        case UPGRADE_ID::JACKHAMMERCONCUSSIONGRENADES :
+            return "JACKHAMMERCONCUSSIONGRENADES";
+        case UPGRADE_ID::JUGGERNAUTPLATING : return "JUGGERNAUTPLATING";
+        case UPGRADE_ID::KINETICFIELDS     : return "KINETICFIELDS";
+        case UPGRADE_ID::LIBERATORAGRANGEUPGRADE :
+            return "LIBERATORAGRANGEUPGRADE";
+        case UPGRADE_ID::LIBERATORMORPH : return "LIBERATORMORPH";
+        case UPGRADE_ID::LOCUSTLIFETIMEINCREASE :
+            return "LOCUSTLIFETIMEINCREASE";
+        case UPGRADE_ID::LURKERRANGE       : return "LURKERRANGE";
+        case UPGRADE_ID::MAELSTROMROUNDS   : return "MAELSTROMROUNDS";
+        case UPGRADE_ID::MAGFIELDLAUNCHERS : return "MAGFIELDLAUNCHERS";
+        case UPGRADE_ID::MARAUDERLIFEBOOST : return "MARAUDERLIFEBOOST";
+        case UPGRADE_ID::MARINESTIMPACK    : return "MARINESTIMPACK";
+        case UPGRADE_ID::MECHANICALREBIRTH : return "MECHANICALREBIRTH";
+        case UPGRADE_ID::MEDIVACCADUCEUSREACTOR :
+            return "MEDIVACCADUCEUSREACTOR";
+        case UPGRADE_ID::MEDIVACINCREASESPEEDBOOST :
+            return "MEDIVACINCREASESPEEDBOOST";
+        case UPGRADE_ID::MEDIVACRAPIDDEPLOYMENT :
+            return "MEDIVACRAPIDDEPLOYMENT";
+        case UPGRADE_ID::MICROBIALSHROUD     : return "MICROBIALSHROUD";
+        case UPGRADE_ID::MICROFILTERING      : return "MICROFILTERING";
+        case UPGRADE_ID::MICROFUSIONREACTORS : return "MICROFUSIONREACTORS";
+        case UPGRADE_ID::MODULARCONSTRUCTION : return "MODULARCONSTRUCTION";
+        case UPGRADE_ID::MULE                : return "MULE";
+        case UPGRADE_ID::MULTILOCKTARGETINGSYSTEMS :
+            return "MULTILOCKTARGETINGSYSTEMS";
+        case UPGRADE_ID::NANOBOTINJECTORS : return "NANOBOTINJECTORS";
+        case UPGRADE_ID::NANOCONSTRUCTOR  : return "NANOCONSTRUCTOR";
+        case UPGRADE_ID::NAPALMFUELTANKS  : return "NAPALMFUELTANKS";
+        case UPGRADE_ID::NEOSTEELANDSHRIKETURRETICONUPGRADE :
+            return "NEOSTEELANDSHRIKETURRETICONUPGRADE";
+        case UPGRADE_ID::NEOSTEELFRAME        : return "NEOSTEELFRAME";
+        case UPGRADE_ID::NEURALPARASITE       : return "NEURALPARASITE";
+        case UPGRADE_ID::NOTPOSSIBLESIEGEMODE : return "NOTPOSSIBLESIEGEMODE";
+        case UPGRADE_ID::OBSERVERGRAVITICBOOSTER :
+            return "OBSERVERGRAVITICBOOSTER";
+        case UPGRADE_ID::OBVERSEINCUBATION     : return "OBVERSEINCUBATION";
+        case UPGRADE_ID::OCULARIMPLANTS        : return "OCULARIMPLANTS";
+        case UPGRADE_ID::ORACLEENERGYUPGRADE   : return "ORACLEENERGYUPGRADE";
+        case UPGRADE_ID::ORBITALRELAY          : return "ORBITALRELAY";
+        case UPGRADE_ID::ORBITALSTRIKE         : return "ORBITALSTRIKE";
+        case UPGRADE_ID::ORGANICCARAPACE       : return "ORGANICCARAPACE";
+        case UPGRADE_ID::OVERLORDSPEED         : return "OVERLORDSPEED";
+        case UPGRADE_ID::OVERLORDTRANSPORT     : return "OVERLORDTRANSPORT";
+        case UPGRADE_ID::PARTICLECANNONAIR     : return "PARTICLECANNONAIR";
+        case UPGRADE_ID::PERMANENTCLOAKGHOST   : return "PERMANENTCLOAKGHOST";
+        case UPGRADE_ID::PERMANENTCLOAKSPECTRE : return "PERMANENTCLOAKSPECTRE";
+        case UPGRADE_ID::PERSONALCLOAKING      : return "PERSONALCLOAKING";
+        case UPGRADE_ID::PHOENIXRANGEUPGRADE   : return "PHOENIXRANGEUPGRADE";
+        case UPGRADE_ID::PREDATOR              : return "PREDATOR";
+        case UPGRADE_ID::PROJECTILEACCELERATORS :
+            return "PROJECTILEACCELERATORS";
+        case UPGRADE_ID::PROTOSSAIRARMORSLEVEL1 :
+            return "PROTOSSAIRARMORSLEVEL1";
+        case UPGRADE_ID::PROTOSSAIRARMORSLEVEL2 :
+            return "PROTOSSAIRARMORSLEVEL2";
+        case UPGRADE_ID::PROTOSSAIRARMORSLEVEL3 :
+            return "PROTOSSAIRARMORSLEVEL3";
+        case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL1 :
+            return "PROTOSSAIRWEAPONSLEVEL1";
+        case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL2 :
+            return "PROTOSSAIRWEAPONSLEVEL2";
+        case UPGRADE_ID::PROTOSSAIRWEAPONSLEVEL3 :
+            return "PROTOSSAIRWEAPONSLEVEL3";
+        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL1 :
+            return "PROTOSSGROUNDARMORSLEVEL1";
+        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL2 :
+            return "PROTOSSGROUNDARMORSLEVEL2";
+        case UPGRADE_ID::PROTOSSGROUNDARMORSLEVEL3 :
+            return "PROTOSSGROUNDARMORSLEVEL3";
+        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL1 :
+            return "PROTOSSGROUNDWEAPONSLEVEL1";
+        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL2 :
+            return "PROTOSSGROUNDWEAPONSLEVEL2";
+        case UPGRADE_ID::PROTOSSGROUNDWEAPONSLEVEL3 :
+            return "PROTOSSGROUNDWEAPONSLEVEL3";
+        case UPGRADE_ID::PROTOSSHEROSHIPDETECTOR :
+            return "PROTOSSHEROSHIPDETECTOR";
+        case UPGRADE_ID::PROTOSSHEROSHIPSPELL  : return "PROTOSSHEROSHIPSPELL";
+        case UPGRADE_ID::PROTOSSHEROSHIPWEAPON : return "PROTOSSHEROSHIPWEAPON";
+        case UPGRADE_ID::PROTOSSSHIELDSLEVEL1  : return "PROTOSSSHIELDSLEVEL1";
+        case UPGRADE_ID::PROTOSSSHIELDSLEVEL2  : return "PROTOSSSHIELDSLEVEL2";
+        case UPGRADE_ID::PROTOSSSHIELDSLEVEL3  : return "PROTOSSSHIELDSLEVEL3";
+        case UPGRADE_ID::PSIDISRUPTOR          : return "PSIDISRUPTOR";
+        case UPGRADE_ID::PSIONICAMPLIFIERS     : return "PSIONICAMPLIFIERS";
+        case UPGRADE_ID::PSISTORMTECH          : return "PSISTORMTECH";
+        case UPGRADE_ID::PUNISHERGRENADES      : return "PUNISHERGRENADES";
+        case UPGRADE_ID::RAPIDDEPLOYMENT       : return "RAPIDDEPLOYMENT";
+        case UPGRADE_ID::RAVAGERRANGE          : return "RAVAGERRANGE";
+        case UPGRADE_ID::RAVENCORVIDREACTOR    : return "RAVENCORVIDREACTOR";
+        case UPGRADE_ID::RAVENDAMAGEUPGRADE    : return "RAVENDAMAGEUPGRADE";
+        case UPGRADE_ID::RAVENENHANCEDMUNITIONS :
+            return "RAVENENHANCEDMUNITIONS";
+        case UPGRADE_ID::RAVENRECALIBRATEDEXPLOSIVES :
+            return "RAVENRECALIBRATEDEXPLOSIVES";
+        case UPGRADE_ID::RAZORWIRE            : return "RAZORWIRE";
+        case UPGRADE_ID::REAPERD8CHARGE       : return "REAPERD8CHARGE";
+        case UPGRADE_ID::REAPERJUMP           : return "REAPERJUMP";
+        case UPGRADE_ID::REAPERSPEED          : return "REAPERSPEED";
+        case UPGRADE_ID::REAPERSTIMPACK       : return "REAPERSTIMPACK";
+        case UPGRADE_ID::REAPERU238ROUNDS     : return "REAPERU238ROUNDS";
+        case UPGRADE_ID::REGENERATIVEBIOSTEEL : return "REGENERATIVEBIOSTEEL";
+        case UPGRADE_ID::REINFORCEDSUPERSTRUCTURE :
+            return "REINFORCEDSUPERSTRUCTURE";
+        case UPGRADE_ID::RESTORESHIELDS    : return "RESTORESHIELDS";
+        case UPGRADE_ID::ROACHSUPPLY       : return "ROACHSUPPLY";
+        case UPGRADE_ID::SCAVENGINGSYSTEMS : return "SCAVENGINGSYSTEMS";
+        case UPGRADE_ID::SCIENCEVESSEL     : return "SCIENCEVESSEL";
+        case UPGRADE_ID::SCIENCEVESSELENERGYMANIPULATION :
+            return "SCIENCEVESSELENERGYMANIPULATION";
+        case UPGRADE_ID::SCIENCEVESSELPLASMAWEAPONRY :
+            return "SCIENCEVESSELPLASMAWEAPONRY";
+        case UPGRADE_ID::SECRETEDCOATING       : return "SECRETEDCOATING";
+        case UPGRADE_ID::SHAPEDHULL            : return "SHAPEDHULL";
+        case UPGRADE_ID::SHIELDWALL            : return "SHIELDWALL";
+        case UPGRADE_ID::SHOWGATLINGGUN        : return "SHOWGATLINGGUN";
+        case UPGRADE_ID::SHRIKETURRET          : return "SHRIKETURRET";
+        case UPGRADE_ID::SIEGETANKSHAPEDBLAST  : return "SIEGETANKSHAPEDBLAST";
+        case UPGRADE_ID::SIEGETECH             : return "SIEGETECH";
+        case UPGRADE_ID::SINGULARITYCHARGE     : return "SINGULARITYCHARGE";
+        case UPGRADE_ID::SMARTSERVOS           : return "SMARTSERVOS";
+        case UPGRADE_ID::SPECTRETOOLTIPUPGRADE : return "SPECTRETOOLTIPUPGRADE";
+        case UPGRADE_ID::STABILIZERMEDPACKS    : return "STABILIZERMEDPACKS";
+        case UPGRADE_ID::STIMPACK              : return "STIMPACK";
+        case UPGRADE_ID::STRIKECANNONS         : return "STRIKECANNONS";
+        case UPGRADE_ID::SUNDERINGIMPACT       : return "SUNDERINGIMPACT";
+        case UPGRADE_ID::SUPPLYDEPOTDROP       : return "SUPPLYDEPOTDROP";
+        case UPGRADE_ID::SURVIVALPODS          : return "SURVIVALPODS";
+        case UPGRADE_ID::TECHREACTOR           : return "TECHREACTOR";
+        case UPGRADE_ID::TECHREACTORAI         : return "TECHREACTORAI";
+        case UPGRADE_ID::TEMPESTGROUNDATTACKUPGRADE :
+            return "TEMPESTGROUNDATTACKUPGRADE";
+        case UPGRADE_ID::TEMPESTRANGEUPGRADE : return "TEMPESTRANGEUPGRADE";
+        case UPGRADE_ID::TERRANBUILDINGARMOR : return "TERRANBUILDINGARMOR";
+        case UPGRADE_ID::TERRANDEFENSERANGEBONUS :
+            return "TERRANDEFENSERANGEBONUS";
+        case UPGRADE_ID::TERRANINFANTRYARMORSLEVEL1 :
+            return "TERRANINFANTRYARMORSLEVEL1";
+        case UPGRADE_ID::TERRANINFANTRYARMORSLEVEL2 :
+            return "TERRANINFANTRYARMORSLEVEL2";
+        case UPGRADE_ID::TERRANINFANTRYARMORSLEVEL3 :
+            return "TERRANINFANTRYARMORSLEVEL3";
+        case UPGRADE_ID::TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL1 :
+            return "TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL1";
+        case UPGRADE_ID::TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL2 :
+            return "TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL2";
+        case UPGRADE_ID::TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL3 :
+            return "TERRANINFANTRYARMORSVANADIUMPLATINGLEVEL3";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL1 :
+            return "TERRANINFANTRYWEAPONSLEVEL1";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL2 :
+            return "TERRANINFANTRYWEAPONSLEVEL2";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSLEVEL3 :
+            return "TERRANINFANTRYWEAPONSLEVEL3";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL1 :
+            return "TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL1";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL2 :
+            return "TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL2";
+        case UPGRADE_ID::TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL3 :
+            return "TERRANINFANTRYWEAPONSULTRACAPACITORSLEVEL3";
+        case UPGRADE_ID::TERRANSHIPARMORSLEVEL1 :
+            return "TERRANSHIPARMORSLEVEL1";
+        case UPGRADE_ID::TERRANSHIPARMORSLEVEL2 :
+            return "TERRANSHIPARMORSLEVEL2";
+        case UPGRADE_ID::TERRANSHIPARMORSLEVEL3 :
+            return "TERRANSHIPARMORSLEVEL3";
+        case UPGRADE_ID::TERRANSHIPARMORSVANADIUMPLATINGLEVEL1 :
+            return "TERRANSHIPARMORSVANADIUMPLATINGLEVEL1";
+        case UPGRADE_ID::TERRANSHIPARMORSVANADIUMPLATINGLEVEL2 :
+            return "TERRANSHIPARMORSVANADIUMPLATINGLEVEL2";
+        case UPGRADE_ID::TERRANSHIPARMORSVANADIUMPLATINGLEVEL3 :
+            return "TERRANSHIPARMORSVANADIUMPLATINGLEVEL3";
+        case UPGRADE_ID::TERRANSHIPWEAPONSLEVEL1 :
+            return "TERRANSHIPWEAPONSLEVEL1";
+        case UPGRADE_ID::TERRANSHIPWEAPONSLEVEL2 :
+            return "TERRANSHIPWEAPONSLEVEL2";
+        case UPGRADE_ID::TERRANSHIPWEAPONSLEVEL3 :
+            return "TERRANSHIPWEAPONSLEVEL3";
+        case UPGRADE_ID::TERRANSHIPWEAPONSULTRACAPACITORSLEVEL1 :
+            return "TERRANSHIPWEAPONSULTRACAPACITORSLEVEL1";
+        case UPGRADE_ID::TERRANSHIPWEAPONSULTRACAPACITORSLEVEL2 :
+            return "TERRANSHIPWEAPONSULTRACAPACITORSLEVEL2";
+        case UPGRADE_ID::TERRANSHIPWEAPONSULTRACAPACITORSLEVEL3 :
+            return "TERRANSHIPWEAPONSULTRACAPACITORSLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPARMORSLEVEL1 :
+            return "TERRANVEHICLEANDSHIPARMORSLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPARMORSLEVEL2 :
+            return "TERRANVEHICLEANDSHIPARMORSLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPARMORSLEVEL3 :
+            return "TERRANVEHICLEANDSHIPARMORSLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPWEAPONSLEVEL1 :
+            return "TERRANVEHICLEANDSHIPWEAPONSLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPWEAPONSLEVEL2 :
+            return "TERRANVEHICLEANDSHIPWEAPONSLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEANDSHIPWEAPONSLEVEL3 :
+            return "TERRANVEHICLEANDSHIPWEAPONSLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEARMORSLEVEL1 :
+            return "TERRANVEHICLEARMORSLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEARMORSLEVEL2 :
+            return "TERRANVEHICLEARMORSLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEARMORSLEVEL3 :
+            return "TERRANVEHICLEARMORSLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL1 :
+            return "TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL2 :
+            return "TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL3 :
+            return "TERRANVEHICLEARMORSVANADIUMPLATINGLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL1 :
+            return "TERRANVEHICLEWEAPONSLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL2 :
+            return "TERRANVEHICLEWEAPONSLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSLEVEL3 :
+            return "TERRANVEHICLEWEAPONSLEVEL3";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL1 :
+            return "TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL1";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL2 :
+            return "TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL2";
+        case UPGRADE_ID::TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL3 :
+            return "TERRANVEHICLEWEAPONSULTRACAPACITORSLEVEL3";
+        case UPGRADE_ID::TOSHEASYMODE         : return "TOSHEASYMODE";
+        case UPGRADE_ID::TRANSFORMATIONSERVOS : return "TRANSFORMATIONSERVOS";
+        case UPGRADE_ID::TRILITHIUMPOWERCELLS : return "TRILITHIUMPOWERCELLS";
+        case UPGRADE_ID::TUNGSTENSPIKES       : return "TUNGSTENSPIKES";
+        case UPGRADE_ID::TUNNELINGCLAWS       : return "TUNNELINGCLAWS";
+        case UPGRADE_ID::TURBOCHARGEDENGINES  : return "TURBOCHARGEDENGINES";
+        case UPGRADE_ID::TWINLINKEDFLAMETHROWERS :
+            return "TWINLINKEDFLAMETHROWERS";
+        case UPGRADE_ID::TYCHUS05BATTLECRUISERPENETRATION :
+            return "TYCHUS05BATTLECRUISERPENETRATION";
+        case UPGRADE_ID::ULTRACAPACITORS : return "ULTRACAPACITORS";
+        case UPGRADE_ID::ULTRALISKBURROWCHARGEUPGRADE :
+            return "ULTRALISKBURROWCHARGEUPGRADE";
+        case UPGRADE_ID::ULTRASONICPULSE       : return "ULTRASONICPULSE";
+        case UPGRADE_ID::VANADIUMPLATING       : return "VANADIUMPLATING";
+        case UPGRADE_ID::VIKINGJOTUNBOOSTERS   : return "VIKINGJOTUNBOOSTERS";
+        case UPGRADE_ID::VIRALMUNITIONS        : return "VIRALMUNITIONS";
+        case UPGRADE_ID::VIRALPLASMA           : return "VIRALPLASMA";
+        case UPGRADE_ID::VOIDRAYSPEEDUPGRADE   : return "VOIDRAYSPEEDUPGRADE";
+        case UPGRADE_ID::VULTUREAUTOREPAIR     : return "VULTUREAUTOREPAIR";
+        case UPGRADE_ID::WARPGATERESEARCH      : return "WARPGATERESEARCH";
+        case UPGRADE_ID::WHITENAPALM           : return "WHITENAPALM";
+        case UPGRADE_ID::WRAITHCLOAK           : return "WRAITHCLOAK";
+        case UPGRADE_ID::X88TNAPALMUPGRADE     : return "X88TNAPALMUPGRADE";
+        case UPGRADE_ID::YAMATOCANNON          : return "YAMATOCANNON";
+        case UPGRADE_ID::ZERGBURROWMOVE        : return "ZERGBURROWMOVE";
+        case UPGRADE_ID::ZERGFLYERARMORSLEVEL1 : return "ZERGFLYERARMORSLEVEL1";
+        case UPGRADE_ID::ZERGFLYERARMORSLEVEL2 : return "ZERGFLYERARMORSLEVEL2";
+        case UPGRADE_ID::ZERGFLYERARMORSLEVEL3 : return "ZERGFLYERARMORSLEVEL3";
+        case UPGRADE_ID::ZERGFLYERWEAPONSLEVEL1 :
+            return "ZERGFLYERWEAPONSLEVEL1";
+        case UPGRADE_ID::ZERGFLYERWEAPONSLEVEL2 :
+            return "ZERGFLYERWEAPONSLEVEL2";
+        case UPGRADE_ID::ZERGFLYERWEAPONSLEVEL3 :
+            return "ZERGFLYERWEAPONSLEVEL3";
+        case UPGRADE_ID::ZERGGROUNDARMORSLEVEL1 :
+            return "ZERGGROUNDARMORSLEVEL1";
+        case UPGRADE_ID::ZERGGROUNDARMORSLEVEL2 :
+            return "ZERGGROUNDARMORSLEVEL2";
+        case UPGRADE_ID::ZERGGROUNDARMORSLEVEL3 :
+            return "ZERGGROUNDARMORSLEVEL3";
+        case UPGRADE_ID::ZERGLINGATTACKSPEED   : return "ZERGLINGATTACKSPEED";
+        case UPGRADE_ID::ZERGLINGMOVEMENTSPEED : return "ZERGLINGMOVEMENTSPEED";
+        case UPGRADE_ID::ZERGMELEEWEAPONSLEVEL1 :
+            return "ZERGMELEEWEAPONSLEVEL1";
+        case UPGRADE_ID::ZERGMELEEWEAPONSLEVEL2 :
+            return "ZERGMELEEWEAPONSLEVEL2";
+        case UPGRADE_ID::ZERGMELEEWEAPONSLEVEL3 :
+            return "ZERGMELEEWEAPONSLEVEL3";
+        case UPGRADE_ID::ZERGMISSILEWEAPONSLEVEL1 :
+            return "ZERGMISSILEWEAPONSLEVEL1";
+        case UPGRADE_ID::ZERGMISSILEWEAPONSLEVEL2 :
+            return "ZERGMISSILEWEAPONSLEVEL2";
+        case UPGRADE_ID::ZERGMISSILEWEAPONSLEVEL3 :
+            return "ZERGMISSILEWEAPONSLEVEL3";
+        case UPGRADE_ID::_330MMBARRAGECANNONS : return "_330MMBARRAGECANNONS";
+        default                               : return "UNKNOWN";
+    }
+}
+
+}

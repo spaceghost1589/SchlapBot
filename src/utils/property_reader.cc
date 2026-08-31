@@ -3,12 +3,8 @@
 #include <fstream>
 #include <iostream>
 
-using std::cerr,
-    std::function,
-    std::ifstream,
-    std::string;
-
 namespace sc2 {
+using namespace std;
 
 PropertyReader::PropertyReader(const string& file_name) {
     LoadFile(file_name);

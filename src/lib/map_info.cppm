@@ -7,15 +7,15 @@ module;
 #include <utility>
 #include <vector>
 
-#include "lib/gametypes.h"
-#include "s2clientprotocol/common.pb.h"
+#include <s2clientprotocol/common.pb.h>
 export module map_info;
 import error_handler;
 import common;
+import game_types;
 
-using std::is_same_v, std::move, std::ofstream, std::string, std::vector;
 
 export namespace sc2 {
+using namespace std;
 
 struct PlayerInfo
 {
@@ -37,14 +37,14 @@ struct PlayerInfo
         Difficulty difficulty,
         AIBuild    ai_build,
         string     player_name
-    ):
-        player_id ( player_id ),
-        player_type ( player_type ),
-        race_requested ( race_requested ),
-        race_actual ( race_actual ),
-        difficulty ( difficulty ),
-        ai_build ( ai_build ),
-        player_name ( move ( player_name ) ) {}
+    )
+          : player_id ( player_id ),
+            player_type ( player_type ),
+            race_requested ( race_requested ),
+            race_actual ( race_actual ),
+            difficulty ( difficulty ),
+            ai_build ( ai_build ),
+            player_name ( move ( player_name ) ) {}
 
     ~PlayerInfo ( ) = default;
 };
@@ -52,7 +52,7 @@ struct PlayerInfo
 struct ImageData
 {
     //! Number of bits per pixel; 8 bits for a byte etc.
-    int32_t bits_per_pixel_ {0 };
+    int32_t bits_per_pixel_ { 0 };
     //! Dimension in pixels.
     Rect2DI map_; // formerly `area_`
     /*! Binary data; the size of this buffer in bytes is width * height *
@@ -61,15 +61,17 @@ struct ImageData
 
     ImageData ( ) {}
 
-    explicit ImageData ( const SC2APIProtocol::ImageData& image ):
-        bits_per_pixel_ { image.bits_per_pixel( ) },
-        map_ { Point2DI ( image.size( ).x( ), image.size( ).y( ) ) },
-        data_ { image.data( ) } {}
+    explicit ImageData ( const SC2APIProtocol::ImageData& image )
+          : bits_per_pixel_ { image.bits_per_pixel( ) },
+            map_ { Point2DI ( image.size( ).x( ), image.size( ).y( ) ) },
+            data_ { image.data( ) } {}
 
     explicit ImageData (
         const int32_t BBP, const Point2DI& i_area, string i_data
-    ):
-        bits_per_pixel_ { BBP }, map_ ( i_area ), data_ { move ( i_data ) } {}
+    )
+          : bits_per_pixel_ { BBP },
+            map_ ( i_area ),
+            data_ { move ( i_data ) } {}
 
     ~ImageData ( ) = default;
 
@@ -77,8 +79,7 @@ struct ImageData
     bool UpdateImageDataLocal (
         const SC2APIProtocol::ImageData& image, bool need_return = false
     ) {
-        if ( need_return )
-        {
+        if ( need_return ) {
             const int expectedSizeBits =
                 bits_per_pixel_ * map_.Height( ) * map_.Width( );
             need_return =
@@ -97,7 +98,8 @@ struct ImageData
     bool GetBit ( const Point2DI& point, bool* dst ) const {
         Assert ( bits_per_pixel_ == 1 );
 
-        if ( !map_.Contain ( point ) ) return false;
+        if ( !map_.Contain ( point ) )
+            return false;
 
         div_t idx = div ( point.x + point.y * map_.Width( ), 8 );
         *dst      = ( data_[idx.quot] >> ( 7 - idx.rem ) ) & 1;
@@ -107,8 +109,7 @@ struct ImageData
     bool GetBit ( const Point2DI& point, unsigned char* dst ) const {
         Assert ( bits_per_pixel_ > 1 );
 
-        if ( !map_.Contain ( point ) )
-        {
+        if ( !map_.Contain ( point ) ) {
             return false;
         }
 
@@ -120,27 +121,23 @@ struct ImageData
 
     // data size = width * height * bits_per_pixel / 8
     template<typename T>
-    requires is_same_v<T, bool> || is_same_v<T, unsigned char*>
+        requires is_same_v<T, bool> || is_same_v<T, unsigned char*>
     bool GetBit (
         const Point2DI& point, T dst
     ) const { // Image data is stored with an upper left origin.
               // TODO: is upper-left correct? common.proto says bottom left.
-        if ( !map_.Contain ( point ) )
-        {
+        if ( !map_.Contain ( point ) ) {
             return false;
         }
 
-        if ( is_same_v<T, bool> )
-        {
+        if ( is_same_v<T, bool> ) {
             Assert ( bits_per_pixel_ == 1, "" );
             auto [quot, rem] = div ( point.x + ( point.y * map_.Width( ) ), 8 );
             *dst = static_cast<unsigned char> ( data_.at ( quot ) ) >>
                        ( 7 - rem ) &
                    1u;
             return true;
-        }
-        else if ( is_same_v<T, unsigned char*> )
-        {
+        } else if ( is_same_v<T, unsigned char*> ) {
             assert ( bits_per_pixel_ == 8 );
             assert ( data_.size( ) == area_.Area( ) );
             *dst = data_.at ( point.x + ( point.y * map_.Width( ) ) );
@@ -169,19 +166,16 @@ struct CreepMap : ImageData
     [[nodiscard]]
     //! Checks whether a point on the map has creep or not.
     bool HasCreep ( const Point2DI& point ) const {
-        if ( bits_per_pixel_ == 1 )
-        {
+        if ( bits_per_pixel_ == 1 ) {
             bool value { };
-            if ( !GetBit ( point, &value ) )
-            {
+            if ( !GetBit ( point, &value ) ) {
                 return false;
             }
             return value;
         }
 
         unsigned char value { };
-        if ( !GetBit ( point, &value ) )
-        {
+        if ( !GetBit ( point, &value ) ) {
             return false;
         }
         return value > 0;
@@ -198,31 +192,19 @@ enum class Visibility {
 };
 
 // 1 byte visibility layer. (per raw.proto)
-class VisibilityMap : public ImageData
-{
-    using ImageData::ImageData;
-
+class VisibilityMap : public ImageData {
     [[nodiscard]]
     Visibility GetVisibility ( const Point2DI& point ) const {
         unsigned char value { };
-        if ( !GetBit ( point, &value ) )
-        {
+        if ( !GetBit ( point, &value ) ) {
             return Visibility::FullHidden;
-        }
-        else if ( value == 0 )
-        {
+        } else if ( value == 0 ) {
             return Visibility::Hidden;
-        }
-        else if ( value == 1 )
-        {
+        } else if ( value == 1 ) {
             return Visibility::Fogged;
-        }
-        else if ( value == 2 )
-        {
+        } else if ( value == 2 ) {
             return Visibility::Visible;
-        }
-        else
-        {
+        } else {
             return Visibility::FullHidden;
         }
     }
@@ -259,17 +241,16 @@ struct GameInfo
     string map_name;       //! Plain text name of a map; not the filename.
     string local_map_path; //! Filepath of map. Includes the ".SC2Map".
 
-    int width { 0 };  //! World width of a map.
-    int height { 0 }; //! World height of a map.
-    ImageData
-        pathing_grid; //! Grid showing which cells are pathable by units.
+    int       width { 0 };  //! World width of a map.
+    int       height { 0 }; //! World height of a map.
+    ImageData pathing_grid; //! Grid showing which cells are pathable by units.
     ImageData terrain_height; //! Height map of terrain.
     ImageData placement_grid;
     //! Grid showing which cells can accept placement of structures.
-    Point2D        playable_min;
+    Point2D   playable_min;
     //! The minimum coords of playable space. Points less than this are not
     //! playable.
-    Point2D        playable_max;
+    Point2D   playable_max;
     //! The maximum coords of playable space. Points greater than this are not
     //! playable.
 
@@ -298,22 +279,43 @@ struct RenderedFrame
     ~RenderedFrame ( ) = default;
 };
 
+struct SampleImage
+{
+    explicit SampleImage ( const SC2APIProtocol::ImageData& data );
+
+    explicit SampleImage ( const ImageData& data );
+
+    bool GetBit ( const Point2DI& point, bool* dst ) const;
+
+    bool GetBit ( const Point2DI& point, unsigned char* dst ) const;
+
+    int BPP ( ) const;
+
+    Rect2DI Area ( ) const;
+
+private:
+    const std::string& data_;
+    Rect2DI            area_;
+
+    // NOTE (alkurbatov): Possible bits per pixel values specified in
+    // protocol/s2clientprotocol/raw.proto
+    int bits_per_pixel_;
+};
+
 struct PathingGrid
 {
     PathingGrid ( ) = default;
 
-    explicit PathingGrid ( const GameInfo& info ):
-        pathing_grid_ ( info.pathing_grid ) {}
+    explicit PathingGrid ( const GameInfo& info )
+          : pathing_grid_ ( info.pathing_grid ) {}
 
     ~PathingGrid ( ) = default;
 
     [[nodiscard]]
     bool IsPathable ( const Point2DI& point ) const {
-        if ( pathing_grid_.BPP( ) == 1 )
-        {
+        if ( pathing_grid_.BPP( ) == 1 ) {
             bool value { };
-            if ( !pathing_grid_.GetBit ( point, &value ) )
-            {
+            if ( !pathing_grid_.GetBit ( point, &value ) ) {
                 return false;
             }
 
@@ -321,8 +323,7 @@ struct PathingGrid
         }
 
         unsigned char value { };
-        if ( !pathing_grid_.GetBit ( point, &value ) )
-        {
+        if ( !pathing_grid_.GetBit ( point, &value ) ) {
             return false;
         }
 
@@ -332,10 +333,8 @@ struct PathingGrid
     void Dump ( const string& file_path ) const {
         ofstream dst ( file_path );
 
-        for ( int y = pathing_grid_.map_.Height( ) - 1; y >= 0; --y )
-        {
-            for ( int x = 0; x < pathing_grid_.map_.Width( ); ++x )
-            {
+        for ( int y = pathing_grid_.map_.Height( ) - 1; y >= 0; --y ) {
+            for ( int x = 0; x < pathing_grid_.map_.Width( ); ++x ) {
                 dst << ( IsPathable ( { x, y } ) ? ' ' : '#' );
             }
 
@@ -351,18 +350,16 @@ struct PlacementGrid
 {
     PlacementGrid ( ) = default;
 
-    explicit PlacementGrid ( const GameInfo& info ):
-        placement_grid_ ( info.placement_grid ) {}
+    explicit PlacementGrid ( const GameInfo& info )
+          : placement_grid_ ( info.placement_grid ) {}
 
     ~PlacementGrid ( ) = default;
 
     [[nodiscard]]
     bool IsPlacable ( const Point2DI& point ) const {
-        if ( placement_grid_.BPP( ) == 1 )
-        {
+        if ( placement_grid_.BPP( ) == 1 ) {
             bool value { };
-            if ( !placement_grid_.GetBit ( point, &value ) )
-            {
+            if ( !placement_grid_.GetBit ( point, &value ) ) {
                 return false;
             }
 
@@ -370,8 +367,7 @@ struct PlacementGrid
         }
 
         unsigned char value { };
-        if ( !placement_grid_.GetBit ( point, &value ) )
-        {
+        if ( !placement_grid_.GetBit ( point, &value ) ) {
             return false;
         }
 
@@ -381,10 +377,8 @@ struct PlacementGrid
     void Dump ( const string& file_path ) const {
         ofstream dst ( file_path );
 
-        for ( int y = placement_grid_.map_.Height( ) - 1; y >= 0; --y )
-        {
-            for ( int x = 0; x < placement_grid_.map_.Width( ); ++x )
-            {
+        for ( int y = placement_grid_.map_.Height( ) - 1; y >= 0; --y ) {
+            for ( int x = 0; x < placement_grid_.map_.Width( ); ++x ) {
                 dst << ( IsPlacable ( { x, y } ) ? ' ' : '#' );
             }
 
@@ -400,16 +394,15 @@ struct HeightMap
 {
     HeightMap ( ) = default;
 
-    explicit HeightMap ( const GameInfo& info ):
-        height_map_ ( info.terrain_height ) {}
+    explicit HeightMap ( const GameInfo& info )
+          : height_map_ ( info.terrain_height ) {}
 
     ~HeightMap ( ) = default;
 
     [[nodiscard]]
     float TerrainHeight ( const Point2DI& point ) const {
         unsigned char value { };
-        if ( !height_map_.GetBit ( point, &value ) )
-        {
+        if ( !height_map_.GetBit ( point, &value ) ) {
             return 0.0f;
         }
 
@@ -419,10 +412,8 @@ struct HeightMap
     void Dump ( const string& file_path ) const {
         ofstream dst ( file_path );
 
-        for ( int x = 0; x < height_map_.map_.Width(); ++x )
-        {
-            for ( int y = 0; y < height_map_.map_.Height( ); ++y )
-            {
+        for ( int x = 0; x < height_map_.map_.Width( ); ++x ) {
+            for ( int y = 0; y < height_map_.map_.Height( ); ++y ) {
                 dst << TerrainHeight ( { x, y } ) << "|";
             }
             dst << '\n';

@@ -1,15 +1,20 @@
-#pragma once
+module;
+#include <algorithm>
 #include <functional>
+#include <ranges>
 #include <stdint.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#include "lib/gametypes.h"
-#include "lib/type_enums.h"
+export module unit;
 import common;
+import type_enums;
+import error_handler;
+import game_types;
 
-namespace sc2 {
+
+export namespace sc2 {
+using namespace std;
 
 //! An order that is active on a unit.
 struct UnitOrder
@@ -46,20 +51,19 @@ struct PassengerUnit
 };
 
 //! A unit. Could be a structure, a worker or a military unit.
-class Unit
-{
+class Unit {
 public:
     //! If the unit is shown on screen or not.
     enum DisplayType : uint8_t {
         //! Unit will be visible.
         Visible     = 1,
-        //! Unit is represented by a snapshot in the fog-of-war. This is for
-        //! units that don't belong to the player.
-        //! The actual unit may be in a different location or state.
+        /*! Unit is represented by a snapshot in the fog-of-war. This is for
+         * units that don't belong to the player. The actual unit may be in a
+         * different location or state. */
         Snapshot    = 2,
         //! Unit will be hidden to enemies.
         Hidden      = 3,
-        // Building that hasn't started construction.
+        //! Building that hasn't started construction.
         Placeholder = 4,
     };
 
@@ -89,13 +93,15 @@ public:
         CloakedAllied   = 4,
     };
 
+    //! A unique identifier for the instance of a unit.
+    Tag tag;
+
     //! If the unit is shown on screen or not.
     DisplayType display_type;
     //! Relationship of the unit to this player.
     Alliance    alliance;
 
-    //! A unique identifier for the instance of a unit.
-    Tag        tag;
+
     //! An identifier of the type of unit.
     UnitTypeID unit_type;
     //! Which player owns a unit.
@@ -156,30 +162,30 @@ public:
     // Not populated for enemies/snapshots
 
     //! Orders on a unit. Only valid for this player's units.
-    std::vector<UnitOrder>     orders;
+    vector<UnitOrder>     orders;
     //! Add-on like a tech lab or reactor. Only valid for this player's units.
-    Tag                        add_on_tag;
+    Tag                   add_on_tag;
     //! Passengers in this transport. Only valid for this player's units.
-    std::vector<PassengerUnit> passengers;
+    vector<PassengerUnit> passengers;
     //! Number of cargo slots used in the transport. Only valid for this
     //! player's units.
-    int                        cargo_space_taken;
+    int                   cargo_space_taken;
     //! Number of cargo slots available for a transport. Only valid for this
     //! player's units.
-    int                        cargo_space_max;
+    int                   cargo_space_max;
     //! Number of harvesters associated with a town hall (e.g., Command Center).
     //! Only valid for this player's units.
-    int                        assigned_harvesters;
+    int                   assigned_harvesters;
     //! Number of harvesters that can be assigned to a town hall (e.g., Command
     //! Center) or a geyser (e.g., Refinery). Only valid for this player's
     //! units.
-    int                        ideal_harvesters;
+    int                   ideal_harvesters;
     //! Target unit of a unit. Only valid for this player's units.
-    Tag                        engaged_target_tag;
+    Tag                   engaged_target_tag;
     //! Buffs on this unit. Only valid for this player's units.
-    std::vector<BuffID>        buffs;
+    vector<BuffID>        buffs;
     //! Whether the unit is powered by a pylon.
-    bool                       is_powered;
+    bool                  is_powered;
 
     //! Whether the unit is alive or not.
     bool     is_alive;
@@ -187,33 +193,51 @@ public:
     uint32_t last_seen_game_loop;
 
     //! Level of weapon upgrades.
-    int32_t attack_upgrade_level;
+    int8_t attack_upgrade_level;
 
     //! Level of armor upgrades.
-    int32_t armor_upgrade_level;
+    int8_t armor_upgrade_level;
 
     //! Level of shield upgrades.
-    int32_t shield_upgrade_level;
+    int8_t shield_upgrade_level;
 
     //! Whether the unit is building or not.
-    bool is_building;
+    bool is_structure;
 
     //! Whether the unit construction/training completed.
     [[nodiscard]]
-    bool IsBuildFinished ( ) const;
+    bool IsBuildFinished ( ) const {
+        return build_progress >= 1.0f;
+    }
 
     // ReSharper disable once CppNonExplicitConversionOperator
-    operator Point2D&( ) {
+    operator const Point2D&( ) const {
         return pos;
+    }
+
+    // ReSharper disable once CppNonExplicitConversionOperator
+    operator const Point3D&( ) const {
+        return pos;
+    }
+
+    operator const Tag&( ) const{
+        return tag;
     }
 
 }; // class Unit
 
-using Units      = std::vector<const Unit*>;
-using Tags       = std::vector<Tag>;
-using UnitIdxMap = std::unordered_map<Tag, size_t>;
+using Units      = vector<const Unit*>;
+using Tags       = vector<Tag>;
+using UnitIdxMap = unordered_map<Tag, size_t>;
 
-Tags ConvertToTags ( const Units& units );
+[[deprecated]]
+Tags ConvertToTags ( const Units& units ) {
+    Tags tags;
+    ranges::transform ( units, back_inserter ( tags ), [] ( const Unit* unit ) {
+        return unit->tag;
+    } );
+    return tags;
+}
 
 struct UnitDamage
 {
@@ -222,24 +246,77 @@ struct UnitDamage
     float       shields;
 };
 
-using UnitsDamaged = std::vector<UnitDamage>;
+using UnitsDamaged = vector<UnitDamage>;
 
-class UnitPool
-{
+class UnitPool {
 public:
-    Unit* CreateUnit ( Tag tag );
+    Unit* CreateUnit ( const Tag tag ) {
+        if ( Unit* existing = GetUnit ( tag ) ) {
+            tag_to_existing_unit_[tag] = existing;
+            return existing;
+        }
+
+        if ( unit_pool_.empty( ) ||
+             unit_pool_.size( ) == available_index_.first )
+        {
+            unit_pool_.push_back ( vector<Unit> ( ENTRY_SIZE ) );
+        }
+
+        vector<Unit>& pool = unit_pool_[available_index_.first];
+        Unit*              unit = &pool[available_index_.second];
+        unit->last_seen_game_loop =
+            0; // initialization required for OnUnitEnterVision
+        tag_to_unit_[tag]          = unit;
+        tag_to_existing_unit_[tag] = unit;
+        AddNewUnit ( unit );
+        IncrementIndex( );
+        return unit;
+    }
+
     [[nodiscard]]
-    Unit* GetUnit ( Tag tag ) const;
+    Unit* GetUnit ( const Tag tag ) const {
+        const auto found = tag_to_unit_.find ( tag );
+        return found == tag_to_unit_.end( ) ? nullptr : found->second;
+    }
+
     [[nodiscard]]
-    Unit* GetExistingUnit ( Tag tag ) const;
-    void  MarkDead ( Tag tag );
+    Unit* GetExistingUnit ( const Tag tag ) const {
+        const auto found = tag_to_existing_unit_.find ( tag );
+        return found == tag_to_existing_unit_.end( ) ? nullptr : found->second;
+    }
+
+    void MarkDead ( const Tag tag ) {
+        Unit* unit = GetUnit ( tag );
+        if ( !unit ) {
+            return;
+        }
+        unit->is_alive = false;
+        // Check if this is necessary, bro
+        tag_to_existing_unit_.erase ( tag );
+    }
 
     // TODO(?): Change alive -> Exist
     void ForEachExistingUnit (
-        const std::function<void ( Unit& unit )>& functor
-    ) const;
-    void ClearExisting ( );
-    bool UnitExists ( Tag tag );
+        const function<void ( Unit& unit )>& functor
+    ) const {
+        for ( const auto& val : tag_to_existing_unit_ | views::values ) {
+            Assert ( val );
+            functor ( *val );
+        }
+    }
+
+    void ClearExisting ( ) {
+        tag_to_existing_unit_.clear( );
+        units_newly_created_.clear( );
+        units_entering_vision_.clear( );
+        buildings_constructed_.clear( );
+        units_idled_.clear( );
+        units_damaged_.clear( );
+    }
+
+    bool UnitExists ( const Tag tag ) const {
+        return tag_to_existing_unit_.contains ( tag );
+    }
 
     [[nodiscard]]
     const Units& GetNewUnits ( ) const noexcept {
@@ -262,7 +339,7 @@ public:
     }
 
     [[nodiscard]]
-    const std::unordered_set<const Unit*>& GetIdledUnits ( ) const noexcept {
+    const unordered_set<const Unit*>& GetIdledUnits ( ) const noexcept {
         return units_idled_;
     }
 
@@ -279,8 +356,7 @@ public:
     }
 
     void AddUnitIdled ( const Unit* u ) {
-        if ( u->alliance == Unit::Alliance::Self )
-        {
+        if ( u->alliance == Unit::Alliance::Self ) {
             units_idled_.insert ( u );
         }
     }
@@ -292,19 +368,25 @@ public:
     }
 
 private:
-    void IncrementIndex ( );
+    void IncrementIndex ( ) {
+        ++available_index_.second;
+        if ( available_index_.second == ENTRY_SIZE ) {
+            ++available_index_.first;
+            available_index_.second = 0;
+        }
+    }
 
     static constexpr size_t         ENTRY_SIZE = 1000;
     // std::array<Unit, ENTRY_SIZE>
-    std::vector<std::vector<Unit> > unit_pool_;
-    std::pair<size_t, size_t>       available_index_;
-    std::unordered_map<Tag, Unit*>  tag_to_unit_;
-    std::unordered_map<Tag, Unit*>  tag_to_existing_unit_;
+    vector<vector<Unit> > unit_pool_;
+    pair<size_t, size_t>       available_index_;
+    unordered_map<Tag, Unit*>  tag_to_unit_;
+    unordered_map<Tag, Unit*>  tag_to_existing_unit_;
     Units                           units_newly_created_;
     Units                           units_entering_vision_;
     Units                           buildings_constructed_;
     UnitsDamaged                    units_damaged_;
-    std::unordered_set<const Unit*> units_idled_;
+    unordered_set<const Unit*> units_idled_;
 };
 
 } // namespace sc2

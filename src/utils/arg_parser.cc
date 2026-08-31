@@ -10,18 +10,7 @@
 #include <utility>
 import game_settings;
 namespace sc2 {
-
-using std::cout,
-	std::cerr,
-	std::int8_t,
-    std::int32_t,
-	std::ranges::all_of,
-	std::ranges::find_if,
-    std::span,
-    std::string,
-    std::string_view,
-    std::stoi,
-    std::vector;
+using namespace std;
 
 
 // ArgParser::ArgParser(const string& executable_name) : executable_name_(executable_name)
@@ -102,7 +91,7 @@ bool ArgParser::Parse(span<char*> args) {
 		}
 
 		// Check if it's a valid option.
-		auto it = find_if(options_, [&](const Arg& option) {
+		auto it = ranges::find_if(options_, [&](const Arg& option) {
 			return option.abbreviation_ == arg || option.fullname_ == arg;
 		});
 		// `find_if` returns `size() + 1` if it fails to find anything.
@@ -134,7 +123,7 @@ bool ArgParser::Parse(span<char*> args) {
 	}
 
 	// Verify all required arguments exist
-	return all_of(options_, [&](const Arg& option) {
+	return ranges::all_of(options_, [&](const Arg& option) {
 		if (!option.required_) {
 			return true;
 		}

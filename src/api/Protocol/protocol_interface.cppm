@@ -6,25 +6,20 @@ module;
 
 #include <s2clientprotocol/sc2api.pb.h>
 
-#include "api/connection.h"
 #include "utils/manage_process.h"
 export module protocol_interface;
+import connection;
 import enum_db;
 import error_handler;
 import game_settings;
 
-using std::cerr, std::function, std::make_shared, std::shared_ptr, std::string,
-    std::vector;
 
 using Response = SC2APIProtocol::Response::ResponseCase;
 using Request  = SC2APIProtocol::Request::RequestCase;
 
 //! Helper to produce a string for the protocol type.
-const char*
-    RequestResponseIDToName ( int type )
-{
-    switch ( type )
-    {
+const char* RequestResponseIDToName ( int type ) {
+    switch ( type ) {
         case 1  : return "CreateGame";
         case 2  : return "JoinGame";
         case 3  : return "RestartGame";
@@ -52,6 +47,7 @@ const char*
 }
 
 export namespace sc2 {
+using namespace std;
 
 // A generous 120 seconds.
 constexpr unsigned int kDefaultProtoInterfaceTimeout = 120000;
@@ -59,23 +55,17 @@ constexpr unsigned int kDefaultProtoInterfaceTimeout = 120000;
 using GameRequestPtr  = shared_ptr<SC2APIProtocol::Request>;
 using GameResponsePtr = shared_ptr<SC2APIProtocol::Response>;
 
-template<class MessageType> class MessageResponsePtr
-{
+template<class MessageType> class MessageResponsePtr {
 public:
     MessageResponsePtr ( )
-          : message_ ( nullptr )
-    {}
+          : message_ ( nullptr ) {}
 
-    void
-        Set ( const GameResponsePtr& response, const MessageType* message )
-    {
+    void Set ( const GameResponsePtr& response, const MessageType* message ) {
         response_ = response;
         message_  = message;
     }
 
-    bool
-        HasErrors ( ) const
-    {
+    bool HasErrors ( ) const {
         if ( !HasResponse( ) )
             return true;
         else if ( response_->error_size( ) > 0 )
@@ -86,42 +76,30 @@ public:
         return false;
     }
 
-    void
-        Clear ( )
-    {
+    void Clear ( ) {
         message_  = nullptr;
         response_ = nullptr;
     }
 
-    const MessageType*
-        operator ->( ) const
-    {
+    const MessageType* operator ->( ) const {
         Assert ( message_ );
         return message_;
     }
 
-    const MessageType*
-        get ( ) const
-    {
+    const MessageType* get ( ) const {
         Assert ( message_ );
         return message_;
     }
 
-    GameResponsePtr
-        GetResponse ( ) const
-    {
+    GameResponsePtr GetResponse ( ) const {
         return response_;
     }
 
-    bool
-        HasResponse ( ) const
-    {
+    bool HasResponse ( ) const {
         return response_.get( ) != nullptr;
     }
 
-    bool
-        HasMessage ( ) const
-    {
+    bool HasMessage ( ) const {
         return message_ != nullptr;
     }
 
@@ -151,97 +129,74 @@ uint32_t         base_build_ { 0 };
 string           data_version_;
 
 //! Creates an empty Request. Needs to be set.
-GameRequestPtr
-    MakeRequest ( )
-{
+GameRequestPtr MakeRequest ( ) {
     return make_shared<SC2APIProtocol::Request> ( SC2APIProtocol::Request( ) );
 }
 
-void
-    SetErrorCallback (
-        const function<void ( const string& error_str )>& error_callback
-    )
-{
+void SetErrorCallback (
+    const function<void ( const string& error_str )>& error_callback
+) {
     error_callback_ = error_callback;
 }
 
-bool
-    PollResponse ( )
-{
+bool PollResponse ( ) {
     return connection_.PollResponse( );
 }
 
-SC2APIProtocol::Status
-    GetLastStatus ( )
-{
+SC2APIProtocol::Status GetLastStatus ( ) {
     return latest_status_;
 }
 
-bool
-    HasResponsePending ( )
-{
+bool HasResponsePending ( ) {
     return response_pending_ != Response::RESPONSE_NOT_SET;
 }
 
-SC2APIProtocol::Response::ResponseCase
-    GetResponsePending ( )
-{
+SC2APIProtocol::Response::ResponseCase GetResponsePending ( ) {
     return response_pending_;
 }
 
-int
-    GetAssignedPort ( )
-{
+int GetAssignedPort ( ) {
     return port_;
 }
 
-const vector<uint32_t>&
-    GetStats ( )
-{
+const vector<uint32_t>& GetStats ( ) {
     return count_uses_;
 }
 
-uint32_t
-    GetBaseBuild ( )
-{
+uint32_t GetBaseBuild ( ) {
     return base_build_;
 }
 
-const string&
-    GetDataVersion ( )
-{
+const string& GetDataVersion ( ) {
     return data_version_;
 }
 
-bool
-    SendRequest (
-        const GameRequestPtr& request, bool ignore_pending_requests = false
-    )
-{
+/*! @brief
+ * @param request
+ * @param ignore_pending_requests
+ * @returns The success or failure of the SendRequest. */
+bool SendRequest (
+    const GameRequestPtr& request, bool ignore_pending_requests = false
+) {
     const uint32_t request_type = ( request->request_case( ) );
-    if ( request_type >= count_uses_.size( ) )
-    {
+    if ( request_type >= count_uses_.size( ) ) {
         const uint32_t current = static_cast<uint32_t> ( count_uses_.size( ) );
         count_uses_.resize ( request_type + 1 );
-        for ( uint32_t i = current; i < request_type + 1; ++i )
-        {
+        for ( uint32_t i = current; i < request_type + 1; ++i ) {
             count_uses_[i] = 0;
         }
     }
     ++count_uses_[request_type];
 
     // If there is no connection, try rebuilding the connection.
-    if ( !connection_.HasConnection( ) )
-    {
-        if ( !connection_.Connect ( address_, port_, false ) )
-        {
+    if ( !connection_.HasConnection( ) ) {
+        if ( !connection_.Connect ( address_, port_, false ) ) {
             return false;
         }
     }
 
     // If there is still no connection, give up.
-    if ( !connection_.HasConnection( ) )
-    {
+    if ( !connection_.HasConnection( ) ) {
         return false;
     }
 
@@ -249,8 +204,7 @@ bool
      * this library is not written for that. For now, make everything purely
      * sequential.*/
     // TODO allow for message queue
-    if ( !ignore_pending_requests && HasResponsePending( ) )
-    {
+    if ( !ignore_pending_requests && HasResponsePending( ) ) {
         Error::Log ( ClientError::ResponseNotConsumed );
         return false;
     }
@@ -262,13 +216,10 @@ bool
     return true;
 }
 
-GameResponsePtr
-    WaitForResponseInternal ( )
-{
+GameResponsePtr WaitForResponseInternal ( ) {
     latest_status_                     = SC2APIProtocol::Status::unknown;
     SC2APIProtocol::Response* response = nullptr;
-    if ( !connection_.Receive ( response, default_timeout_ms_ ) )
-    {
+    if ( !connection_.Receive ( response, default_timeout_ms_ ) ) {
         // If the receive fails, it means a timeout has occurred.
         return nullptr;
     }
@@ -279,23 +230,18 @@ GameResponsePtr
         error_callback_ ( response->error ( i ) );
     }
 
-    if ( response )
-    {
-        if ( response->has_status( ) )
-        {
+    if ( response ) {
+        if ( response->has_status( ) ) {
             latest_status_ = response->status( );
         }
-        if ( response->error_size( ) > 0 )
-        {
+        if ( response->error_size( ) > 0 ) {
             cerr << "While waiting for Response"
                  << RequestResponseIDToName ( response_pending_ )
                  << " received an error." << '\n';
-            for ( int i = 0; i < response->error_size( ); ++i )
-            {
+            for ( int i = 0; i < response->error_size( ); ++i ) {
                 cerr << "LogError: " << response->error ( i ) << '\n';
             }
-        } else
-        {
+        } else {
             if ( const Response actual_response = response->response_case( );
                  response_pending_ != actual_response )
             {
@@ -311,24 +257,19 @@ GameResponsePtr
     return GameResponsePtr ( response );
 }
 
-GameResponsePtr
-    WaitForResponse ( )
-{
+GameResponsePtr WaitForResponse ( ) {
     assert ( app_state == AppState::Normal );
 
     GameResponsePtr response = WaitForResponseInternal( );
 
-    if ( response.get( ) && response->error_size( ) < 1 )
-    {
+    if ( response.get( ) && response->error_size( ) < 1 ) {
         // Everything is good. No need for any error handling.
         return response;
     }
 
-    if ( response.get( ) && response->error_size( ) > 0 )
-    {
-        std::vector<std::string> errors;
-        for ( int i = 0; i < response->error_size( ); ++i )
-        {
+    if ( response.get( ) && response->error_size( ) > 0 ) {
+        vector<string> errors;
+        for ( int i = 0; i < response->error_size( ); ++i ) {
             errors.push_back ( response->error ( i ) );
         }
 
@@ -337,48 +278,41 @@ GameResponsePtr
     }
     assert ( !response.get( ) );
 
-    // The game application did not responded, the previous request was
-    // either not sent or the app is non-responsive.
+    /* The game application did not responded, the previous request was either
+     * not sent or the app is non-responsive. */
 
-    // Step 1: distinguish between a hang and a crash. Lots of time has
-    // elapsed, so if there was a crash it should have finished by now.
+    /* Step 1: distinguish between a hang and a crash. Lots of time has elapsed,
+     * so if there was a crash it should have finished by now. */
     assert ( pi_.process_id );
-    if ( !IsProcessRunning ( pi_.process_id ) )
-    {
+    if ( !IsProcessRunning ( pi_.process_id ) ) {
         app_state = AppState::Crashed;
-        std::cout << "Game application has terminated unexpectedly."
-                  << std::endl;
+        cout << "Game application has terminated unexpectedly." << '\n';
         Error::Log ( ClientError::SC2AppFailure );
         return response;
     }
 
-    // Step 2: distinguish between a non-responsive app and a failure to
-    // deliver a valid request.
+    /* Step 2: distinguish between a non-responsive app and a failure to deliver
+     * a valid request. */
     {
         const GameRequestPtr ping_request = MakeRequest( );
         ping_request->mutable_ping( );
-
-        if ( !SendRequest ( ping_request, true ) )
-        {
+        if ( !SendRequest ( ping_request, true ) ) {
             // Mark the game app as unresponsive.
             app_state = AppState::Timeout;
             Error::Log ( ClientError::SC2ProtocolTimeout );
-        } else
-        {
-            // Wait for a ping response. If this fails, the game is
-            // unresponsive.
+        } else {
+            /* Wait for a ping response. If this fails, the game is
+             * unresponsive. */
             // TODO (?): Implement a timeout parameter for this wait.
             const GameResponsePtr response_ping = WaitForResponseInternal( );
-            if ( response_ping )
-            {
-                if ( GetLastStatus( ) == SC2APIProtocol::Status::unknown )
-                {
+            if ( response_ping ) {
+                if ( GetLastStatus( ) == SC2APIProtocol::Status::unknown ) {
                     Error::Log ( ClientError::SC2UnknownStatus );
                 }
 
-                // The game is responsive, but there was another problem.
-                // This isn't the right place to handle another type of
-                // problem. Just return the nullptr.
+                /* The game is responsive, but there was another problem. This
+                 * isn't the right place to handle another type of problem. Just
+                 * return the nullptr. */
                 Error::Log ( ClientError::SC2UnknownStatus );
                 return response;
             }
@@ -390,40 +324,34 @@ GameResponsePtr
 
     // The game application has hanged. Try and terminate it.
     app_state = AppState::Timeout;
-    for ( int i = 0; i < 10 && IsProcessRunning ( pi_.process_id ); ++i )
-    {
+    for ( int i = 0; i < 10 && IsProcessRunning ( pi_.process_id ); ++i ) {
         TerminateProcess ( pi_.process_id );
         SleepFor ( 2000 );
     }
 
-    if ( IsProcessRunning ( pi_.process_id ) )
-    {
+    if ( IsProcessRunning ( pi_.process_id ) ) {
         // Failed to kill the running process.
         app_state = AppState::Timeout_Zombie;
     }
 
-    std::cout << "Game application has been terminated due to unresponsiveness."
-              << std::endl;
+    cout << "Game application has been terminated due to unresponsiveness."
+         << '\n';
     Error::Log ( ClientError::SC2AppFailure );
     return response;
 }
 
-inline bool
-    PingGame ( )
-{
+inline bool PingGame ( ) {
     // Send the request.
     const GameRequestPtr request = MakeRequest( );
     request->mutable_ping( );
-    if ( !SendRequest ( request, true ) )
-    {
+    if ( !SendRequest ( request, true ) ) {
         return false;
     }
 
     // Wait for the return of the ping.
     // TODO: Implement a time out here.
     const GameResponsePtr response = WaitForResponseInternal( );
-    if ( !response.get( ) || !response->has_ping( ) )
-    {
+    if ( !response.get( ) || !response->has_ping( ) ) {
         return false;
     }
 
@@ -433,15 +361,12 @@ inline bool
     return true;
 }
 
-bool
-    ConnectToGame ( const string& address, int port, int timeout_ms )
-{
+bool ConnectToGame ( const string& address, int port, int timeout_ms ) {
     latest_status_      = SC2APIProtocol::Status::unknown;
     address_            = address;
     port_               = port;
     default_timeout_ms_ = timeout_ms;
-    if ( !connection_.Connect ( address, port, false ) )
-    {
+    if ( !connection_.Connect ( address, port, false ) ) {
         return false;
     }
     connection_.SetConnectionClosedCallback ( [&] {
@@ -450,18 +375,50 @@ bool
     return PingGame( );
 }
 
-void
-    Quit ( )
-{
+void DumpProtoUsage ( ) {
+    const vector<uint32_t>& stats = GetStats( );
+    cout << "******************************************************" << '\n';
+    cout << "Protocol use by message type:" << '\n';
+    for ( size_t i = 0; i < stats.size( ); ++i ) {
+        if ( stats[i] == 0 ) {
+            continue;
+        }
+
+        cout << to_string ( i ) << ": " << to_string ( stats[i] ) << '\n';
+    }
+
+    cout << "******************************************************" << '\n';
+}
+
+// Save/Load.
+void Save ( ) {
+    const GameRequestPtr request = MakeRequest( );
+    request->mutable_quick_save( );
+    if ( !SendRequest ( request ) ) {
+        return;
+    }
+    WaitForResponse( );
+}
+
+void Load ( ) {
+    const GameRequestPtr request = MakeRequest( );
+    request->mutable_quick_load( );
+    if ( !SendRequest ( request ) ) {
+        return;
+    }
+    WaitForResponse( );
+}
+
+void Quit ( ) {
     // Tell the game to close
     const GameRequestPtr request = MakeRequest( );
     request->mutable_quit( );
     SendRequest ( request );
 
-    // Immediately tear down connection. The callbacks may try to
-    // call into objects who are in the process of being destroyed.
+    /* Immediately tear down connection. The callbacks may try to call into
+     * objects who are in the process of being destroyed. */
     connection_.Disconnect( );
-}
+} // Quit()
 
 } // namespace ProtoFace
 

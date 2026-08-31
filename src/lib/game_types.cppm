@@ -1,5 +1,4 @@
-#pragma once
-
+module;
 #include <algorithm>
 #include <array>
 #include <sstream>
@@ -8,10 +7,11 @@
 #include <utility>
 #include <vector>
 
-namespace sc2 {
+#include "utils/arg_parser.h"
+export module game_types;
 
-using std::array, std::ostringstream, std::ranges::all_of, std::string,
-    std::string_view, std::uint8_t, std::vector;
+export namespace sc2 {
+using namespace std;
 
 using Tag = uint64_t;
 
@@ -27,8 +27,7 @@ enum class Race : uint8_t {
 using enum Race;
 
 inline string_view RaceToString ( const Race race ) {
-    switch ( race )
-    {
+    switch ( race ) {
         case NoRace  : return "No Race";
         case Terran  : return "Terran";
         case Zerg    : return "Zerg";
@@ -37,6 +36,7 @@ inline string_view RaceToString ( const Race race ) {
     }
     return "Is idiot a Race?";
 }
+
 
 enum class Difficulty : uint8_t {
     VeryEasy     = 1,
@@ -53,8 +53,7 @@ enum class Difficulty : uint8_t {
 using enum Difficulty;
 
 inline string_view DifficultyToString ( const Difficulty difficulty ) {
-    switch ( difficulty )
-    {
+    switch ( difficulty ) {
         case VeryEasy     : return "Very Easy";
         case Easy         : return "Easy";
         case Medium       : return "Medium";
@@ -69,6 +68,7 @@ inline string_view DifficultyToString ( const Difficulty difficulty ) {
     return "Is keyboard slamming a difficulty?";
 }
 
+
 enum class AIBuild : uint8_t {
     RandomBuild = 1,
     Rush        = 2,
@@ -80,8 +80,7 @@ enum class AIBuild : uint8_t {
 using enum AIBuild;
 
 inline string_view AIBuildToString ( const AIBuild build ) {
-    switch ( build )
-    {
+    switch ( build ) {
         case Rush   : return "Rush";
         case Timing : return "Timing";
         case Power  : return "Power";
@@ -91,12 +90,14 @@ inline string_view AIBuildToString ( const AIBuild build ) {
     }
 } // AIBuildToString
 
+
 enum class PlayerType : uint8_t {
     Participant = 1,
     Computer    = 2,
     Observer    = 3,
 };
 using enum PlayerType;
+
 
 enum class GameResult : uint8_t {
     Win,
@@ -106,15 +107,15 @@ enum class GameResult : uint8_t {
 };
 using enum GameResult;
 
+
 enum class ChatChannel : uint8_t { All = 0, Team = 1 };
 
-class Agent;
 
 //! Setup for a player in a game.
 struct PlayerSetup
 {
     //! Agent, if one is available.
-    Agent*     agent { nullptr };
+    Agent*     agent;
     //! Name of this player.
     string     player_name;
     /*! Player can be a Participant (usually an agent), Computer (in-built AI)
@@ -138,30 +139,29 @@ struct PlayerSetup
         string           in_player_name = "",
         const Difficulty in_difficulty  = Easy,
         const AIBuild    in_ai_build    = RandomBuild
-    ):
-        type ( in_type ),
-        agent ( in_agent ),
-        player_name ( std::move ( in_player_name ) ),
-        race ( in_race ),
-        difficulty ( in_difficulty ),
-        ai_build ( in_ai_build ) {}
+    )
+          : type ( in_type ),
+            agent ( in_agent ),
+            player_name ( std::move ( in_player_name ) ),
+            race ( in_race ),
+            difficulty ( in_difficulty ),
+            ai_build ( in_ai_build ) {}
 };
 
-static PlayerSetup CreateParticipant (
+PlayerSetup CreateParticipant (
     const Race race, Agent* agent, const string& player_name
 ) {
     return { Participant, race, agent, player_name };
 }
 
-static PlayerSetup CreateComputer (
+PlayerSetup CreateComputer (
     const Race       race        = Random,
     const Difficulty difficulty  = Easy,
     const AIBuild    ai_build    = RandomBuild,
     const string&    player_name = ""
 ) {
     // Generates computer's name based on settings if no name is passed.
-    if ( string final_name = player_name; final_name.empty( ) )
-    {
+    if ( string final_name = player_name; final_name.empty( ) ) {
         ostringstream name_stream;
         name_stream << "Computer-" << RaceToString ( race ) << "-"
                     << DifficultyToString ( difficulty ) << "-"
@@ -196,27 +196,24 @@ struct Ports
 
     [[nodiscard]]
     bool IsValid ( ) const {
-        if ( shared_port < 1 )
-        {
+        if ( shared_port < 1 ) {
             return false;
         }
-        if ( !server_ports.IsValid( ) )
-        {
+        if ( !server_ports.IsValid( ) ) {
             return false;
         }
-        if ( client_ports.empty( ) )
-        {
+        if ( client_ports.empty( ) ) {
             return false;
         }
-        return all_of ( client_ports, [&] ( const auto& PortSet ) {
+        return ranges::all_of ( client_ports, [&] ( const auto& PortSet ) {
             return PortSet.IsValid( );
         } );
     }
 };
 
-static constexpr int max_path_size    = 512;
-static constexpr int max_version_size = 32;
-static constexpr int max_num_players  = 16;
+constexpr int max_path_size    = 512;
+constexpr int max_version_size = 32;
+constexpr int max_num_players  = 16;
 
 //! Information about a player in a replay.
 struct ReplayPlayerInfo
@@ -258,10 +255,8 @@ struct ReplayInfo
     bool GetPlayerInfo (
         ReplayPlayerInfo& replay_player_info, const int playerID
     ) const {
-        for ( int i = 0; i < num_players; ++i )
-        {
-            if ( playerID == players.at ( i ).player_id )
-            {
+        for ( int i = 0; i < num_players; ++i ) {
+            if ( playerID == players.at ( i ).player_id ) {
                 replay_player_info = players.at ( i );
                 return true;
             }
@@ -278,8 +273,9 @@ struct ReplayInfo
 
 struct PlayerResult
 {
-    PlayerResult ( const uint32_t player_id, const GameResult result ):
-        player_id ( player_id ), result ( result ) {}
+    PlayerResult ( const uint32_t player_id, const GameResult result )
+          : player_id ( player_id ),
+            result ( result ) {}
 
     uint32_t   player_id { 0 };
     GameResult result = Undecided;

@@ -1,12 +1,13 @@
 module;
 #include <vector>
-
-#include "gametypes.h"
-#include "typeids/5.0.14_typeenums.h"
 export module action;
 import common;
+import game_types;
+import type_enums;
+
 
 export namespace sc2 {
+using namespace std;
 
 //! An action (command or ability) applied to a unit or set of units.
 struct ActionRaw
@@ -23,46 +24,41 @@ struct ActionRaw
     };
 
     //! The ID of the ability to invoke.
-    AbilityID        ability_id = 0;
+    AbilityID   ability_id = 0;
     //! Units this action applies to. In normal use, this would be the currently
     //! selected units.
-    std::vector<Tag> unit_tags;
+    vector<Tag> unit_tags;
     //! Which target fields are valid.
-    TargetType       target_type = TargetNone;
+    TargetType  target_type = TargetNone;
     //! The target of this action. Valid only when target_type == TargetUnitTag.
-    Tag              target_tag  = NullTag;
+    Tag         target_tag  = NullTag;
     //! The target point for this action. Valid only when target_type ==
     //! TargetPosition.
-    Point2D          target_point;
+    Point2D     target_point;
 
     //! Comparison overload.
 
     bool operator == ( const ActionRaw& a ) const {
-        if ( ability_id != a.ability_id )
-        {
+        if ( ability_id != a.ability_id ) {
             return false;
         }
-        if ( target_type != a.target_type )
-        {
+        if ( target_type != a.target_type ) {
             return false;
         }
-        if ( target_tag != a.target_tag )
-        {
+        if ( target_tag != a.target_tag ) {
             return false;
         }
-        if ( target_point.x != a.target_point.x )
-        {
+        if ( target_point.x != a.target_point.x ) {
             return false;
         }
-        if ( target_point.y != a.target_point.y )
-        {
+        if ( target_point.y != a.target_point.y ) {
             return false;
         }
         return true;
     }
 };
 
-using RawActions = std::vector<ActionRaw>;
+using RawActions = vector<ActionRaw>;
 
 //! An action (command or ability) applied to selected units when using feature
 //! layers or the rendered interface.
@@ -116,7 +112,7 @@ struct SpatialSelectPoint
 //! may not exactly work for the regular in-game perspective view.
 struct SpatialSelectRect
 {
-    std::vector<Rect2DI> select_screen;
+    vector<Rect2DI> select_screen;
     bool                 select_add;
 };
 
@@ -124,13 +120,13 @@ struct SpatialSelectRect
 struct SpatialActions
 {
     //! Commands to selected units.
-    std::vector<SpatialUnitCommand> unit_commands;
+    vector<SpatialUnitCommand> unit_commands;
     //! Camera movement.
-    std::vector<SpatialCameraMove>  camera_moves;
+    vector<SpatialCameraMove>  camera_moves;
     //! Selecting by point.
-    std::vector<SpatialSelectPoint> select_points;
+    vector<SpatialSelectPoint> select_points;
     //! Selecting by rectangles.
-    std::vector<SpatialSelectRect>  select_rects;
+    vector<SpatialSelectRect>  select_rects;
 };
 
 } // namespace sc2

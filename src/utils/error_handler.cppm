@@ -12,17 +12,14 @@ module;
 export module error_handler;
 import enum_db;
 
-using std::cerr, std::endl, std::is_same_v, std::lock_guard, std::mutex,
-    std::ofstream, std::ostringstream, std::priority_queue, std::queue,
-    std::shared_ptr, std::source_location, std::string, std::vector;
-
 export namespace sc2 {
+using namespace std;
 
 /*! Errors that the api can encounter, if the OnError event in ClientEvents is
  * overwritten it will contain a list of errors encountered. */
 enum class ClientError {
     ConnectionClosed, /*! The websocket connection has prematurely closed, this
-                         could mean starcraft crashed or a websocket timeout has
+                         could mean StarCraft II crashed or a websocket timeout has
                          occurred.*/
     InvalidAbilityRemap, /*! An ability was improperly mapped to an ability id
                             that doesn't exist.*/
@@ -101,7 +98,7 @@ vector<string>           protocol_errors_;
 
 mutex error_mutex_;
 
-inline void Error::Log (
+inline void Log (
     const ClientError client_error = ClientError::NULL_ERROR,
     [[maybe_unused]] const vector<string>& protocol_errors = { }
 ) {

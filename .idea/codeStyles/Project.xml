@@ -1,6 +1,7 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
     <option name="AUTODETECT_INDENTS" value="false" />
+    <option name="RIGHT_MARGIN" value="80" />
     <RiderCodeStyleSettings>
       <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/INVOCABLE_DECLARATION_BRACES/@EntryValue" value="END_OF_LINE" type="string" />
       <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/OTHER_BRACES/@EntryValue" value="END_OF_LINE" type="string" />
@@ -39,6 +40,9 @@
       <option name="/Default/CodeStyle/CodeFormatting/CppFormatting/LINKAGE_SPECIFICATION_INDENTATION/@EntryValue" value="All" type="string" />
       <option name="/Default/CodeStyle/CodeFormatting/CppClangFormat/ExecutableToUse/@EntryValue" value="Custom" type="string" />
     </RiderCodeStyleSettings>
+    <TypeScriptCodeStyleSettings version="0">
+      <option name="JSDOC_INCLUDE_TYPES" value="true" />
+    </TypeScriptCodeStyleSettings>
     <clangFormatSettings>
       <option name="ENABLED" value="true" />
     </clangFormatSettings>
@@ -47,12 +51,12 @@
     </editorconfig>
     <files>
       <extensions>
+        <pair source="cppm" header="" fileNamingConvention="NONE" />
         <pair source="cc" header="h" fileNamingConvention="LOWERCASE" />
         <pair source="c" header="h" fileNamingConvention="NONE" />
         <pair source="cu" header="cuh" fileNamingConvention="NONE" />
         <pair source="ixx" header="" fileNamingConvention="NONE" />
         <pair source="mxx" header="" fileNamingConvention="NONE" />
-        <pair source="cppm" header="" fileNamingConvention="NONE" />
         <pair source="ccm" header="" fileNamingConvention="NONE" />
         <pair source="cxxm" header="" fileNamingConvention="NONE" />
         <pair source="c++m" header="" fileNamingConvention="NONE" />

@@ -18,12 +18,12 @@ public:
     SC2Type ( ) = default;
 
     //! Construct from an integer, corresponds to the enum value.
-    SC2Type (const short type_id):
+    SC2Type (const uint16_t type_id):
         type_id_ (type_id) {}
 
     //! Construct from the enum.
     SC2Type (T type_id):
-        type_id_ (static_cast<short> (type_id)) {}
+        type_id_ (static_cast<uint16_t> (type_id)) {}
 
     //! Test equivalence.
     //! @return 'true' if the values are equal.
@@ -32,15 +32,15 @@ public:
     }
 
     bool operator == (T type_id) const {
-        return type_id_ == static_cast<short> (type_id);
+        return type_id_ == static_cast<uint16_t> (type_id);
     }
 
-    bool operator == (const short type_id) const {
+    bool operator == (const uint16_t type_id) const {
         return type_id_ == type_id;
     }
 
     bool operator == (const int type_id) const {
-        return static_cast<short> (type_id_) == type_id;
+        return static_cast<uint16_t> (type_id_) == type_id;
     }
 
     //! Test non-equivalence.
@@ -50,15 +50,15 @@ public:
     }
 
     bool operator != (T type_id) const {
-        return type_id_ != static_cast<short> (type_id);
+        return type_id_ != static_cast<uint16_t> (type_id);
     }
 
-    bool operator != (const short type_id) const {
+    bool operator != (const uint16_t type_id) const {
         return type_id_ != type_id;
     }
 
     bool operator != (const int type_id) const {
-        return static_cast<short> (type_id_) != type_id;
+        return static_cast<uint16_t> (type_id_) != type_id;
     }
 
     //! Test comparison.
@@ -67,7 +67,7 @@ public:
     }
 
     //! Cast to integer.
-    operator short ( ) const {
+    operator uint16_t ( ) const {
         return type_id_;
     }
 

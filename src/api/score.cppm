@@ -1,15 +1,15 @@
 /*! @file score.cppm
  * @brief Scores accumulated in a game as calculated by the game engine. */
 module;
+#include <cstdint>
 #include <string>
 #include <vector>
-
-#include "lib/gametypes.h"
 export module score;
+import game_types;
 
-using std::string, std::vector;
 
 export namespace sc2 {
+using namespace std;
 
 //! Source of a score.\n
 //! Curriculum vs Melee
@@ -74,11 +74,11 @@ struct CategoryScoreDetails
     float upgrade;
 
     CategoryScoreDetails ( ):
-        none ( 0.0f ),
-        army ( 0.0f ),
-        economy ( 0.0f ),
-        technology ( 0.0f ),
-        upgrade ( 0.0f ) {}
+        none ( 0.0F ),
+        army ( 0.0F ),
+        economy ( 0.0F ),
+        technology ( 0.0F ),
+        upgrade ( 0.0F ) {}
 
     static void AddEntries (
         const ScoreEntry& base, vector<ScoreEntry>& entries
@@ -99,7 +99,7 @@ struct VitalScoreDetails
     float energy;
 
     VitalScoreDetails ( ):
-        life ( 0.0f ), shields ( 0.0f ), energy ( 0.0f ) {}
+        life ( 0.0F ), shields ( 0.0F ), energy ( 0.0F ) {}
 
     static void AddEntries (
         const ScoreEntry& base, vector<ScoreEntry>& entries
@@ -157,18 +157,18 @@ struct ScoreDetails
     VitalScoreDetails total_healed;
 
     ScoreDetails ( ):
-        idle_production_time ( 0.0f ),
-        idle_worker_time ( 0.0f ),
-        total_value_units ( 0.0f ),
-        total_value_structures ( 0.0f ),
-        killed_value_units ( 0.0f ),
-        killed_value_structures ( 0.0f ),
-        collected_minerals ( 0.0f ),
-        collected_vespene ( 0.0f ),
-        collection_rate_minerals ( 0.0f ),
-        collection_rate_vespene ( 0.0f ),
-        spent_minerals ( 0.0f ),
-        spent_vespene ( 0.0f ) {}
+        idle_production_time ( 0.0F ),
+        idle_worker_time ( 0.0F ),
+        total_value_units ( 0.0F ),
+        total_value_structures ( 0.0F ),
+        killed_value_units ( 0.0F ),
+        killed_value_structures ( 0.0F ),
+        collected_minerals ( 0.0F ),
+        collected_vespene ( 0.0F ),
+        collection_rate_minerals ( 0.0F ),
+        collection_rate_vespene ( 0.0F ),
+        spent_minerals ( 0.0F ),
+        spent_vespene ( 0.0F ) {}
 
     static void AddEntries ( ScoreEntry base, vector<ScoreEntry>& entries ) {
         SET_ENTRY ( ScoreDetails, idle_production_time )

@@ -4,19 +4,17 @@ module;
 #include <vector>
 
 export module map_data;
-
 import common;
-using Point2D = sc2::points::Point2D<float>;
+
 
 // #ifndef SCHLAPBOT_MAP_DATA_H
 // #define SCHLAPBOT_MAP_DATA_H
 //
 // #endif //SCHLAPBOT_MAP_DATA_H
-using std::string,
-    std::string_view,
-    std::vector;
+
 
 export namespace sc2 {
+using namespace std;
 
 struct MapData {
     MapData() = default;

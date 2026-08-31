@@ -4,10 +4,9 @@
 #include <string>
 #include <vector>
 
-using std::string,
-    std::vector;
 
 namespace sc2 {
+using namespace std;
 
 bool DoesFileExist(const string& path);
 bool HasExtension(const string& path, const string& extension);

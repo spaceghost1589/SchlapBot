@@ -9,14 +9,14 @@
 #include "utils/property_reader.h"
 import game_settings;
 
-namespace sc2 {
 
-using std::cerr, std::span;
+namespace sc2 {
+using namespace std;
 
 static auto StarCraft2UserDirectory = "StarCraft II";
 static auto StarCraft2ExecuteInfo = "ExecuteInfo.txt";
 
-bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_settings, const std::string& file_name) {
+bool ParseFromFile(ProcessSettings& process_settings, GameSettings& game_settings, const string& file_name) {
     PropertyReader reader;
 
     if (!reader.LoadFile(file_name)) {

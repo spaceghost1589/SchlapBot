@@ -99,9 +99,9 @@ BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false
   AfterClass: false
-  AfterControlStatement: Always
+  AfterControlStatement: MultiLine
   AfterEnum: false
-  AfterFunction: true
+  AfterFunction: false
   AfterNamespace: false
   AfterStruct: true
   AfterUnion: false
@@ -120,10 +120,10 @@ BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: true
 BreakAfterOpenBracketBracedList: true
 BreakAfterOpenBracketFunction: true
-BreakAfterOpenBracketIf: false
+BreakAfterOpenBracketIf: true
 BreakAfterOpenBracketLoop: false
 BreakAfterOpenBracketSwitch: false
-BreakAfterReturnType: All
+BreakAfterReturnType: ExceptShortType
 BreakBeforeBinaryOperators: None
 BreakBeforeCloseBracketBracedList: true
 BreakBeforeCloseBracketFunction: true
@@ -135,7 +135,7 @@ BreakBeforeTemplateCloser: true
 BreakBeforeTernaryOperators: false
 BreakBinaryOperations: RespectPrecedence
 BreakConstructorInitializers: BeforeColon
-BreakFunctionDefinitionParameters: true
+BreakFunctionDefinitionParameters: false
 BreakInheritanceList: AfterComma
 BreakStringLiterals: true
 BreakTemplateDeclarations: MultiLine
@@ -242,7 +242,7 @@ SortIncludes: CaseSensitive
 #  IgnoreExtension: false
 #  Natural: false
 #SortJavaStaticImport:
-SortUsingDeclarations: LexicographicNumeric
+SortUsingDeclarations: Lexicographic
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterOperatorKeyword: true

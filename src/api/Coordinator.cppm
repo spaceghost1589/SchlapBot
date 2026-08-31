@@ -1,51 +1,41 @@
-/*! \file Coordinator.cppm
-    \brief Frontend for running a game.
-
-    The Coordinator acts as a game and bot manager. It is used to launch
-   StarCraft and setup protocol connections between a user's bot and the running
-   StarCraft instance. With it a user steps forward a simulation and it will
-   fill out bot interface data.
-
-   Only called in main.
-*/
 module;
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <thread>
 
 #include "api/args.h"
-#include "api/replay_observer.h"
 #include "utils/manage_process.h"
 export module Coordinator;
+import Agent;
+import Client;
+import ReplayObserver;
+import action_interface;
+import action_feature_layer_interface;
 import enum_db;
+import error_handler;
 import game_settings;
+import game_types;
 import protocol_interface;
-
-
-using std::function, std::ifstream, std::ofstream, std::cerr, std::cout,
-        std::span, std::string, std::thread, std::to_string, std::vector;
-
-// #include "s2clientprotocol/sc2api.pb.h"
-//
-// #include "agent.h"
-// #include "args.h"
-// #include "control_interfaces.h"
-// #include "interfaces.h"
-// #include "replay_observer.h"
-// #include "lib/errors.h"
-// #include "utils/manage_process.h"
-//
-// import scan_directory;
-
-// }
+import scan_directory;
 
 export namespace sc2 {
+using namespace std;
 
-//! Coordinator of one or more clients. Used to start, step and stop games and
-//! replays.
-class Coordinator
-{
+/*! @brief Frontend for running a game.
+
+    The Coordinator acts as a game and bot manager. It is used to launch
+   StarCraft II and setup protocol connections between a user's bot and the
+   running StarCraft II instance. With it a user steps forward a simulation and
+   it will fill out bot interface data.
+
+   Only called in main.
+*/
+
+/*! Coordinator of one or more clients. Used to start, step and stop games and
+ * replays. */
+class Coordinator {
 public:
     vector<Agent*>          agents_;
     vector<ReplayObserver*> replay_observers_;
@@ -57,8 +47,6 @@ public:
     ReplaySettings    replay_settings_;
     InterfaceSettings interface_settings_;
     ProcessSettings   process_settings_;
-
-    bool Relaunch ( ReplayObserver* replay_observer );
 
     int window_width_  = 1024;
     int window_height_ = 768;
@@ -72,13 +60,8 @@ public:
 
     bool use_generalized_ability_id = true;
 
-    Coordinator ( ):
-        agents_( ),
-        replay_observers_( ),
-        game_ended_( ),
-        starcraft_started_ ( false ),
-        game_settings_( ),
-        process_settings_ (
+    Coordinator ( )
+          : process_settings_ (
                 false,
                 1,
                 "",
@@ -86,11 +69,10 @@ public:
                 kDefaultProtoInterfaceTimeout,
                 8168,
                 false
-        ) {}
+            ) {}
 
     ~Coordinator ( ) {
-        for ( const ProcessInfo& p : process_settings_.process_info )
-        {
+        for ( const ProcessInfo& p : process_settings_.process_info ) {
             TerminateProcess ( p.process_id );
         }
     }
@@ -132,8 +114,7 @@ public:
     //! Sets the number of game loops to run for each step.
     //! @param step_size Number of gameloops to run for each step.
     void SetStepSize ( int step_size ) {
-        if ( step_size < 1 )
-        {
+        if ( step_size < 1 ) {
             assert ( 0 );
             return;
         }
@@ -265,10 +246,8 @@ public:
         game_settings_.player_setup.clear( );
         agents_.clear( );
 
-        for ( const auto& p : participants )
-        {
-            if ( p.agent )
-            {
+        for ( const auto& p : participants ) {
+            if ( p.agent ) {
                 AddAgent ( p.agent );
             }
             game_settings_.player_setup.push_back ( p );
@@ -279,24 +258,24 @@ public:
         replay_recovery_ = value;
     }
 
-    //! Add an instance of ReplayObserver, each ReplayObserver will run a
+    //! @brief Add an instance of ReplayObserver, each ReplayObserver will run a
     //! separate StarCraft II client.
     //! @param replay_observer A pointer to the replay observer to utilize.
-    //! @sa ReplayObserver
+    //! @see ReplayObserver
     void AddReplayObserver ( ReplayObserver* replay_observer ) {
         assert ( replay_observer );
         replay_observers_.push_back ( replay_observer );
     }
 
-    int LaunchProcess (
-            ProcessSettings& process_settings,
-            Client*          client,
-            int              window_width,
-            int              window_height,
-            int              window_start_x,
-            int              window_start_y,
-            int              port,
-            int              client_num = 0
+    static int LaunchProcess (
+        ProcessSettings& process_settings,
+        Client*          client,
+        int              window_width,
+        int              window_height,
+        int              window_start_x,
+        int              window_start_y,
+        int              port,
+        int              client_num = 0
     ) {
         assert ( client );
         process_settings.process_info.push_back ( ProcessInfo( ) );
@@ -319,8 +298,7 @@ public:
         else
             cl.push_back ( "0" );
 
-        if ( process_settings.data_version.size( ) > 0 )
-        {
+        if ( process_settings.data_version.size( ) > 0 ) {
             cl.push_back ( "-dataVersion" );
             cl.push_back ( process_settings.data_version );
         }
@@ -333,58 +311,51 @@ public:
         cl.push_back ( "-windowheight" );
         cl.push_back ( to_string ( window_height ) );
 
-        if ( client_num < 2 )
-        {
+        if ( client_num < 2 ) {
             cl.push_back ( "-windowx" );
             cl.push_back (
-                    to_string ( window_start_x + window_width * client_num )
+                to_string ( window_start_x + window_width * client_num )
             );
             cl.push_back ( "-windowy" );
             cl.push_back ( to_string ( window_start_y ) );
-        }
-        else if ( client_num < 4 )
-        {
+        } else if ( client_num < 4 ) {
             cl.push_back ( "-windowx" );
-            cl.push_back ( to_string (
-                    window_start_x + window_width * ( client_num - 2 )
-            ) );
+            cl.push_back (
+                to_string ( window_start_x + window_width * ( client_num - 2 ) )
+            );
             cl.push_back ( "-windowy" );
             cl.push_back ( to_string ( window_start_y + window_height ) );
         }
 
         pi.process_path = process_settings.process_path;
         pi.process_id   = StartProcess ( process_settings.process_path, cl );
-        if ( !pi.process_id )
-        {
+        if ( !pi.process_id ) {
             cerr << "Unable to start sc2 executable with path: "
                  << process_settings.process_path << '\n';
-        }
-        else
-        {
+        } else {
             cout << "Launched SC2 (" << process_settings.process_path
                  << "), PID: " << to_string ( pi.process_id ) << '\n';
         }
 
-        client->Client::Control( )->SetProcessInfo ( pi );
+        client->Client::SetProcessInfo ( pi );
         return pi.port;
     }
 
-    bool ShouldRelaunch ( ReplayObserver* r ) {
-        const ReplayInfo& replay_info = r->ReplayControl( )->GetReplayInfo( );
+    bool ShouldRelaunch ( const ReplayObserver* replay_observer ) {
+        const ReplayInfo& replay_info = replay_observer->GetReplayInfo( );
 
         const bool version_match =
-                replay_info.base_build ==
-                        r->Control( )->Proto( ).GetBaseBuild( ) &&
-                replay_info.data_version ==
-                        r->Control( )->Proto( ).GetDataVersion( );
-        if ( version_match ) return false;
+            replay_info.base_build == ProtoFace::base_build_ &&
+            replay_info.data_version == ProtoFace::data_version_;
+        if ( version_match )
+            return false;
 
         // Version failed to download. Just continue with trying to load in
         // current version. It will likely fail, and then just skip past this
         // replay.
         if ( !FindBaseExe (
-                     process_settings_.process_path,
-                     replay_info.base_build
+                 process_settings_.process_path,
+                 replay_info.base_build
              ) )
             return false;
 
@@ -393,13 +364,12 @@ public:
                 "version..."
              << '\n';
         process_settings_.data_version = replay_info.data_version;
-        r->Control( )->Error ( ClientError::WrongGameVersion );
+        Error::Log ( ClientError::WrongGameVersion );
         return true;
     }
 
     bool Relaunch ( ReplayObserver* replay_observer ) {
-        ControlInterface*  control = replay_observer->Control( );
-        const ProcessInfo& pi      = control->GetProcessInfo( );
+        const ProcessInfo& pi = replay_observer->GetProcessInfo( );
 
         // Try to kill SC2 then relaunch it
         TerminateProcess ( pi.process_id );
@@ -408,97 +378,90 @@ public:
         // so internal state gets reinitialized.
         replay_observer->Reset( );
 
-        // Control interface has been reconstructed.
-        control = replay_observer->Control( );
-
         last_port_ = LaunchProcess (
-                process_settings_,
-                replay_observer,
-                window_width_,
-                window_height_,
-                window_start_x_,
-                window_start_y_,
-                last_port_ + 1
+            process_settings_,
+            replay_observer,
+            window_width_,
+            window_height_,
+            window_start_x_,
+            window_start_y_,
+            last_port_ + 1
         );
 
-        const ProcessInfo& pi_new = control->GetProcessInfo( );
+        const ProcessInfo& pi_new = replay_observer->GetProcessInfo( );
 
-        return CTRL_Face::Connect (
-                process_settings_.net_address,
-                pi_new.port,
-                process_settings_.timeout_ms
+        return replay_observer->Connect (
+            process_settings_.net_address,
+            pi_new.port,
+            process_settings_.timeout_ms
         );
     }
 
-    bool ShouldIgnore ( ReplayObserver* r, const string& file ) const {
-        if ( file.empty( ) ) return true;
+    bool ShouldIgnore ( ReplayObserver* replay_observer, const string& file ) const {
+        if ( file.empty( ) )
+            return true;
 
         // NOTE (alkurbatov): Gather replay information with the available
         // observer. In case of any error occurred during loading of replays
         // info ignore the target replay.
-        if ( !r->ReplayControl( )->GatherReplayInfo ( file, true ) )
+        if ( !replay_observer->GatherReplayInfo ( file, true ) )
             return true;
 
         // If the replay isn't being pruned based on replay info start it.
-        return r->IgnoreReplay (
-                r->ReplayControl( )->GetReplayInfo( ),
-                replay_settings_.player_id
+        return replay_observer->IgnoreReplay (
+            replay_observer->GetReplayInfo( ),
+            replay_settings_.player_id
         );
     }
 
-    bool AttachClients (
-            const ProcessSettings& process_settings,
-            const vector<Client*>& clients
+    static bool AttachClients (
+        const ProcessSettings& process_settings, const vector<Client*>& clients
     ) {
         bool connected = false;
 
         // Since connect is blocking do it after the processes are launched.
-        for ( size_t i = 0; i < clients.size( ); ++i )
-        {
-            const ProcessInfo& pi = process_settings.process_info[i];
-            Client*            c  = clients[i];
+        for ( size_t i = 0; i < clients.size( ); ++i ) {
+            const ProcessInfo& pi     = process_settings.process_info[i];
+            Client*            client = clients[i];
 
-            connected = c->Control( )->Connect (
-                    process_settings.net_address,
-                    pi.port,
-                    process_settings.timeout_ms
+            connected = client->Connect (
+                process_settings.net_address,
+                pi.port,
+                process_settings.timeout_ms
             );
             if ( !connected )
                 throw ClientConnectionError (
-                        process_settings.net_address,
-                        pi.port
+                    process_settings.net_address,
+                    pi.port
                 );
         }
 
         return connected;
     }
 
-    int LaunchProcesses (
-            ProcessSettings&       process_settings,
-            const vector<Client*>& clients,
-            int                    window_width,
-            int                    window_height,
-            int                    window_start_x,
-            int                    window_start_y
+    static int LaunchProcesses (
+        ProcessSettings&       process_settings,
+        const vector<Client*>& clients,
+        int                    window_width,
+        int                    window_height,
+        int                    window_start_x,
+        int                    window_start_y
     ) {
         int last_port   = 0;
         // Start an sc2 process for each bot.
         int clientIndex = 0;
-        for ( Client* c : clients )
-        {
+        for ( Client* c : clients ) {
             last_port = LaunchProcess (
-                    process_settings,
-                    c,
-                    window_width,
-                    window_height,
-                    window_start_x,
-                    window_start_y,
-                    process_settings.port_start +
-                            static_cast<int> (
-                                    process_settings.process_info.size( )
-                            ) -
-                            1,
-                    clientIndex++
+                process_settings,
+                c,
+                window_width,
+                window_height,
+                window_start_x,
+                window_start_y,
+                process_settings.port_start +
+                    static_cast<int> ( process_settings.process_info.size( ) ) -
+                    1,
+                clientIndex++
             );
         }
 
@@ -509,65 +472,60 @@ public:
 
     void StartReplay ( ) {
         // If no replays given in the settings don't try.
-        if ( replay_settings_.replay_file.empty( ) )
-        {
+        if ( replay_settings_.replay_file.empty( ) ) {
             return;
         }
 
         assert ( !replay_observers_.empty( ) );
-        if ( !starcraft_started_ )
-        {
+        if ( !starcraft_started_ ) {
             last_port_ = LaunchProcesses (
-                    process_settings_,
-                    vector<Client*> (
-                            replay_observers_.begin( ),
-                            replay_observers_.end( )
-                    ),
-                    window_width_,
-                    window_height_,
-                    window_start_x_,
-                    window_start_y_
+                process_settings_,
+                vector<Client*> (
+                    replay_observers_.begin( ),
+                    replay_observers_.end( )
+                ),
+                window_width_,
+                window_height_,
+                window_start_x_,
+                window_start_y_
             );
         }
 
         // Run a replay with each available replay observer.
-        for ( ReplayObserver* r : replay_observers_ )
-        {
+        for ( ReplayObserver* replay_observer : replay_observers_ ) {
             // If the replay observer is idle or out of game use it for a new
             // replay.
-            if ( !r->Control( )->IsReadyForCreateGame( ) )
-            {
+            if ( !replay_observer->IsReadyForCreateGame( ) ) {
                 continue;
             }
 
-            r->ReplayControl( )->UseGeneralizedAbility (
-                    use_generalized_ability_id
+            replay_observer->UseGeneralizedAbility (
+                use_generalized_ability_id
             );
 
             auto& replays = replay_settings_.replay_file;
-            while ( replays.size( ) != 0 )
-            {
+            while ( replays.size( ) != 0 ) {
                 const string& file = replay_settings_.replay_file.back( );
 
-                if ( ShouldIgnore ( r, file ) )
-                {
+                if ( ShouldIgnore ( replay_observer, file ) ) {
                     replays.pop_back( );
                     continue;
                 }
 
-                if ( ShouldRelaunch ( r ) )
-                {
+                if ( ShouldRelaunch ( replay_observer ) ) {
                     break;
                 }
 
-                const bool launched = r->ReplayControl( )->LoadReplay (
+                const bool launched =
+                    replay_observer->LoadReplay (
                         file,
                         interface_settings_,
                         replay_settings_.player_id,
                         process_settings_.realtime
-                );
+                    );
                 replays.pop_back( );
-                if ( launched ) break;
+                if ( launched )
+                    break;
             }
         }
 
@@ -578,15 +536,13 @@ public:
 
     //! Uses settings gathered from LoadSettings, specifically the path to the
     //! executable, to run StarCraft II.
-    void LaunchStarcraft ( ) const {
-        if ( !DoesFileExist ( process_settings_.process_path ) )
-        {
+    void LaunchStarcraft ( ) {
+        if ( !DoesFileExist ( process_settings_.process_path ) ) {
             cerr << "Executable path can't be found, try running the "
                     "StarCraft II executable "
                     "first."
                  << '\n';
-            if ( !process_settings_.process_path.empty( ) )
-            {
+            if ( !process_settings_.process_path.empty( ) ) {
                 cerr << process_settings_.process_path
                      << " does not exist on your filesystem.";
             }
@@ -600,15 +556,14 @@ public:
         // TODO: Check the case that a pid in the process_info_ struct is no
         // longer running. The process may have died.
         int port_start = 0;
-        if ( process_settings_.process_info.size( ) != agents_.size( ) )
-        {
+        if ( process_settings_.process_info.size( ) != agents_.size( ) ) {
             port_start = LaunchProcesses (
-                    process_settings_,
-                    vector<Client*> ( agents_.begin( ), agents_.end( ) ),
-                    window_width_,
-                    window_height_,
-                    window_start_x_,
-                    window_start_y_
+                process_settings_,
+                vector<Client*> ( agents_.begin( ), agents_.end( ) ),
+                window_width_,
+                window_height_,
+                window_start_x_,
+                window_start_y_
             );
         }
 
@@ -618,38 +573,40 @@ public:
         last_port_         = port_start;
     }
 
-    //! Attaches to a running Starcraft.
-    void Connect ( int port ) const {
-        if ( !agents_.front( )->Control( )->Connect (
-                     process_settings_.net_address,
-                     port,
-                     process_settings_.timeout_ms
+    //! Attaches to a running StarCraft II.
+    void Connect ( int port ) {
+        if ( !agents_.front( )->Connect (
+                 process_settings_.net_address,
+                 port,
+                 process_settings_.timeout_ms
              ) )
         {
             cerr << "Failed to attach to starcraft." << '\n';
             exit ( 1 );
         }
 
-        // Assume starcraft has started after successfully attaching to a
+        // Assume StarCraft II has started after successfully attaching to a
         // server.
         starcraft_started_ = true;
     }
 
-    //! Starts a game on a certain map. There are multiple ways to specify a
-    //! map: Absolute path: Any .SC2Map file. Relative path: Any .SC2Map file
-    //! relative to either the library or installation maps folder. Map name:
-    //! Any BattleNet published map that has been locally cached.
-    //! @param map_path Path to the map to run.
-    //! @return True if the game started, false if there was errors or the game
-    //! didn't start, override OnError callback to see the exact errors.
+    /*! @brief Starts a game on a certain map. There are multiple ways to
+     * specify a map: Absolute path: Any .SC2Map file. Relative path: Any
+     * .SC2Map file relative to either the library or installation maps folder.
+     * Map name: Any BattleNet published map that has been locally cached.
+     * @param map_path Path to the map to run.
+     * @return True if the game started, false if there was errors or the game
+     * didn't start, override OnError callback to see the exact errors. */
     bool StartGame ( const string& map_path ) {
-        if ( !map_path.empty( ) ) game_settings_.map_name = map_path;
+        if ( !map_path.empty( ) )
+            game_settings_.map_name = map_path;
 
         // bool CoordinatorImpl::StartGame() const
         // return StartGame();
 
         assert ( starcraft_started_ );
-        if ( const bool is_game_created = CreateGame( ); !is_game_created )
+        if ( const bool is_game_created = CreateGame ( map_path );
+             !is_game_created )
         {
             cerr << "Failed to create game." << '\n';
             exit ( 1 );
@@ -661,17 +618,18 @@ public:
     //! @param map_path Path to the map to run.
     //! @return true if the game was successfully created
     bool CreateGame ( const string& map_path ) {
-        if ( !map_path.empty( ) ) game_settings_.map_name = map_path;
+        if ( !map_path.empty( ) )
+            game_settings_.map_name = map_path;
 
         // bool CoordinatorImpl::CreateGame() const
         //		return CreateGame();
 
         // Create the game with the first client.
         Agent* firstClient = agents_.front( );
-        return firstClient->Control( )->CreateGame (
-                game_settings_.map_name,
-                game_settings_.player_setup,
-                process_settings_.realtime
+        return firstClient->CreateGame (
+            game_settings_.map_name,
+            game_settings_.player_setup,
+            process_settings_.realtime
         );
     }
 
@@ -679,65 +637,56 @@ public:
     //! Returns true if the agents were successfully connected to the game
     bool JoinGame ( ) const {
         int i = 0;
-        for ( Agent* c : agents_ )
-        {
-            const bool game_join_request = c->Control( )->RequestJoinGame (
-                    game_settings_.player_setup[i++],
-                    interface_settings_,
-                    game_settings_.ports,
-                    game_settings_.raw_affects_selection
+        for ( Agent* agent : agents_ ) {
+            const bool game_join_request = agent->RequestJoinGame (
+                game_settings_.player_setup[i++],
+                interface_settings_,
+                game_settings_.ports,
+                game_settings_.raw_affects_selection
             );
 
-            if ( !game_join_request )
-            {
+            if ( !game_join_request ) {
                 cerr << "Unable to join game." << '\n';
                 exit ( 1 );
             }
         }
 
-        for ( Agent* c : agents_ )
-        {
-            c->Control( )->WaitJoinGame( );
+        for ( Agent* agent : agents_ ) {
+            agent->WaitJoinGame( );
         }
 
         // Check if any errors occurred during game start.
         bool errors_occurred = false;
-        for ( Agent* c : agents_ )
-        {
-            const ControlInterface* control = c->Control( );
+        for ( const Agent* agent : agents_ ) {
             if ( const vector<ClientError>& client_errors =
-                         control->GetClientErrors( );
+                     agent->GetClientErrors( );
                  !client_errors.empty( ) )
-            {
-                c->OnError ( client_errors, control->GetProtocolErrors( ) );
-                errors_occurred = true;
-            }
+                if ( !Error::client_errors_.empty( ) ) {
+                    // c->OnError ( client_errors, control->GetProtocolErrors( )
+                    // );
+                    errors_occurred = true;
+                }
 
-            c->Control( )->UseGeneralizedAbility ( use_generalized_ability_id );
+            agent->UseGeneralizedAbility ( use_generalized_ability_id );
         }
 
-        if ( errors_occurred )
-        {
+        if ( errors_occurred ) {
             return false;
         }
 
         // Run all clients on game start.
-        for ( Agent* c : agents_ )
-        {
-            c->Control( )->GetObservation( );
+        for ( Agent* agent : agents_ ) {
+            agent->GetObservation( );
         }
-        for ( Agent* c : agents_ )
-        {
-            c->OnGameFullStart( );
+        for ( Agent* agent : agents_ ) {
+            agent->OnGameFullStart( );
         }
-        for ( Agent* c : agents_ )
-        {
-            c->Control( )->OnGameStart( );
-            c->OnGameStart( );
+        for ( Agent* agent : agents_ ) {
+            agent->Client::OnGameStart( );
+            agent->OnGameStart( );
         }
-        for ( Agent* c : agents_ )
-        {
-            c->Control( )->IssueEvents ( c->Actions( )->Commands( ) );
+        for ( Agent* agent : agents_ ) {
+            agent->IssueEvents ( agent->Actions( )->CommandsLastCall( ) );
         }
 
         return true;
@@ -748,30 +697,25 @@ public:
     //! @param port_start Starting port number
     //! @param check_single  Checks if the game is a single player or
     //! multiplayer game
-    void SetupPorts ( size_t num_agents, int port_start, bool check_single ) {
+    void SetupPorts (
+        size_t num_agents, int port_start, bool check_single = true
+    ) {
         // Join the game if there are two human participants.
         size_t humans = 0;
-        if ( check_single )
-        {
-            for ( const auto& p_setup : game_settings_.player_setup )
-            {
-                if ( p_setup.type == Participant )
-                {
+        if ( check_single ) {
+            for ( const auto& p_setup : game_settings_.player_setup ) {
+                if ( p_setup.type == Participant ) {
                     ++humans;
                 }
             }
-        }
-        else
-        {
+        } else {
             humans = num_agents;
         }
-        if ( humans > 1 )
-        {
+        if ( humans > 1 ) {
             game_settings_.ports.shared_port            = ++port_start;
             game_settings_.ports.server_ports.game_port = ++port_start;
             game_settings_.ports.server_ports.base_port = ++port_start;
-            for ( size_t i = 1; i < num_agents; ++i )
-            {
+            for ( size_t i = 1; i < num_agents; ++i ) {
                 PortSet port_set;
                 port_set.game_port = ++port_start;
                 port_set.base_port = ++port_start;
@@ -782,94 +726,76 @@ public:
 
     // Run.
     static void CallOnStep ( Agent* agent ) {
-        ControlInterface* control = agent->Control( );
-        if ( !control->IsInGame( ) )
-        {
+        if ( !agent->IsInGame( ) ) {
             agent->OnGameEnd( );
-            control->RequestLeaveGame( ); // Only for multiplayer.
+            agent->RequestLeaveGame( ); // Only for multiplayer.
             return;
         }
 
         ActionInterface* action = agent->Actions( );
-        control->IssueEvents ( action->Commands( ) );
-        if ( action )
-        {
+        agent->IssueEvents ( action->CommandsLastCall( ) );
+        if ( action ) {
             action->SendActions( );
         }
 
         if ( ActionFeatureLayerInterface* action_feature_layer =
-                     agent->ActionsFeatureLayer( ) )
+                 agent->ActionsFeatureLayer( ) )
         {
             action_feature_layer->SendActions( );
         }
     }
 
-    void RunParallel (
-            const function<void ( Agent* agent )>& step,
-            const vector<Agent*>&                  agents
+    static void RunParallel (
+        const function<void ( Agent* agent )>& step,
+        const vector<Agent*>&                  agents
     ) {
         // Run all steps in parallel.
         vector<thread> threads ( agents.size( ) );
-        for ( size_t i = 0; i < agents.size( ); ++i )
-        {
-            Agent* agent = agents[i];
-            threads[i]   = thread ( bind ( step, agent ) );
+        for ( size_t i = 0; i < agents.size( ); ++i ) {
+            Agent* agent     = agents.at ( i );
+            threads.at ( i ) = thread ( bind ( step, agent ) );
         }
 
-        for ( auto& t : threads )
-        {
-            t.join( );
+        for ( auto& thread : threads ) {
+            thread.join( );
         }
     }
 
     void StepAgents ( ) const {
         auto step_agent = [this] ( Agent* agent ) {
-            ControlInterface* control = agent->Control( );
-
-            if ( control->GetAppState( ) != AppState::normal )
-            {
+            if ( agent->GetAppState( ) != AppState::Normal ) {
                 return;
             }
 
-            if ( control->PollLeaveGame( ) )
-            {
+            if ( agent->PollLeaveGame( ) ) {
                 return;
             }
 
-            if ( control->IsFinishedGame( ) )
-            {
+            if ( agent->IsFinishedGame( ) ) {
                 return;
             }
 
-            control->Step ( process_settings_.step_size );
-            control->WaitStep( );
-            if ( process_settings_.multi_threaded )
-            {
+            agent->Step ( process_settings_.step_size );
+            agent->WaitStep( );
+            if ( process_settings_.multi_threaded ) {
                 CallOnStep ( agent );
             }
         };
 
-        if ( agents_.size( ) == 1 )
-        {
+        if ( agents_.size( ) == 1 ) {
             step_agent ( agents_.front( ) );
-        }
-        else
-        {
+        } else {
             RunParallel ( step_agent, agents_ );
         }
 
-        if ( !process_settings_.multi_threaded )
-        {
-            for ( Agent* agent : agents_ )
-            {
-                if ( agent->Control( )->GetAppState( ) != AppState::normal )
-                {
+        if ( !process_settings_.multi_threaded ) {
+            for ( Agent* agent : agents_ ) {
+                if ( agent->GetAppState( ) != AppState::Normal ) {
                     continue;
                 }
 
                 // It is possible to have a pending leave game request here.
-                if ( agent->Control( )->PollLeaveGame( ) )
-                {
+                if ( agent->PollLeaveGame( ) ) {
                     continue;
                 }
 
@@ -880,53 +806,42 @@ public:
 
     void StepAgentsRealtime ( ) const {
         auto step_agent = [] ( Agent* agent ) {
-            ControlInterface* control = agent->Control( );
-            if ( !control )
-            {
+            if ( !agent ) {
                 return;
             }
 
-            if ( control->GetAppState( ) != AppState::normal )
-            {
+            if ( agent->GetAppState( ) != AppState::Normal ) {
                 return;
             }
 
-            if ( control->PollLeaveGame( ) )
-            {
+            if ( agent->PollLeaveGame( ) ) {
                 return;
             }
 
-            if ( agent->Control( )->IsFinishedGame( ) )
-            {
+            if ( agent->IsFinishedGame( ) ) {
                 return;
             }
 
             ActionInterface* action = agent->Actions( );
-            if ( !action )
-            {
+            if ( !action ) {
                 return;
             }
 
             // This agent shouldn't call step since it's real time.
-            control->GetObservation( );
-            control->IssueEvents ( agent->Actions( )->Commands( ) );
+            agent->GetObservation( );
+            agent->IssueEvents ( agent->Actions( )->CommandsLastCall( ) );
             action->SendActions( );
 
-            if ( !control->IsInGame( ) )
-            {
+            if ( !agent->IsInGame( ) ) {
                 agent->OnGameEnd( );
-                agent->Control( )->RequestLeaveGame( ); // Only for multiplayer.
+                agent->RequestLeaveGame( ); // Only for multiplayer.
             }
         };
 
-        if ( process_settings_.multi_threaded )
-        {
+        if ( process_settings_.multi_threaded ) {
             RunParallel ( step_agent, agents_ );
-        }
-        else
-        {
-            for ( Agent* agent : agents_ )
-            {
+        } else {
+            for ( Agent* agent : agents_ ) {
                 step_agent ( agent );
             }
         }
@@ -934,161 +849,134 @@ public:
 
     void StepReplayObservers ( ) const {
         // Run all replay observers.
-        auto run_replay = [this] ( ReplayObserver* r ) {
-            if ( r->Control( )->GetAppState( ) != AppState::normal )
-            {
+        auto run_replay = [this] ( ReplayObserver* replay_observer ) {
+            if ( replay_observer->GetAppState( ) != AppState::Normal ) {
                 return;
             }
 
             // If the replay is loading wait for it to finish loading before
             // performing a step.
-            if ( r->Control( )->HasResponsePending( ) )
-            {
+            if ( replay_observer->HasResponsePending( ) ) {
                 // Don't consume a response if there isn't one in the queue.
                 if ( replay_observers_.size( ) > 1 &&
-                     !r->Control( )->PollResponse( ) )
+                     !replay_observer->PollResponse( ) )
                 {
                     return;
                 }
-                r->ReplayControl( )->WaitForReplay( );
+                replay_observer->WaitForReplay( );
             }
 
-            if ( r->Control( )->IsInGame( ) )
-            {
-                r->Control( )->Step ( process_settings_.step_size );
-                r->Control( )->WaitStep( );
+            if ( replay_observer->IsInGame( ) ) {
+                replay_observer->Step ( process_settings_.step_size );
+                replay_observer->WaitStep( );
 
                 // If multithreaded run everyone's OnStep in parallel.
-                if ( process_settings_.multi_threaded )
-                {
-                    r->Control( )->IssueEvents( );
-                    r->ObserverAction( )->SendActions( );
+                if ( process_settings_.multi_threaded ) {
+                    replay_observer->IssueEvents( );
+                    replay_observer->ObserverAction( )->SendActions( );
                 }
 
-                if ( !r->Control( )->IsInGame( ) )
-                {
-                    r->OnGameEnd( );
+                if ( !replay_observer->IsInGame( ) ) {
+                    replay_observer->OnGameEnd( );
                 }
             }
         };
 
-        if ( replay_observers_.size( ) == 1 )
-        {
+        if ( replay_observers_.size( ) == 1 ) {
             run_replay ( replay_observers_.front( ) );
-        }
-        else
-        {
+        } else {
             // Run all steps in parallel.
             vector<thread> threads;
             threads.reserve ( replay_observers_.size( ) );
-            for ( auto r : replay_observers_ )
-            {
+            for ( auto r : replay_observers_ ) {
                 threads.emplace_back ( run_replay, r );
             }
 
             // Join all threads.
-            for ( auto& t : threads )
-            {
+            for ( auto& t : threads ) {
                 t.join( );
             }
         }
 
         // Do everyone's OnStep, if not multi threaded, in single threaded mode.
-        if ( !process_settings_.multi_threaded )
-        {
-            for ( ReplayObserver* r : replay_observers_ )
-            {
-                if ( r->Control( )->GetAppState( ) != AppState::normal )
-                {
+        if ( !process_settings_.multi_threaded ) {
+            for ( ReplayObserver* replay_observer : replay_observers_ ) {
+                if ( replay_observer->GetAppState( ) != AppState::Normal ) {
                     continue;
                 }
 
-                r->Control( )->IssueEvents( );
-                r->ObserverAction( )->SendActions( );
+                replay_observer->IssueEvents( );
+                replay_observer->ObserverAction( )->SendActions( );
             }
         }
     }
 
     void StepReplayObserversRealtime ( ) const {
         // Run all replay observers.
-        auto run_replay = [this] ( ReplayObserver* r ) {
-            if ( r->Control( )->GetAppState( ) != AppState::normal )
-            {
+        auto run_replay = [this] ( ReplayObserver* replay_observer ) {
+            if ( replay_observer->GetAppState( ) != AppState::Normal ) {
                 return;
             }
 
             // If the replay is loading wait for it to finish loading before
             // performing a step.
-            if ( r->Control( )->HasResponsePending( ) )
-            {
+            if ( replay_observer->HasResponsePending( ) ) {
                 // Don't consume a response if there isn't one in the queue.
                 if ( replay_observers_.size( ) > 1 &&
-                     !r->Control( )->PollResponse( ) )
+                     !replay_observer->PollResponse( ) )
                 {
                     return;
                 }
-                r->ReplayControl( )->WaitForReplay( );
+                replay_observer->WaitForReplay( );
             }
 
-            if ( r->Control( )->IsInGame( ) )
-            {
-                r->Control( )->GetObservation( );
+            if ( replay_observer->IsInGame( ) ) {
+                replay_observer->GetObservation( );
 
                 // If multithreaded run everyone's OnStep in parallel.
-                if ( process_settings_.multi_threaded )
-                {
-                    r->Control( )->IssueEvents( );
+                if ( process_settings_.multi_threaded ) {
+                    replay_observer->IssueEvents( );
                 }
 
-                if ( !r->Control( )->IsInGame( ) )
-                {
-                    r->OnGameEnd( );
+                if ( !replay_observer->IsInGame( ) ) {
+                    replay_observer->OnGameEnd( );
                 }
             }
         };
 
-        if ( replay_observers_.size( ) == 1 )
-        {
+        if ( replay_observers_.size( ) == 1 ) {
             run_replay ( replay_observers_.front( ) );
-        }
-        else
-        {
+        } else {
             // Run all steps in parallel.
             vector<thread> threads;
             threads.reserve ( replay_observers_.size( ) );
-            for ( auto r : replay_observers_ )
-            {
+            for ( auto r : replay_observers_ ) {
                 threads.emplace_back ( run_replay, r );
             }
 
             // Join all threads.
-            for ( auto& t : threads )
-            {
+            for ( auto& t : threads ) {
                 t.join( );
             }
         }
 
         // Do everyone's OnStep, if not multi threaded, in single threaded mode.
-        if ( !process_settings_.multi_threaded )
-        {
-            for ( ReplayObserver* r : replay_observers_ )
-            {
-                if ( r->Control( )->GetAppState( ) != AppState::normal )
-                {
+        if ( !process_settings_.multi_threaded ) {
+            for ( ReplayObserver* replay_observer : replay_observers_ ) {
+                if ( replay_observer->GetAppState( ) != AppState::Normal ) {
                     continue;
                 }
 
-                r->Control( )->IssueEvents( );
+                replay_observer->IssueEvents( );
             }
         }
     }
 
     bool AnyObserverAvailable ( ) const {
-        return any_of (
-                replay_observers_.cbegin( ),
-                replay_observers_.cend( ),
-                [] ( ReplayObserver* r ) {
-            return !r->Control( )->IsInGame( );
+        return ranges::any_of (
+            replay_observers_,
+            [] ( const ReplayObserver* replay_observer ) {
+            return !replay_observer->IsInGame( );
         }
         );
     }
@@ -1111,35 +999,25 @@ public:
     //!     2. The Observation is parsed and client events are dispatched.
     //!     3. Unit actions batched from the ActionInterface are dispatched.
     //! @return False if the game has ended, true otherwise.
-    bool Update ( ) const {
-        if ( agents_.size( ) > 0 )
-        {
-            if ( process_settings_.realtime )
-            {
+    bool Update ( ) {
+        if ( agents_.size( ) != 0 ) {
+            if ( process_settings_.realtime ) {
                 StepAgentsRealtime( );
-            }
-            else
-            {
+            } else {
                 StepAgents( );
             }
         }
 
-        if ( replay_observers_.size( ) > 0 && starcraft_started_ )
-        {
-            if ( process_settings_.realtime )
-            {
+        if ( replay_observers_.size( ) != 0 && starcraft_started_ ) {
+            if ( process_settings_.realtime ) {
                 StepReplayObserversRealtime( );
-            }
-            else
-            {
+            } else {
                 StepReplayObservers( );
             }
         }
 
-        if ( replay_observers_.size( ) > 0 )
-        {
-            if ( AnyObserverAvailable( ) )
-            {
+        if ( replay_observers_.size( ) != 0 ) {
+            if ( AnyObserverAvailable( ) ) {
                 StartReplay( );
             }
         }
@@ -1147,37 +1025,32 @@ public:
         // Check for errors in all agents/replay observers at the end of an
         // update.
         bool error_occurred = false;
-        for ( Agent* agent : agents_ )
-        {
-            const ControlInterface* control = agent->Control( );
+        for ( const Agent* agent : agents_ ) {
             if ( const vector<ClientError>& client_errors =
-                         control->GetClientErrors( );
-                !client_errors.empty( ) )
+                     agent->GetClientErrors( );
+                 !client_errors.empty( ) )
             {
-                agent->OnError ( client_errors, control->GetProtocolErrors( ) );
+                // agent->OnError ( client_errors, control->GetProtocolErrors( )
+                // );
                 error_occurred = true;
             }
         }
 
         bool relaunched = false;
-        for ( ReplayObserver* replay_observer : replay_observers_ )
-        {
-            const ControlInterface* control = replay_observer->Control( );
+        for ( ReplayObserver* replay_observer : replay_observers_ ) {
             if ( const vector<ClientError>& client_errors =
-                         control->GetClientErrors( );
+                     replay_observer->GetClientErrors( );
                  !client_errors.empty( ) )
             {
-                replay_observer->OnError (
-                        client_errors,
-                        control->GetProtocolErrors( )
-                );
+                // replay_observer->OnError (
+                //         client_errors,
+                //         control->GetProtocolErrors( )
+                // );
                 error_occurred = true;
-                if ( replay_recovery_ )
-                {
+                if ( replay_recovery_ ) {
                     // An error did occur but if we successfully recovered
                     // ignore it. The client will still gets its event
-                    if ( Relaunch ( replay_observer ) )
-                    {
+                    if ( Relaunch ( replay_observer ) ) {
                         error_occurred = false;
                         relaunched     = true;
                     }
@@ -1187,8 +1060,7 @@ public:
 
         // End the Coordinator update on the idea that an error in the API
         // should mean it's time to stop.
-        if ( error_occurred )
-        {
+        if ( error_occurred ) {
             return false;
         }
 
@@ -1197,9 +1069,8 @@ public:
 
     //! Requests for the currently running game to end.
     void LeaveGame ( ) const {
-        for ( Agent* c : agents_ )
-        {
-            c->Control( )->RequestLeaveGame( );
+        for ( Agent* agent : agents_ ) {
+            agent->RequestLeaveGame( );
         }
     }
 
@@ -1207,19 +1078,15 @@ public:
 
     //! Returns true if all running games have ended.
     bool AllGamesEnded ( ) const {
-        for ( Agent* agent : agents_ )
-        {
-            if ( agent->Control( )->IsInGame( ) ||
-                 agent->Control( )->HasResponsePending( ) )
-            {
+        for ( const Agent* agent : agents_ ) {
+            if ( agent->IsInGame( ) || agent->HasResponsePending( ) ) {
                 return false;
             }
         }
 
-        for ( ReplayObserver* r : replay_observers_ )
-        {
-            if ( r->Control( )->IsInGame( ) ||
-                 r->Control( )->HasResponsePending( ) )
+        for ( const ReplayObserver* replay_observer : replay_observers_ ) {
+            if ( replay_observer->IsInGame( ) ||
+                 replay_observer->HasResponsePending( ) )
             {
                 return false;
             }
@@ -1231,25 +1098,21 @@ public:
     // Replay specific.
     //! Sets the path for to a folder of replays to analyze.
     //! @param path The folder path.
-    bool SetReplayPath ( const string& path ) const {
+    bool SetReplayPath ( const string& path ) {
         replay_settings_.replay_file.clear( );
 
-        if ( HasExtension ( path, ".SC2Replay" ) )
-        {
+        if ( HasExtension ( path, ".SC2Replay" ) ) {
             replay_settings_.replay_file.push_back ( path );
-        }
-        else
-        {
+        } else {
             replay_settings_.replay_dir = path;
 
             // Gather and append all files from the directory.
-            if ( !replay_settings_.replay_dir.empty( ) )
-            {
+            if ( !replay_settings_.replay_dir.empty( ) ) {
                 scan_directory (
-                        replay_settings_.replay_dir.c_str( ),
-                        replay_settings_.replay_file,
-                        true,
-                        false
+                    replay_settings_.replay_dir.c_str( ),
+                    replay_settings_.replay_file,
+                    true,
+                    false
                 );
             }
         }
@@ -1259,17 +1122,18 @@ public:
 
     //! Loads replays from a file.
     //! @param path The file path.
-    bool LoadReplayList ( const string& path ) const {
-        if ( !DoesFileExist ( path ) ) return false;
+    bool LoadReplayList ( const string& path ) {
+        if ( !DoesFileExist ( path ) )
+            return false;
 
         replay_settings_.replay_file.clear( );
 
         ifstream replay_file ( path );
 
         string line;
-        while ( getline ( replay_file, line ) )
-        {
-            if ( line.length( ) < 5 ) continue;
+        while ( getline ( replay_file, line ) ) {
+            if ( line.length( ) < 5 )
+                continue;
 
             replay_settings_.replay_file.push_back ( line );
         }
@@ -1281,8 +1145,7 @@ public:
     //! @param path The file path.
     void SaveReplayList ( const string& path ) const {
         ofstream replay_file ( path, ofstream::out | ofstream::trunc );
-        for ( const string& line : replay_settings_.replay_file )
-        {
+        for ( const string& line : replay_settings_.replay_file ) {
             replay_file << line << '\n';
         }
     }
@@ -1300,58 +1163,49 @@ public:
         static constexpr int sleep_ms = 50;
 
         int total_sleep_ms = 0;
-        for ( ;; )
-        {
+        for ( ;; ) {
             bool has_responses = false;
 
-            for ( Agent* agent : agents_ )
-            {
-                if ( !agent->Control( )->HasResponsePending( ) ||
-                     agent->Control( )->GetAppState( ) != AppState::normal )
+            for ( Agent* agent : agents_ ) {
+                if ( !agent->HasResponsePending( ) ||
+                     agent->GetAppState( ) != AppState::Normal )
                 {
                     continue;
                 }
 
                 has_responses = true;
 
-                if ( agent->Control( )->PollResponse( ) )
-                {
-                    agent->Control( )->ConsumeResponse( );
+                if ( agent->PollResponse( ) ) {
+                    agent->ConsumeResponse( );
                 }
 
                 break;
             }
 
-            for ( ReplayObserver* replay_observer : replay_observers_ )
-            {
-                if ( has_responses )
-                {
+            for ( ReplayObserver* replay_observer : replay_observers_ ) {
+                if ( has_responses ) {
                     break;
                 }
 
-                if ( !replay_observer->Control( )->HasResponsePending( ) ||
-                     replay_observer->Control( )->GetAppState( ) !=
-                             AppState::normal )
+                if ( !replay_observer->HasResponsePending( ) ||
+                     replay_observer->GetAppState( ) != AppState::Normal )
                 {
                     continue;
                 }
                 has_responses = true;
 
-                if ( replay_observer->Control( )->PollResponse( ) )
-                {
-                    replay_observer->Control( )->ConsumeResponse( );
+                if ( replay_observer->PollResponse( ) ) {
+                    replay_observer->ConsumeResponse( );
                 }
 
                 break;
             }
 
-            if ( !has_responses )
-            {
+            if ( !has_responses ) {
                 break;
             }
 
-            if ( total_sleep_ms >= process_settings_.timeout_ms )
-            {
+            if ( total_sleep_ms >= process_settings_.timeout_ms ) {
                 assert ( 0 );
                 return false;
             }
@@ -1368,19 +1222,16 @@ public:
     //! @param remote_path The file path to save the data to.
     //! @return Is true if the save is successful.
     bool RemoteSaveMap (
-            const void* data, int data_size, const string& remote_path
+        const void* data, int data_size, const string& remote_path
     ) const {
-        for ( Agent* c : agents_ )
-        {
-            if ( !c->Control( )
-                          ->RemoteSaveMap ( data, data_size, remote_path ) )
+        for ( Agent* agent : agents_ ) {
+            if ( !agent->RemoteSaveMap ( data, data_size, remote_path ) )
                 return false;
         }
 
-        for ( ReplayObserver* c : replay_observers_ )
-        {
-            if ( !c->Control( )
-                          ->RemoteSaveMap ( data, data_size, remote_path ) )
+        for ( ReplayObserver* replay_observer : replay_observers_ ) {
+            if ( !replay_observer
+                      ->RemoteSaveMap ( data, data_size, remote_path ) )
                 return false;
         }
 

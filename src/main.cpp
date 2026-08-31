@@ -1,12 +1,10 @@
 #include <cstddef>
 #include <iostream>
 #include <span>
-
-#include "lib/gametypes.h"
-
 import SchlapBot;
 import Coordinator;
 import map_data;
+import game_types;
 
 using sc2::SchlapBot, sc2::AIBuild, sc2::Coordinator, sc2::Difficulty, sc2::MapData, sc2::Race,
 	std::cout, std::cerr, std::size_t, std::span;

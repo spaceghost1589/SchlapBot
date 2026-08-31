@@ -7,13 +7,7 @@
 #include <vector>
 
 namespace sc2 {
-
-using std::int32_t,
-    std::span,
-    std::string,
-    std::string_view,
-    std::unordered_map,
-    std::vector;
+using namespace std;
 
 struct LadderSettings{
 	int32_t game_port{0};

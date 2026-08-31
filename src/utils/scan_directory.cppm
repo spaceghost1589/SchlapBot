@@ -14,8 +14,7 @@ export module scan_directory;
 
 
 export namespace sc2 {
-using std::string,
-    std::vector;
+using namespace std;
 
 int scan_directory(const char* directory_path, vector<string>& files, bool full_path, bool list_directories) {
     if (!directory_path || !*directory_path) {

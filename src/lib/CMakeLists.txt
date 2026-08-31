@@ -3,7 +3,7 @@
 #        errors.h
 #        game_settings.cc
 #        game_settings.h
-#        gametypes.h
+#        game_types.h
 #        lib.h
 #        type_enums.h
 #        typeids/types.h
