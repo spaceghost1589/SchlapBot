@@ -10,7 +10,7 @@ export namespace sc2 {
  * observer UI. */
 class ObserverActionInterface {
 public:
-    GameRequestPtr request_;
+    GameRequestPtr request_{nullptr};
 
     explicit ObserverActionInterface ( ) = default;
 

@@ -45,7 +45,7 @@ public:
         const mg_connection* conn, void* websocket_server
     ) {
         if ( VERBOSE )
-            std::cout << "Client connected (" << conn << ")" << '\n';
+            cout << "Client connected (" << conn << ")" << '\n';
         Server* server;
         if ( !GetServerData ( conn, websocket_server, server ) ) {
             return 0;
@@ -69,7 +69,7 @@ public:
         }
 
         if ( VERBOSE )
-            std::cout << "Client data (" << conn << ")" << '\n';
+            cout << "Client data (" << conn << ")" << '\n';
 
         SC2APIProtocol::Request* request = new SC2APIProtocol::Request( );
         if ( !request->ParseFromArray ( data, static_cast<int> ( len ) ) ) {
@@ -107,14 +107,14 @@ public:
 
     template<class T>
     static void SendMessage (
-        mg_connection* conn, std::queue<T>& message_queue
+        mg_connection* conn, queue<T>& message_queue
     ) {
         if ( message_queue.empty( ) ) {
             return;
         }
 
         if ( VERBOSE )
-            std::cout << "SendMessage (" << conn << ")" << '\n';
+            cout << "SendMessage (" << conn << ")" << '\n';
 
         const google::protobuf::Message* message =
             message_queue.front( ).second;

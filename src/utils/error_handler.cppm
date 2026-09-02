@@ -1,26 +1,26 @@
 module;
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <mutex>
-#include <queue>
-#include <source_location>
-#include <sstream>
-#include <string>
-#include <type_traits>
-#include <vector>
+// #include <fstream>
+// #include <iostream>
+// #include <memory>
+// #include <mutex>
+// #include <queue> // IWYU pragma: keep
+// #include <source_location>
+// #include <sstream>
+// #include <string>
+// #include <vector>
 export module error_handler;
+import std;
 import enum_db;
 
 export namespace sc2 {
 using namespace std;
 
-/*! Errors that the api can encounter, if the OnError event in ClientEvents is
- * overwritten it will contain a list of errors encountered. */
+/*! @brief Errors that the api can encounter, if the OnError event in
+ * ClientEvents is overwritten it will contain a list of errors encountered. */
 enum class ClientError {
     ConnectionClosed, /*! The websocket connection has prematurely closed, this
-                         could mean StarCraft II crashed or a websocket timeout has
-                         occurred.*/
+                         could mean StarCraft II crashed or a websocket timeout
+                         has occurred.*/
     InvalidAbilityRemap, /*! An ability was improperly mapped to an ability id
                             that doesn't exist.*/
     InvalidResponse,     /*! The response does not contain a field that was
@@ -45,13 +45,25 @@ enum class ClientError {
 };
 
 /*! @brief Parses the code location of an error.
- * @return Error message header string:\n
- * [file:line.column::function]: */
-string LocParse ( source_location loc ) {
-    ostringstream err_msg;
-    err_msg << "[" << loc.file_name( ) << ":" << loc.line( ) << "."
-            << loc.column( ) << "::" << loc.function_name( ) << "]:";
-    return err_msg.str( );
+ * @result Outputs code location and custom error message.
+ * @note "[file:line.column::function]: err_msg" */
+void SRC_LocationOut (
+    const char*     err_msg = "NO ERROR MESSAGE PROVIDED",
+    source_location srcLoc  = source_location::current( )
+) {
+    // Strip the absolute directory path down to just the filename
+    string_view file_path = srcLoc.file_name();
+    if ( const auto last_slash = file_path.find_last_of("/\\"); last_slash != string_view::npos) {
+        file_path.remove_prefix(last_slash + 1);
+    }
+
+    // clang-format off
+    cerr << "[" << srcLoc.file_name( )
+         << ":" << srcLoc.line( )
+         << "." << srcLoc.column( )
+         << "::" << srcLoc.function_name( )
+         << "]: " << err_msg << endl;
+    // clang-format on
 }
 
 //! @brief Custom assert
@@ -63,27 +75,23 @@ inline bool Assert (
     if ( bool_ )
         return true;
     else
-        cerr << LocParse ( loc ) << msg << endl;
+        SRC_LocationOut ( msg, loc );
 #if !BUILD_FOR_LADDER
     abort( );
 #endif
     return false;
 }
 
-struct ClientConnectionError : std::runtime_error
+struct ClientConnectionError : runtime_error
 {
-    ClientConnectionError ( const std::string& net_address_, int port_ ):
-        std::runtime_error (
-            "Failed connect to client " +
-            net_address_ +
-            ":" +
-            std::to_string ( port_ )
-        ) {}
+    ClientConnectionError ( const string& net_address_, int port_ )
+          : runtime_error (
+                "Failed connect to client " + net_address_ + ":" +
+                to_string ( port_ )
+            ) {}
 };
 
 } // namespace sc2
-
-
 
 /*! @brief Error handling namespace to implement a "static class".\n
  * Handles errors that may have occurred during calls to the various
@@ -94,7 +102,7 @@ export namespace sc2::Error {
 // TODO Consider changing to `deque` or `queue`.
 
 vector<ClientError> client_errors_;
-vector<string>           protocol_errors_;
+vector<string>      protocol_errors_;
 
 mutex error_mutex_;
 
@@ -110,15 +118,14 @@ inline void Log (
         client_errors_.push_back ( client_error );
 
     // Cache protocol errors
-    for ( const string& err : protocol_errors )
-    {
+    for ( const string& err : protocol_errors ) {
         protocol_errors_.push_back ( err );
     }
 
-// TODO Refactor this for LADDER_BUILD and custom assert
-// #ifdef SC2API_ASSERT_ON_ERROR
-//     assert(0);
-// #endif
+    // TODO Refactor this for LADDER_BUILD and custom assert
+    // #ifdef SC2API_ASSERT_ON_ERROR
+    //     assert(0);
+    // #endif
 }
 
 inline vector<ClientError>& GetClientErrors ( ) {

@@ -10,17 +10,18 @@ module;
 // Avoiding use of "thread_local" as that isn't supported in older versions of Xcode.
 
 export module common:math;
+using namespace std;
 
 
 
 struct RandomGenerator {
     RandomGenerator() : mt(rd()) {
     }
-    std::random_device rd;
-    std::mt19937 mt;
+    random_device rd;
+    mt19937 mt;
 };
 
-static std::mt19937& GetGenerator() {
+static mt19937& GetGenerator() {
     static TLS_OBJECT RandomGenerator* generator;
     if (!generator)
         generator = new RandomGenerator();
@@ -28,16 +29,16 @@ static std::mt19937& GetGenerator() {
 }
 
 float GetRandomScalar() {
-    static std::uniform_real_distribution<float> dist(-1.0F, 1.0F);
+    static uniform_real_distribution<float> dist(-1.0F, 1.0F);
     return dist(GetGenerator());
 }
 
 float GetRandomFraction() {
-    static std::uniform_real_distribution<float> dist(0.0F, 1.0F);
+    static uniform_real_distribution<float> dist(0.0F, 1.0F);
     return dist(GetGenerator());
 }
 
 int GetRandomInteger(int min, int max) {
-    std::uniform_int_distribution<int> dist(min, max);
+    uniform_int_distribution<int> dist(min, max);
     return dist(GetGenerator());
 }

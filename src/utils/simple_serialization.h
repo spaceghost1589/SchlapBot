@@ -10,32 +10,33 @@
 #include <vector>
 
 namespace sc2 {
+using namespace std;
 
 template <class Stream>
 bool IsReading(const Stream& /*stream*/) {
-    return typeid(Stream) == typeid(std::ifstream);
+    return typeid(Stream) == typeid(ifstream);
 }
 
 // Strings.
-static inline void SerializeT(std::ifstream& s, std::string& t) {
-    std::getline(s, t);
+static inline void SerializeT(ifstream& s, string& t) {
+    getline(s, t);
 }
 
-static inline void SerializeT(std::ofstream& s, const std::string& t) {
+static inline void SerializeT(ofstream& s, const string& t) {
     s << t << '\n';
 }
 
 // Bools.
-static inline void SerializeT(std::ifstream& s, bool& t) {
-    std::string linein;
-    if (!std::getline(s, linein)) {
+static inline void SerializeT(ifstream& s, bool& t) {
+    string linein;
+    if (!getline(s, linein)) {
         return;
     }
 
-    t = std::stoi(linein) == 1;
+    t = stoi(linein) == 1;
 }
 
-void inline SerializeT(std::ofstream& s, bool t) {
+void inline SerializeT(ofstream& s, bool t) {
     if (t) {
         s << "1" << '\n';
     } else {
@@ -45,28 +46,28 @@ void inline SerializeT(std::ofstream& s, bool t) {
 
 // All other types, assumed to be 32-bit.
 template <typename T>
-void SerializeT(std::ifstream& s, T& t) {
-    std::string linein;
-    if (!std::getline(s, linein)) {
+void SerializeT(ifstream& s, T& t) {
+    string linein;
+    if (!getline(s, linein)) {
         return;
     }
 
-    t = static_cast<T>(std::stoi(linein));
+    t = static_cast<T>(stoi(linein));
 }
 
 template <typename T>
-void SerializeT(std::ofstream& s, T t) {
-    s << std::to_string(static_cast<uint32_t>(t)) << '\n';
+void SerializeT(ofstream& s, T t) {
+    s << to_string(static_cast<uint32_t>(t)) << '\n';
 }
 
-static inline void SerializeT(std::ofstream& data_file, const std::set<uint32_t>& s) {
-    data_file << std::to_string(s.size()) << '\n';
+static inline void SerializeT(ofstream& data_file, const set<uint32_t>& s) {
+    data_file << to_string(s.size()) << '\n';
     for (auto it : s) {
-        data_file << std::to_string(it) << '\n';
+        data_file << to_string(it) << '\n';
     }
 }
 
-static inline void SerializeT(std::ifstream& data_file, std::set<uint32_t>& s) {
+static inline void SerializeT(ifstream& data_file, set<uint32_t>& s) {
     uint32_t set_size = 0;
     SerializeT<uint32_t>(data_file, set_size);
     for (uint32_t i = 0; i < set_size; ++i) {

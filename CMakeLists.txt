@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 4.3.1)
 
 # The exact UUID string varies by CMake version (check CMake's
 # Help/dev/experimental.rst)
-set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "451f2fe2-a8a2-47c3-bc32-94786d8fc91b")
+# VERSION 4.3.1  451f2fe2-a8a2-47c3-bc32-94786d8fc91b
+# VERSION 4.4.3  f35a9ac6-8463-4d38-8eec-5d6008153e7d
+set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d")
 
 option(BUILD_SC2_RENDERER "Build SC2 Renderer library" OFF)
 option(BUILD_FOR_LADDER "Create build for the AIArena ladder" OFF)
@@ -22,6 +24,8 @@ message(STATUS " Changeable in root CMakeLists.txt")
 message(STATUS "------------------------------------------------")
 
 project(SchlapBot LANGUAGES CXX)
+
+#target_compile_options(my_project PRIVATE -O0 -fno-lto)
 
 # Restrict compilation jobs to 4 parallel workers globally
 #set_property(GLOBAL PROPERTY JOB_POOLS core_limit_pool=1)
@@ -94,7 +98,6 @@ list(
 set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
-#set (CMAKE_CXX_MODULE_STD ON) # Tells CMake to build `import std`
 set(ABSL_CXX_STANDARD 20)
 set(ABSL_USE_CXX17 1) # Forces ABSL_INTERNAL_INLINE_CONSTEXPR to use 'inline'
 
@@ -104,23 +107,32 @@ target_compile_options(
   project_warnings
   INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX->
             $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra>)
-#            -Wno-unused-parameter>)
 
 # Allow creating filters for projects in visual studio.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-add_compile_options(-Wno-unused-function) # Disables "defined but not used"
-                                          # function check.
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Only apply -W flags to GCC/Clang
+    add_compile_options(-Wno-unused-function)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        # For deep code debugging
+        add_compile_options(-ggdb3 -Og -fno-omit-frame-pointer)
 
-if(MSVC)
-  add_compile_options(
-    /Zc:preprocessor # Mandatory: standard-conforming preprocessor
-                     # for GMF macros
-    /bigobj # Prevents section count overflow from template-heavy protos
-  )
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>
-  )# Use statically linked runtime
-  set(CMAKE_MFC_FLAG 0)
+        # For capturing compiler crash traces
+#        add_compile_options(-save-temps=obj -freport-bug)
+    endif()
+elseif(MSVC)
+    add_compile_options(
+            /Zc:preprocessor # Mandatory: standard-conforming preprocessor
+            # for GMF macros
+            /bigobj # Prevents section count overflow from template-heavy protos
+    )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>
+    )# Use statically linked runtime
+    set(CMAKE_MFC_FLAG 0)
+    # Tell CMake to use /Z7 (Embedded) instead of /Zi (ProgramDatabase)
+    # This is required for sccache to work correctly with MSVC debug builds.
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT Embedded)
 endif()
 
 if(WIN32)

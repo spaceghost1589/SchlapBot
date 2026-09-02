@@ -17,30 +17,29 @@ struct Color
     constexpr Color ( ) = default;
 
     constexpr Color ( uint8_t in_R, uint8_t in_G, uint8_t in_B )
-          : R ( in_R ),
-            G ( in_G ),
-            B ( in_B ) {}
+      : R ( in_R ),
+        G ( in_G ),
+        B ( in_B ) {}
 
     /*! @brief Converts a hex color to RGB values.
      * @param {string_view} hex_color
      */
-    Color ( string_view hex_color ) {
-        if ( hex_color.size( ) == 7 && hex_color.starts_with ( "#" ) )
+    explicit Color ( string_view hex_color ) {
+        if ( hex_color.size( ) == 7 && hex_color.starts_with ( '#' ) ) {
             hex_color.remove_prefix ( 1 );
-        if ( hex_color.size( ) == 6 )
-        {
+        }
+        if ( hex_color.size( ) == 6 ) {
             R = static_cast<uint8_t> (
-                stoul ( string ( hex_color.substr ( 0, 2 ) ), nullptr, 16 )
+              stoul ( string ( hex_color.substr ( 0, 2 ) ), nullptr, 16 )
             );
             G = static_cast<uint8_t> (
-                stoul ( string ( hex_color.substr ( 2, 2 ) ), nullptr, 16 )
+              stoul ( string ( hex_color.substr ( 2, 2 ) ), nullptr, 16 )
             );
             B = static_cast<uint8_t> (
-                stoul ( string ( hex_color.substr ( 4, 2 ) ), nullptr, 16 )
+              stoul ( string ( hex_color.substr ( 4, 2 ) ), nullptr, 16 )
             );
-        } else
-        {
-            std::cout << "Invalid hex_color; set to White instead." << '\n';
+        } else {
+            cout << "Invalid hex_color; set to White instead." << '\n';
         }
     }
 

@@ -13,7 +13,6 @@ import game_types;
 import proto_to_pods;
 import type_enums;
 
-
 // TODO: Fill out the log functions
 
 export namespace sc2 {
@@ -58,8 +57,6 @@ string TargetToName ( const Target target ) {
 //! Data about an ability.
 struct AbilityData
 {
-
-
     //! Range unit can cast ability without needing to approach target.
     float     cast_range;
     //! This ability id may be represented by the given more generic id.
@@ -170,10 +167,8 @@ struct AbilityData
 
     //! Serialize this ability to a string.
     string Log ( ) const {
-        std::string str_out = ability_id.to_string( ) + ":\n";
-        str_out            += "  Target: " + TargetToName ( target );
-
-        return str_out;
+        return to_string ( ability_id ) + ":\n" +
+            "  Target: " + TargetToName ( target );
     }
 };
 
@@ -222,7 +217,8 @@ void LogStream ( ofstream& DB_file_out, const AbilityData& ability_data ) {
 //                 << '\n';
 //     DB_file_out << "    allow_minimap: " << ability_data.allow_minimap <<
 //     '\n'; DB_file_out << "   allow_autocast: " << ability_data.allow_autocast
-//     << '\n'; DB_file_out << "      is_structure: " << ability_data.is_structure
+//     << '\n'; DB_file_out << "      is_structure: " <<
+//     ability_data.is_structure
 //     << '\n'; DB_file_out << " footprint_radius: " <<
 //     ability_data.footprint_radius
 //                 << '\n';
@@ -253,7 +249,7 @@ struct AvailableAbilities
 
 
 /*! @brief Attribute of unit.
- * @note Altered to use bitmask */
+ * @note bitmask */
 enum class Attribute : uint8_t {
     Invalid    = 0,
     Light      = 1 << 0, // 1
@@ -505,10 +501,8 @@ struct UnitTypeData
 
     //! Serialize this unit type to a string.
     string Log ( ) const {
-        string str_out = unit_type_id.to_string( ) + ":\n";
-        str_out       += "  " + ( name.length( ) > 0 ? name : "Null" ) + "\n";
-
-        return str_out;
+        return to_string ( unit_type_id ) + ":\n" + "  " +
+            ( !name.empty( ) ? name : "Null" ) + "\n";
     }
 };
 
@@ -645,10 +639,10 @@ struct Effect
 namespace {
 
 using sc2::Target::None;
-using sc2::Target::Unit;
 using sc2::Target::Point;
 using sc2::Target::PointOrNone;
 using sc2::Target::PointOrUnit;
+using sc2::Target::Unit;
 
 } // namespace
 

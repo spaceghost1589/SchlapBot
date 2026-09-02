@@ -1,15 +1,19 @@
 module;
-#include <atomic>
+// #include <atomic>
 #include <civetweb.h>
-#include <condition_variable>
-#include <deque>
-#include <functional>
-#include <iostream>
-#include <mutex>
-#include <string>
+// #include <condition_variable>
+// #include <deque>
+// #include <functional>
+// #include <iostream>
+// #include <mutex>
+// #include <source_location>
+// #include <string>
 
 #include <s2clientprotocol/sc2api.pb.h>
 export module connection;
+import std;
+import error_handler;
+
 
 namespace {
 
@@ -60,7 +64,6 @@ bool StartCivetweb ( ) {
 export namespace sc2 {
 using namespace std;
 using namespace chrono;
-
 
 /*! @brief This class acts as a wrapper around a websocket connection and queue
  * responsible for both sending out and receiving protobuf messages.*/
@@ -209,13 +212,13 @@ public:
     }
 
     /*! @brief Connects via websocket on a given address/port.
- * @param address The address to connect to, will most commonly be used
- * locally so 127.0.0.1.
- * @param port The port to connect the, the default for s2api is 9168 unless
- * specified otherwise in settings.
- * @param verbose
- * @return Returns true if the connection was successful and false
- * otherwise.*/
+     * @param address The address to connect to, will most commonly be used
+     * locally so 127.0.0.1.
+     * @param port The port to connect the, the default for s2api is 9168 unless
+     * specified otherwise in settings.
+     * @param verbose
+     * @return Returns true if the connection was successful and false
+     * otherwise.*/
     bool Connect ( const string& address, int port, bool verbose );
 
     function<void( )> timeout_callback_;           //! Timeout callback.
@@ -286,7 +289,6 @@ void ConnectionClosedHandler ( const mg_connection* conn, void* ) {
     }
 } // ConnectionClosedHandler
 
-
 /*! @brief Connects via websocket on a given address/port.
  * @param address The address to connect to, will most commonly be used
  * locally so 127.0.0.1.
@@ -299,6 +301,7 @@ bool Connection::Connect (
     const string& address, int port, bool verbose = true
 ) {
     if ( !StartCivetweb( ) ) {
+        SRC_LocationOut( "StartCivetweb Failed" );
         return false;
     }
     verbose_ = verbose;

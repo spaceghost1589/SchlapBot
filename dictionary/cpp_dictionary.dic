@@ -30,6 +30,7 @@ dcross
 decltype
 deque
 destructor
+dimen
 ebuff
 ENTRYNAME
 emplace
@@ -38,6 +39,7 @@ endl
 execve
 explicit
 FETCHCONTENT
+freport
 fsref
 fstream
 fullname
@@ -52,6 +54,7 @@ int64_t
 int8_t
 iostream
 istream
+IWYU
 kbhit
 koid
 Kurbatov

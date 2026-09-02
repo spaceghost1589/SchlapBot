@@ -1,14 +1,20 @@
 module;
-#include <algorithm>
-#include <array>
-#include <sstream>
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
+// #include <algorithm>
+// #include <array>
+// #include <functional>
+// #include <sstream>
+// #include <string>
+// #include <string_view>
+// #include <utility>
+// #include <vector>
 
 #include "utils/arg_parser.h"
 export module game_types;
+import std;
+
+namespace {
+class Agent;
+} // namespace
 
 export namespace sc2 {
 using namespace std;
@@ -38,7 +44,7 @@ inline string_view RaceToString ( const Race race ) {
 }
 
 
-enum class Difficulty : uint8_t {
+enum class Difficulty : uint8_t { // 4 bits
     VeryEasy     = 1,
     Easy         = 2,
     Medium       = 3,
@@ -68,8 +74,7 @@ inline string_view DifficultyToString ( const Difficulty difficulty ) {
     return "Is keyboard slamming a difficulty?";
 }
 
-
-enum class AIBuild : uint8_t {
+enum class AIBuild : uint8_t { // 3 bits
     RandomBuild = 1,
     Rush        = 2,
     Timing      = 3,
@@ -89,6 +94,29 @@ inline string_view AIBuildToString ( const AIBuild build ) {
         default     : return "Random Build";
     }
 } // AIBuildToString
+
+// struct DifficultyBuildBitMask
+// {
+//     uint8_t DifficultyAndAIBuild;
+//
+//     DifficultyBuildBitMask ( Difficulty difficulty, AIBuild AI_build )
+//           : DifficultyAndAIBuild (
+//                 ( static_cast<uint8_t> ( difficulty ) << 0 ) |
+//                 ( static_cast<uint8_t> ( AI_build ) << 4 )
+//             ) {}
+//
+//     Difficulty DifficultyUnmerge ( ) const {
+//         return static_cast<Difficulty> ( DifficultyAndAIBuild >> 0 );
+//     }
+//
+//     AIBuild AIBuildUnmerge ( ) const {
+//         return static_cast<AIBuild> ( DifficultyAndAIBuild >> 4 );
+//     }
+// };
+//
+// // using Difficulty =
+// //     function<static_cast<Difficulty> ( DifficultyBuildBitMask
+// //                                            .DifficultyUnmerge( ) )>;
 
 
 enum class PlayerType : uint8_t {
@@ -114,13 +142,13 @@ enum class ChatChannel : uint8_t { All = 0, Team = 1 };
 //! Setup for a player in a game.
 struct PlayerSetup
 {
-    //! Agent, if one is available.
-    Agent*     agent;
     //! Name of this player.
     string     player_name;
     /*! Player can be a Participant (usually an agent), Computer (in-built AI)
      * or Observer. */
-    PlayerType type { Participant };
+    PlayerType type;
+
+
     // Only used for Computer
     /*! Race: Terran, Zerg, Protoss, or Random. Only for playing against the
      * built-in AI. */
@@ -135,41 +163,16 @@ struct PlayerSetup
     PlayerSetup (
         const PlayerType in_type,
         const Race       in_race,
-        Agent*           in_agent       = nullptr,
         string           in_player_name = "",
         const Difficulty in_difficulty  = Easy,
         const AIBuild    in_ai_build    = RandomBuild
     )
           : type ( in_type ),
-            agent ( in_agent ),
             player_name ( std::move ( in_player_name ) ),
             race ( in_race ),
             difficulty ( in_difficulty ),
             ai_build ( in_ai_build ) {}
 };
-
-PlayerSetup CreateParticipant (
-    const Race race, Agent* agent, const string& player_name
-) {
-    return { Participant, race, agent, player_name };
-}
-
-PlayerSetup CreateComputer (
-    const Race       race        = Random,
-    const Difficulty difficulty  = Easy,
-    const AIBuild    ai_build    = RandomBuild,
-    const string&    player_name = ""
-) {
-    // Generates computer's name based on settings if no name is passed.
-    if ( string final_name = player_name; final_name.empty( ) ) {
-        ostringstream name_stream;
-        name_stream << "Computer-" << RaceToString ( race ) << "-"
-                    << DifficultyToString ( difficulty ) << "-"
-                    << AIBuildToString ( ai_build );
-        final_name = name_stream.str( );
-    }
-    return { Computer, race, nullptr, player_name, difficulty, ai_build };
-}
 
 //! Port setup for a client.
 struct PortSet
@@ -238,7 +241,7 @@ struct ReplayPlayerInfo
 //! Information about a replay file.
 struct ReplayInfo
 {
-    float                                    duration { 0.0f };
+    float                                    duration { 0.0F };
     unsigned int                             duration_gameloops { 0 };
     int32_t                                  num_players { 0 };
     uint32_t                                 data_build { 0 };

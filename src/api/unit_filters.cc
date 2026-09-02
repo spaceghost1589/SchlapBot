@@ -1,6 +1,7 @@
 #include "unit_filters.h"
 
 namespace sc2 {
+using namespace std;
 
 IsUnit::IsUnit(UNIT_TYPEID type_) : m_type(type_) {
 }
@@ -9,7 +10,7 @@ bool IsUnit::operator()(const Unit& unit_) const {
     return unit_.unit_type == m_type;
 }
 
-IsUnits::IsUnits(const std::vector<UNIT_TYPEID>& types_) : m_types(types_) {
+IsUnits::IsUnits(const vector<UNIT_TYPEID>& types_) : m_types(types_) {
 }
 
 bool IsUnits::operator()(const Unit& unit_) const {
@@ -163,14 +164,14 @@ bool IsWorker::operator()(UNIT_TYPEID type_) const {
 }
 
 bool IsVisible::operator()(const Unit& unit_) const {
-    return unit_.display_type == Unit::Visible;
+    return unit_.display_type == Unit::DisplayType::Visible;
 };
 
 bool IsCarryingMinerals(const Unit& unit) {
     auto is_mineral = [](const BuffID& buff) {
         return buff == BUFF_ID::CARRYMINERALFIELDMINERALS || buff == BUFF_ID::CARRYHIGHYIELDMINERALFIELDMINERALS;
     };
-    return std::ranges::find_if ( unit.buffs, is_mineral) != unit.buffs.end();
+    return ranges::find_if ( unit.buffs, is_mineral) != unit.buffs.end();
 }
 
 bool IsCarryingVespene(const Unit& unit) {
@@ -179,7 +180,7 @@ bool IsCarryingVespene(const Unit& unit) {
                buff == BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGASPROTOSS ||
                buff == BUFF_ID::CARRYHARVESTABLEVESPENEGEYSERGASZERG;
     };
-    return std::ranges::find_if ( unit.buffs, is_vespene) != unit.buffs.end();
+    return ranges::find_if ( unit.buffs, is_vespene) != unit.buffs.end();
 }
 
 }  // namespace sc2

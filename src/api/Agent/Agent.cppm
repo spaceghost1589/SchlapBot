@@ -5,8 +5,10 @@ import Client;
 import action_feature_layer_interface;
 import action_interface;
 import protocol_interface;
+// import game_types;
 
 export namespace sc2 {
+using namespace std;
 
 /*! @brief The base class for user defined bots.\n\n The Agent class provides a
  * user with most access into SC2 state and unit manipulation. A user will issue
@@ -17,14 +19,13 @@ export namespace sc2 {
  */
 class Agent : public Client {
 public:
-    std::unique_ptr<ActionInterface>             actions_;
-    std::unique_ptr<ActionFeatureLayerInterface> actions_feature_layer_;
+    unique_ptr<ActionInterface>             actions_;
+    unique_ptr<ActionFeatureLayerInterface> actions_feature_layer_;
 
     Agent ( )
           : actions_ ( nullptr ) {
-        actions_ = std::make_unique<ActionInterface>( );
-        actions_feature_layer_ =
-            std::make_unique<ActionFeatureLayerInterface>( );
+        actions_               = make_unique<ActionInterface>( );
+        actions_feature_layer_ = make_unique<ActionFeatureLayerInterface>( );
     }
 
     ~Agent ( ) override {}
@@ -82,8 +83,8 @@ public:
     //     return agent_control_interface_;
     // }
 
-// private:
+    // private:
     // AgentControlInterface* agent_control_interface_;
-};
+}; // class Agent
 
 } // namespace sc2

@@ -20,9 +20,9 @@ ArgParser::ArgParser(const string_view executable_name) : executable_name_(execu
 ArgParser::ArgParser(string usage,
                      string description,
                      string example)
-    : usage_(std::move(usage)),
-      description_(std::move(description)),
-      example_(std::move(example)) {
+    : usage_(move(usage)),
+      description_(move(description)),
+      example_(move(example)) {
 }
 
 void ArgParser::ParseArguments(span<char*> args)
@@ -96,7 +96,7 @@ bool ArgParser::Parse(span<char*> args) {
 		});
 		// `find_if` returns `size() + 1` if it fails to find anything.
 		if (it == options_.end()) {
-			std::cerr << arg << " is an unrecognized argument.\n";
+			cerr << arg << " is an unrecognized argument.\n";
 			return false;
 		}
 
@@ -119,7 +119,7 @@ bool ArgParser::Parse(span<char*> args) {
 
 		// Remove leading '--' and save to map
 		fullname.erase(0, 2);
-		full_to_value_[fullname] = std::string(value);
+		full_to_value_[fullname] = string(value);
 	}
 
 	// Verify all required arguments exist

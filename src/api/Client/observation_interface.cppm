@@ -1,12 +1,13 @@
 module;
-#include <functional>
-#include <limits>
-#include <string>
+// #include <functional>
+// #include <limits>
+// #include <string>
 
 #include <s2clientprotocol/sc2api.pb.h>
 
 #include "utils/macro/message_response.h"
 export module observation_interface;
+import std;
 import protocol_interface;
 import action;
 import common;
@@ -24,11 +25,16 @@ namespace {
 
 struct MapState
 {
-    explicit MapState ( const SC2APIProtocol::MapState& map )
-          : creep_data_ ( map.creep( ) ),
-            visibility_data_ ( map.visibility( ) ) {}
+private:
+    sc2::ImageData_StepSample creep_data_;
+    sc2::ImageData_StepSample visibility_data_;
 
-    bool HasCreep ( const sc2::Point2DI& point ) const {
+public:
+    explicit MapState ( const SC2APIProtocol::MapState &map )
+      : creep_data_ ( map.creep( ) ),
+        visibility_data_ ( map.visibility( ) ) { }
+
+    bool HasCreep ( const sc2::Point2DI &point ) const {
         if ( creep_data_.BPP( ) == 1 ) {
             bool value;
             if ( !creep_data_.GetBit ( point, &value ) )
@@ -44,7 +50,7 @@ struct MapState
         return value > 0;
     }
 
-    sc2::Visibility GetVisibility ( const sc2::Point2DI& point ) const {
+    sc2::Visibility GetVisibility ( const sc2::Point2DI &point ) const {
         unsigned char value;
         if ( !visibility_data_.GetBit ( point, &value ) )
             return sc2::Visibility::FullHidden;
@@ -60,10 +66,6 @@ struct MapState
 
         return sc2::Visibility::FullHidden;
     }
-
-private:
-    sc2::SampleImage creep_data_;
-    sc2::SampleImage visibility_data_;
 };
 
 
@@ -76,8 +78,8 @@ using namespace std;
 //! Guaranteed to be valid when OnGameStart or OnStep is called.
 class ObservationInterface {
 public:
-    ObservationPtr&         observation_;
-    ResponseObservationPtr& response_;
+    ObservationPtr         &observation_;
+    ResponseObservationPtr &response_;
     uint32_t                player_id_ { 0 };
 
     // Game state info.
@@ -133,10 +135,13 @@ public:
     vector<PlayerResult> player_results_;
 
     ObservationInterface (
-        ObservationPtr& observation, ResponseObservationPtr& response
+      ObservationPtr         &observation,
+      ResponseObservationPtr &response
     )
-          : observation_ ( observation ),
-            response_ ( response ) {
+      : observation_ ( observation ),
+        response_ ( response ),
+        game_info_ ( GetGameInfo( ) )
+    {
         ClearFlags( );
     }
 
@@ -168,7 +173,7 @@ public:
      * @return List of all ally and visible enemy and neutral units. */
     Units GetUnits ( ) const {
         Units units;
-        unit_pool_.ForEachExistingUnit ( [&] ( const Unit& unit ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( const Unit &unit ) {
             units.push_back ( &unit );
         } );
         return units;
@@ -177,7 +182,7 @@ public:
     /*! Get the unit state as represented by the last call to GetObservation.
      * @param tag Unique tag of the unit.
      * @return @code Unit* @endcode Pointer to the Unit object. */
-    const Unit* GetUnit ( Tag tag ) const {
+    const Unit *GetUnit ( Tag tag ) const {
         return unit_pool_.GetExistingUnit ( tag );
     }
 
@@ -189,7 +194,7 @@ public:
      * @return Whether or not to filter the unit in or out of the list. true
      * will add the unit, false will leave it out of the list.
      * @see GetUnits() */
-    using Filter = function<bool ( const Unit& unit )>;
+    using Filter = function<bool ( const Unit &unit )>;
 
     /*! @brief Get all units belonging to self that meet the conditions provided
      * by the filter. The unit * structure is const data only. Therefore editing
@@ -199,9 +204,9 @@ public:
      * in the list.
      * @return A list of units that meet the conditions provided by the filter.
      */
-    Units GetUnits ( const Filter& filter ) const {
+    Units GetUnits ( const Filter &filter ) const {
         Units units;
-        unit_pool_.ForEachExistingUnit ( [&] ( const Unit& unit ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( const Unit &unit ) {
             if ( !filter || filter ( unit ) ) {
                 units.push_back ( &unit );
             }
@@ -218,9 +223,9 @@ public:
      * in the list.
      * @return @code Units @endcode A list of units that meet the conditions
      * provided by alliance and filter. */
-    Units GetUnits ( Unit::Alliance alliance, const Filter& filter ) const {
+    Units GetUnits ( Unit::Alliance alliance, const Filter &filter ) const {
         Units units;
-        unit_pool_.ForEachExistingUnit ( [&] ( const Unit& unit ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( const Unit &unit ) {
             if ( unit.alliance != alliance ) {
                 return;
             }
@@ -235,51 +240,51 @@ public:
     /*! @brief Gets a list of actions performed as abilities applied to units.
      * For use with the raw option.
      * @return List of raw actions. */
-    const RawActions& GetRawActions ( ) const {
+    const RawActions &GetRawActions ( ) const {
         return raw_actions_;
     }
 
     /*! @brief Gets a list of actions performed. For use with the feature layer
      * options.
      * @return List of actions. */
-    const SpatialActions& GetFeatureLayerActions ( ) const {
+    const SpatialActions &GetFeatureLayerActions ( ) const {
         return feature_layer_actions_;
     }
 
     /*! @brief Gets a list of actions performed. For use with the rendered
      * options.
      * @return List of actions. */
-    const SpatialActions& GetRenderedActions ( ) const {
+    const SpatialActions &GetRenderedActions ( ) const {
         return rendered_actions_;
     }
 
     /*! @brief Gets new chat messages.
      * @return List of chat messages. */
-    const vector<ChatMessage>& GetChatMessages ( ) const {
+    const vector<ChatMessage> &GetChatMessages ( ) const {
         return chat_;
     }
 
     /*! @brief Gets all power sources associated with the current player.
      * @return List of power sources. */
-    const vector<PowerSource>& GetPowerSources ( ) const {
+    const vector<PowerSource> &GetPowerSources ( ) const {
         return power_sources_;
     }
 
     /*! @brief Gets all active effects in vision of the current player.
      * @return List of effects. */
-    const vector<Effect>& GetEffects ( ) const {
+    const vector<Effect> &GetEffects ( ) const {
         return effects_;
     }
 
     /*! @brief Gets all upgrades.
      * @return List of upgrades. */
-    const vector<UpgradeID>& GetUpgrades ( ) const {
+    const vector<UpgradeID> &GetUpgrades ( ) const {
         return upgrades_;
     }
 
     /*! @brief Gets the detailed current set of scores.
      * @return The current score structure. */
-    const Score& GetScore ( ) const {
+    const Score &GetScore ( ) const {
         return score_;
     }
 
@@ -289,7 +294,7 @@ public:
      * cache data from a previous call.
      * @return  All abilities allowed (`available`) for the current game
      * session. */
-    const Abilities& GetAbilityData ( bool force_refresh = false ) const {
+    const Abilities &GetAbilityData ( bool force_refresh = false ) const {
         // Checks whether function execution is required.
         if ( force_refresh || abilities_.empty( ) ) {
             abilities_cached_ = false;
@@ -304,7 +309,7 @@ public:
 
         // Send a request for ability ids.
         const GameRequestPtr         request      = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        SC2APIProtocol::RequestData *request_data = request->mutable_data( );
         request_data->set_ability_id ( true );
 
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -316,8 +321,9 @@ public:
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
 
-        if ( response_data.HasErrors( ) ||
-             response_data->abilities_size( ) == 0 )
+        if (
+          response_data.HasErrors( ) || response_data->abilities_size( ) == 0
+        )
         {
             return abilities_;
         }
@@ -327,15 +333,15 @@ public:
 
         // For each ability
         for ( int i = 0; i < response_data->abilities_size( ); ++i ) {
-            AbilityData& ability_data = abilities_[i];
+            AbilityData &ability_data = abilities_[i];
             ability_data.ability_id   = i;
 
             ability_data.ReadFromProto ( response_data->abilities ( i ) );
         }
 
-        for ( const AbilityData& ability_data : abilities_ ) {
+        for ( const AbilityData &ability_data : abilities_ ) {
             AbilityID genAbility =
-                GetGeneralizedAbilityID ( ability_data.ability_id );
+              GetGeneralizedAbilityID ( ability_data.ability_id );
             if ( genAbility == ability_data.ability_id )
                 continue;
 
@@ -379,7 +385,7 @@ public:
      * cache data from a previous call.
      * @return @code UnitTypes& @endcode Data about all units possible for the
      * current game session. */
-    const UnitTypes& GetUnitTypeData ( bool force_refresh ) const {
+    const UnitTypes &GetUnitTypeData ( bool force_refresh ) const {
         if ( force_refresh || unit_types_.size( ) < 1 ) {
             unit_types_cached = false;
         }
@@ -392,7 +398,7 @@ public:
 
         // Send a request for ability ids.
         const GameRequestPtr         request      = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        SC2APIProtocol::RequestData *request_data = request->mutable_data( );
         request_data->set_unit_type_id ( true );
 
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -412,7 +418,7 @@ public:
 
         unit_types_.resize ( response_data->units_size( ) );
         for ( int i = 0; i < response_data->units_size( ); ++i ) {
-            UnitTypeData& unit = unit_types_[i];
+            UnitTypeData &unit = unit_types_[i];
             unit.unit_type_id  = i;
             unit.ReadFromProto ( response_data->units ( i ) );
         }
@@ -426,7 +432,7 @@ public:
      * @param force_refresh forces a full query from the game, may otherwise
      * cache data from a previous call.
      * @return Data about all upgrades possible for the current game session. */
-    const Upgrades& GetUpgradeData ( bool force_refresh ) const {
+    const Upgrades &GetUpgradeData ( bool force_refresh ) const {
         if ( force_refresh || upgrade_ids_.empty( ) ) {
             upgrades_cached_ = false;
         }
@@ -438,7 +444,7 @@ public:
         upgrade_ids_.clear( );
 
         const GameRequestPtr         request      = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        SC2APIProtocol::RequestData *request_data = request->mutable_data( );
         request_data->set_upgrade_id ( true );
 
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -448,15 +454,16 @@ public:
         const GameResponsePtr response = ProtoFace::WaitForResponse( );
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
-        if ( response_data.HasErrors( ) ||
-             response_data->upgrades_size( ) == 0 )
+        if (
+          response_data.HasErrors( ) || response_data->upgrades_size( ) == 0
+        )
         {
             return upgrade_ids_;
         }
 
         upgrade_ids_.resize ( response_data->upgrades_size( ) );
         for ( int i = 0; i < response_data->upgrades_size( ); ++i ) {
-            UpgradeData& upgrade = upgrade_ids_[i];
+            UpgradeData &upgrade = upgrade_ids_[i];
             upgrade.upgrade_id   = i;
             upgrade.ReadFromProto ( response_data->upgrades ( i ) );
         }
@@ -470,7 +477,7 @@ public:
      * cache data from a previous call.
      * @return Buffs& - Data about all buffs possible for the current game
      * session. */
-    const Buffs& GetBuffData ( bool force_refresh ) const {
+    const Buffs &GetBuffData ( bool force_refresh ) const {
         if ( force_refresh || buff_ids_.empty( ) ) {
             buffs_cached_ = false;
         }
@@ -482,7 +489,7 @@ public:
         buff_ids_.clear( );
 
         const GameRequestPtr         request      = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        SC2APIProtocol::RequestData *request_data = request->mutable_data( );
         request_data->set_buff_id ( true );
 
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -502,7 +509,7 @@ public:
 
         buff_ids_.resize ( response_data->buffs_size( ) );
         for ( int i = 0; i < response_data->buffs_size( ); ++i ) {
-            BuffData& buff = buff_ids_[i];
+            BuffData &buff = buff_ids_[i];
             buff.buff_id   = i;
             buff.ReadFromProto ( response_data->buffs ( i ) );
         }
@@ -516,7 +523,7 @@ public:
      * @param force_refresh forces a full query from the game, may otherwise
      * cache data from a previous call.
      * @return Data about all effects possible for the current game session. */
-    const Effects& GetEffectData ( bool force_refresh ) const {
+    const Effects &GetEffectData ( bool force_refresh ) const {
         if ( force_refresh || effect_ids_.empty( ) ) {
             effects_cached_ = false;
         }
@@ -528,7 +535,7 @@ public:
         effect_ids_.clear( );
 
         const GameRequestPtr         request      = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestData* request_data = request->mutable_data( );
+        SC2APIProtocol::RequestData *request_data = request->mutable_data( );
         request_data->set_effect_id ( true );
 
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -558,7 +565,7 @@ public:
 
     /*! @brief Gets the GameInfo struct for the current map.
      * @return The current GameInfo struct. */
-    const GameInfo& GetGameInfo ( ) const {
+    const GameInfo &GetGameInfo ( ) const {
         if ( game_info_cached_ ) {
             return game_info_;
         }
@@ -607,7 +614,7 @@ public:
     /*! @brief Returns 'true' if the given point has creep.
      * @param point Position to sample.
      * @return Creep.*/
-    bool HasCreep ( const Point2DI& point ) const {
+    bool HasCreep ( const Point2DI &point ) const {
         ObservationRawPtr observation_raw;
         SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_, raw_data );
         if ( observation_raw.HasErrors( ) ) {
@@ -621,7 +628,7 @@ public:
      * player.
      * @param point Position to sample.
      * @return Visibility.*/
-    Visibility GetVisibility ( const Point2DI& point ) const {
+    Visibility GetVisibility ( const Point2DI &point ) const {
         ObservationRawPtr observation_raw;
         SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_, raw_data );
         if ( observation_raw.HasErrors( ) ) {
@@ -629,7 +636,7 @@ public:
         }
 
         return MapState ( observation_raw->map_state( ) )
-            .GetVisibility ( point );
+          .GetVisibility ( point );
     }
 
     // TODO
@@ -657,7 +664,7 @@ public:
      * pathing results use QueryInterface::PathingDistance.
      * @param point Position to sample.
      * @return Pathable. */
-    bool IsPathable ( const Point2DI& point ) const {
+    bool IsPathable ( const Point2DI &point ) const {
         return PathingGrid ( GetGameInfo( ) ).IsPathable ( point );
     }
 
@@ -666,14 +673,14 @@ public:
      * building placement results use QueryInterface::Placement.
      * @param point Position to sample.
      * @return Placable. */
-    bool IsPlacable ( const Point2D& point ) const {
+    bool IsPlacable ( const Point2D &point ) const {
         return PlacementGrid ( GetGameInfo( ) ).IsPlacable ( point );
     }
 
     /*! @brief Returns terrain height of the given point.
      * @param point Position to sample.
      * @return Height. */
-    float TerrainHeight ( const Point2D& point ) const {
+    float TerrainHeight ( const Point2D &point ) const {
         return HeightMap ( GetGameInfo( ) ).TerrainHeight ( point );
     }
 
@@ -758,7 +765,7 @@ public:
 
     /*! @brief Gets the results of the game.
      * @return Player results if the game ended, an empty vector otherwise. */
-    const vector<PlayerResult>& GetResults ( ) const {
+    const vector<PlayerResult> &GetResults ( ) const {
         return player_results_;
     }
 
@@ -768,7 +775,7 @@ public:
      * feature layers because it would be inefficient to copy these each frame.
      * @return A const pointer to the Observation.
      * @see Observation GetObservation() */
-    const SC2APIProtocol::Observation* GetRawObservation ( ) const {
+    const SC2APIProtocol::Observation *GetRawObservation ( ) const {
         return observation_.get( );
     }
 
@@ -783,8 +790,8 @@ public:
         previous_game_loop            = current_game_loop_;
         current_game_loop_            = next_game_loop;
 
-        const SC2APIProtocol::PlayerCommon& player_common =
-            observation_->player_common( );
+        const SC2APIProtocol::PlayerCommon &player_common =
+          observation_->player_common( );
         Assert ( player_common.has_player_id( ) );
         if ( player_common.has_player_id( ) ) {
             player_id_ = player_common.player_id( );
@@ -815,29 +822,29 @@ public:
 
         // Remap ability ids.
         {
-            for ( ActionRaw& action : raw_actions_ ) {
+            for ( ActionRaw &action : raw_actions_ ) {
                 action.ability_id =
-                    GetGeneralizedAbilityID ( action.ability_id );
+                  GetGeneralizedAbilityID ( action.ability_id );
             }
-            for ( SpatialUnitCommand& spatial_action :
+            for ( SpatialUnitCommand &spatial_action :
                   feature_layer_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                    GetGeneralizedAbilityID ( spatial_action.ability_id );
+                  GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
-            for ( SpatialUnitCommand& spatial_action :
+            for ( SpatialUnitCommand &spatial_action :
                   rendered_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                    GetGeneralizedAbilityID ( spatial_action.ability_id );
+                  GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
         }
 
         chat_.clear( );
-        for ( const auto& message : response_->chat( ) ) {
+        for ( const auto &message : response_->chat( ) ) {
             chat_.push_back (
-                { .player_id = message.player_id( ),
-                  .message   = message.message( ) }
+              { .player_id = message.player_id( ),
+                .message   = message.message( ) }
             );
         }
 
@@ -849,18 +856,18 @@ public:
 
         unit_pool_.ClearExisting( );
         Convert (
-            observation_raw,
-            unit_pool_,
-            current_game_loop_,
-            previous_game_loop
+          observation_raw,
+          unit_pool_,
+          current_game_loop_,
+          previous_game_loop
         );
 
         // Remap ability ids in orders.
-        unit_pool_.ForEachExistingUnit ( [&] ( Unit& unit ) {
-            for ( UnitOrder& unit_order : unit.orders ) {
+        unit_pool_.ForEachExistingUnit ( [&] ( Unit &unit ) {
+            for ( UnitOrder &unit_order : unit.orders ) {
                 if ( use_generalized_ability_ ) {
                     unit_order.ability_id =
-                        GetGeneralizedAbilityID ( unit_order.ability_id );
+                      GetGeneralizedAbilityID ( unit_order.ability_id );
                 }
             }
         } );
@@ -875,8 +882,8 @@ public:
             return false;
         }
 
-        const SC2APIProtocol::PlayerRaw& player_raw =
-            observation_raw->player( );
+        const SC2APIProtocol::PlayerRaw &player_raw =
+          observation_raw->player( );
         if ( !player_raw.has_camera( ) ) {
             return false;
         }
@@ -886,12 +893,12 @@ public:
 
         power_sources_.clear( );
         for ( int i = 0, e = player_raw.power_sources_size( ); i < e; ++i ) {
-            const SC2APIProtocol::PowerSource& power_source =
-                player_raw.power_sources ( i );
+            const SC2APIProtocol::PowerSource &power_source =
+              player_raw.power_sources ( i );
             power_sources_.push_back ( PowerSource (
-                Point2D ( power_source.pos( ).x( ), power_source.pos( ).y( ) ),
-                power_source.radius( ),
-                power_source.tag( )
+              Point2D ( power_source.pos( ).x( ), power_source.pos( ).y( ) ),
+              power_source.radius( ),
+              power_source.tag( )
             ) );
         }
 
@@ -902,10 +909,10 @@ public:
         }
 
         player_results_.clear( );
-        for ( const auto& player_result : response_->player_result( ) ) {
+        for ( const auto &player_result : response_->player_result( ) ) {
             player_results_.push_back ( PlayerResult (
-                player_result.player_id( ),
-                ConvertGameResultFromProto ( player_result.result( ) )
+              player_result.player_id( ),
+              ConvertGameResultFromProto ( player_result.result( ) )
             ) );
         }
 

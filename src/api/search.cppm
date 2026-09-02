@@ -14,11 +14,8 @@ import common;
 import type_enums;
 import unit;
 
-
 export namespace sc2 {
 using namespace std;
-using numbers::pi_v;
-
 
 size_t CalculateQueries (
     float                                   radius,
@@ -35,8 +32,10 @@ size_t CalculateQueries (
     float  loc           = 0.0f;
     while ( loc < 360.0f ) {
         const Point2D point = Point2D (
-            ( radius * cos ( ( loc * pi_v<float> ) / 180.0f ) ) + center.x,
-            ( radius * sin ( ( loc * pi_v<float> ) / 180.0f ) ) + center.y
+            ( radius * cos ( ( loc * numbers::pi_v<float> ) / 180.0f ) ) +
+                center.x,
+            ( radius * sin ( ( loc * numbers::pi_v<float> ) / 180.0f ) ) +
+                center.y
         );
 
         const QueryInterface::PlacementQuery query (
@@ -58,8 +57,9 @@ size_t CalculateQueries (
     return valid_queries;
 }
 
-// Clusters units within some distance of each other and returns a list of them
-// and their center of mass.
+
+/*! @brief Clusters units within some distance of each other and returns a list
+ * of them and their center of mass. */
 vector<pair<Point3D, vector<Unit>>> Cluster (
     const Units& units, float distance_apart
 ) {
@@ -102,18 +102,18 @@ struct ExpansionParameters
     // By default we use values that generally work but may require tuning for
     // certain maps.
 
-    // The various radius to check at from the center of an expansion.
+    //! The various radius to check at from the center of an expansion.
     vector<float> radii_ = { 6.4f, 5.3f };
 
-    // With what granularity to step the circumference of the circle.
+    //! With what granularity to step the circumference of the circle.
     float circle_step_size_ = 0.5f;
 
-    // With what distance to cluster mineral/vespene in, this will be used for
-    // center of mass calculation.
+    /*! With what distance to cluster mineral/vespene in, this will be used for
+     * center of mass calculation. */
     float cluster_distance_ = 15.0f;
 
-    // If filled out CalculateExpansionLocations will render spheres to show
-    // what it calculated.
+    /*! If filled out CalculateExpansionLocations will render spheres to show
+     * what it calculated. */
     DebugInterface* debug_ = nullptr;
 };
 
@@ -126,7 +126,8 @@ vector<Point3D> CalculateExpansionLocations (
     const ExpansionParameters&  parameters
 ) {
     const Units resources_ = resources->GetUnits ( [] ( const Unit& unit ) {
-        return unit.unit_type == UNIT_TYPEID // clang-format off
+        return unit.unit_type ==
+            UNIT_TYPEID // clang-format off
                                 ::NEUTRAL_MINERALFIELD ||
                unit.unit_type == UNIT_TYPEID
                                 ::NEUTRAL_MINERALFIELD750 ||

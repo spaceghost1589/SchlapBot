@@ -7,7 +7,6 @@ module;
 export module score;
 import game_types;
 
-
 export namespace sc2 {
 using namespace std;
 
@@ -16,8 +15,8 @@ using namespace std;
 enum class ScoreType {
     Curriculum = 1, //! Map generated score (from curriculum maps with special
                     //! scoring).
-    Melee = 2 //! Summation of in-progress and current units/buildings value +
-              //! minerals + vespene.
+    Melee = 2, //! Summation of in-progress and current units/buildings value +
+               //! minerals + vespene.
 };
 
 struct ScoreEntry
@@ -32,7 +31,7 @@ struct ScoreEntry
     {                                                                          \
         ScoreEntry new_entry;                                                  \
         new_entry.offset +=                                                    \
-            ( int ) int64_t ( &( ( ( STRUCTNAME* ) 0 )->ENTRYNAME ) );         \
+          ( int ) int64_t ( &( ( ( STRUCTNAME * ) 0 )->ENTRYNAME ) );          \
         new_entry.name += #STRUCTNAME "." #ENTRYNAME;                          \
         entries.push_back ( new_entry );                                       \
     }
@@ -41,16 +40,16 @@ struct ScoreEntry
     {                                                                          \
         ScoreEntry base_entry;                                                 \
         base_entry.offset +=                                                   \
-            ( int ) int64_t ( &( ( ( STRUCTNAME* ) 0 )->ENTRYNAME ) );         \
+          ( int ) int64_t ( &( ( ( STRUCTNAME * ) 0 )->ENTRYNAME ) );          \
         base_entry.name += #STRUCTNAME "." #ENTRYNAME;                         \
-        ( ( STRUCTNAME* ) 0 )->ENTRYNAME.AddEntries ( base_entry, entries );   \
+        ( ( STRUCTNAME * ) 0 )->ENTRYNAME.AddEntries ( base_entry, entries );  \
     }
 
 #define SET_ENTRY( STRUCTNAME, ENTRYNAME )                                     \
     {                                                                          \
         ScoreEntry new_entry = base;                                           \
         new_entry.offset +=                                                    \
-            ( int ) int64_t ( &( ( ( STRUCTNAME* ) 0 )->ENTRYNAME ) );         \
+          ( int ) int64_t ( &( ( ( STRUCTNAME * ) 0 )->ENTRYNAME ) );          \
         new_entry.name += "." #ENTRYNAME;                                      \
         entries.push_back ( new_entry );                                       \
     }
@@ -59,9 +58,9 @@ struct ScoreEntry
     {                                                                          \
         ScoreEntry new_entry = base;                                           \
         new_entry.offset +=                                                    \
-            ( int ) int64_t ( &( ( ( STRUCTNAME* ) 0 )->ENTRYNAME ) );         \
+          ( int ) int64_t ( &( ( ( STRUCTNAME * ) 0 )->ENTRYNAME ) );          \
         new_entry.name += "." #ENTRYNAME;                                      \
-        ( ( STRUCTNAME* ) 0 )->ENTRYNAME.AddEntries ( new_entry, entries );    \
+        ( ( STRUCTNAME * ) 0 )->ENTRYNAME.AddEntries ( new_entry, entries );   \
     }
 
 //! Score by category.
@@ -73,16 +72,15 @@ struct CategoryScoreDetails
     float technology;
     float upgrade;
 
-    CategoryScoreDetails ( ):
-        none ( 0.0F ),
+    CategoryScoreDetails ( )
+      : none ( 0.0F ),
         army ( 0.0F ),
         economy ( 0.0F ),
         technology ( 0.0F ),
-        upgrade ( 0.0F ) {}
+        upgrade ( 0.0F ) { }
 
-    static void AddEntries (
-        const ScoreEntry& base, vector<ScoreEntry>& entries
-    ) {
+    static void
+      AddEntries ( const ScoreEntry &base, vector<ScoreEntry> &entries ) {
         SET_ENTRY ( CategoryScoreDetails, none )
         SET_ENTRY ( CategoryScoreDetails, army )
         SET_ENTRY ( CategoryScoreDetails, economy )
@@ -98,12 +96,13 @@ struct VitalScoreDetails
     float shields;
     float energy;
 
-    VitalScoreDetails ( ):
-        life ( 0.0F ), shields ( 0.0F ), energy ( 0.0F ) {}
+    VitalScoreDetails ( )
+      : life ( 0.0F ),
+        shields ( 0.0F ),
+        energy ( 0.0F ) { }
 
-    static void AddEntries (
-        const ScoreEntry& base, vector<ScoreEntry>& entries
-    ) {
+    static void
+      AddEntries ( const ScoreEntry &base, vector<ScoreEntry> &entries ) {
         SET_ENTRY ( VitalScoreDetails, life )
         SET_ENTRY ( VitalScoreDetails, shields )
         SET_ENTRY ( VitalScoreDetails, energy )
@@ -156,8 +155,8 @@ struct ScoreDetails
     VitalScoreDetails total_damage_taken;
     VitalScoreDetails total_healed;
 
-    ScoreDetails ( ):
-        idle_production_time ( 0.0F ),
+    ScoreDetails ( )
+      : idle_production_time ( 0.0F ),
         idle_worker_time ( 0.0F ),
         total_value_units ( 0.0F ),
         total_value_structures ( 0.0F ),
@@ -168,9 +167,9 @@ struct ScoreDetails
         collection_rate_minerals ( 0.0F ),
         collection_rate_vespene ( 0.0F ),
         spent_minerals ( 0.0F ),
-        spent_vespene ( 0.0F ) {}
+        spent_vespene ( 0.0F ) { }
 
-    static void AddEntries ( ScoreEntry base, vector<ScoreEntry>& entries ) {
+    static void AddEntries ( ScoreEntry base, vector<ScoreEntry> &entries ) {
         SET_ENTRY ( ScoreDetails, idle_production_time )
         SET_ENTRY ( ScoreDetails, idle_worker_time )
         SET_ENTRY ( ScoreDetails, total_value_units )
@@ -207,35 +206,33 @@ struct Score
 {
     ScoreDetails score_details;
     ScoreType    score_type;
-    float score; // Note: check score_type to know whether this is a melee score
-                 // or curriculum score
+    float score { 0.0F }; // Note: check score_type to know whether this is a
+                          // melee score or curriculum score
 
     // Access as a flat list of floats.
     static constexpr int float_count_ =
-        sizeof ( ScoreDetails ) / sizeof ( float ) + 1;
+      sizeof ( ScoreDetails ) / sizeof ( float ) + 1;
 
-    const float* RawFloats ( ) const {
+    const float *RawFloats ( ) const {
         return &score;
     }
 
-    Score ( ):
-        score_type ( ScoreType::Melee ), score ( 0 ) {}
+    Score ( )
+      : score_type ( ScoreType::Melee ),
+        score ( 0 ) { }
 
-    static void AddEntries ( vector<ScoreEntry>& entries ) {
+    static void AddEntries ( vector<ScoreEntry> &entries ) {
         SET_ENTRY_BASE ( Score, score )
         SET_ENTRY_BASE_STRUCT ( Score, score_details )
     }
 
-    bool IsEqual ( const Score& other_score ) const {
-        if ( score != other_score.score )
-        {
+    bool IsEqual ( const Score &other_score ) const {
+        if ( score != other_score.score ) {
             return false;
         }
 
-        for ( int i = 0; i < float_count_; ++i )
-        {
-            if ( RawFloats( )[i] != other_score.RawFloats( )[i] )
-            {
+        for ( int i = 0; i < float_count_; ++i ) {
+            if ( RawFloats( )[i] != other_score.RawFloats( )[i] ) {
                 return false;
             }
         }

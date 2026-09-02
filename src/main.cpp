@@ -3,91 +3,104 @@
 #include <span>
 import SchlapBot;
 import Coordinator;
+import Agent;
+import error_handler;
 import map_data;
 import game_types;
 
-using sc2::SchlapBot, sc2::AIBuild, sc2::Coordinator, sc2::Difficulty, sc2::MapData, sc2::Race,
-	std::cout, std::cerr, std::size_t, std::span;
-
+namespace {
+using namespace sc2;
+using namespace std;
 using enum AIBuild;
 using enum Difficulty;
 using enum Race;
+} // namespace
 
 #ifdef BUILD_FOR_LADDER
-namespace {}  // namespace
+namespace {
+} // namespace
 
-int main(const int argc, char* const argv[]) {
-    span args(argv, static_cast<size_t>(argc));
-    ArgParser::ParseArguments(args);
+int main ( const int argc, char *const argv[] ) {
+    span args ( argv, static_cast<size_t> ( argc ) );
+    ArgParser::ParseArguments ( args );
 
     const LadderSettings options;
-    Coordinator coordinator;
-    SchlapBot bot;
+    Coordinator          coordinator;
+    SchlapBot            bot;
 
     constexpr size_t num_agents = 2;
-    coordinator.SetParticipants({CreateParticipant(Terran, &bot, "SchlapBot")});
+    coordinator.SetParticipants (
+      { CreateParticipant ( Terran, &bot, "SchlapBot" ) }
+    );
 
     cout << "Connecting to port " << options.game_port << '\n';
-    coordinator.Connect(options.game_port);
-    coordinator.SetupPorts(num_agents, options.start_port, false);
+    coordinator.Connect ( options.game_port );
+    coordinator.SetupPorts ( num_agents, options.start_port, false );
 
     // NB (alkurbatov): Increase speed of steps processing.
     // Disables ability to control your bot during game.
     // Recommended for competitions.
-    coordinator.SetRawAffectsSelection(true);
+    coordinator.SetRawAffectsSelection ( true );
 
-    coordinator.JoinGame();
-    coordinator.SetTimeoutMS(10000);
+    coordinator.JoinGame( );
+    coordinator.SetTimeoutMS ( 10'000 );
     std::cout << "Successfully joined game" << '\n';
 
-    while (coordinator.Update()) {
-    }
+    while ( coordinator.Update( ) ) { }
 
     return 0;
-}  // main Ladder
+} // main Ladder
 
 #else
 
-int main(int argc, char* argv[])  // NOLINT(*-avoid-c-arrays, *-use-internal-linkage)
+int main (
+  int   argc,
+  char *argv[]
+) // NOLINT(*-avoid-c-arrays, *-use-internal-linkage)
 {
-    span args(argv, static_cast<size_t>(argc));
+    const span args ( argv, static_cast<size_t> ( argc ) );
 
-    if (args.size() < 2) {
+    if ( args.size( ) < 2 ) {
         cerr << "IncorporealAIE_v4" << '\n';
         // return 1;
     }
 
-    const Coordinator coordinator;
-    coordinator.SetMultithreaded(true);
+    Coordinator coordinator;
 
-    if (coordinator.LoadSettings(args)) {
+    if ( coordinator.LoadSettings ( args ) ) {
         cout << "LoadSettings success." << '\n';
     } else {
-        cerr << "LoadSettings failed." << '\n';
-        abort();
+        SRC_LocationOut ( "LoadSettings failed." );
+        abort( );
     }
+
+    coordinator.SetMultithreaded ( true );
+    SRC_LocationOut ( "Multithreaded set." );
 
     // NOTE: Uncomment to start the game in full screen mode.
-    // CCoordinator.SetFullScreen(true);
+    // Coordinator.SetFullScreen(true);
 
-    coordinator.SetRealtime(true);
+    constexpr bool realtime = true;
+    coordinator.SetRealtime ( realtime );
+    SRC_LocationOut ( format ( "Realtime set: {}", realtime ).c_str( ) ) ;
 
-    SchlapBot bot{};
+    SchlapBot Schlap_Bot { };
 
-    coordinator.SetParticipants({
-      CreateParticipant(Terran, &bot, "SchlapBot"),
-      CreateComputer(Random, Easy, Macro),
-    });
+    coordinator.SetParticipants (
+      unordered_map<Agent*, PlayerSetup> {
+        { &Schlap_Bot, CreateParticipant ( Terran, "SchlapBot" ) },
+        { nullptr, CreateComputer ( Random, Easy, Macro ) }
+    }
+    );
 
     // sc2_game_settings.cc
-    const MapData map_data("IncorporealAIE_v4");
+    const MapData map_data ( "IncorporealAIE_v4" );
 
-    coordinator.LaunchStarcraft();
-    coordinator.StartGame(map_data.map_path_new);
+    coordinator.LaunchStarcraft( );
+    coordinator.StartGame ( map_data.map_path_new );
 
-    while (coordinator.Update()) {
-    }
+    while ( coordinator.Update( ) ) { }
 
     return 0;
-}  // Main (Local)
+} // Main (Local)
 #endif

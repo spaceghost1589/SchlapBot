@@ -70,7 +70,7 @@ void SleepFor ( unsigned int ms ) {
 }
 
 bool DoesFileExist ( const string& path ) {
-    return std::ifstream ( path ).good( );
+    return ifstream ( path ).good( );
 }
 
 bool HasExtension ( const string& map_name, const string& extension ) {
@@ -78,7 +78,7 @@ bool HasExtension ( const string& map_name, const string& extension ) {
         return false;
     }
 
-    return std::equal (
+    return equal (
         map_name.end( ) - extension.size( ),
         map_name.end( ),
         extension.begin( ),
@@ -97,7 +97,7 @@ struct WindowsProcess
     PROCESS_INFORMATION pi_;
 };
 
-std::vector<WindowsProcess> windows_processes;
+vector<WindowsProcess> windows_processes;
 
 static int GetIndexOfProcess ( uint64_t process_id ) {
     for ( int i = 0; i < windows_processes.size( ); ++i ) {
@@ -169,7 +169,7 @@ BOOL WINAPI ConsoleHandlerRoutine ( DWORD /*dwCtrlType*/ ) {
 }
 
 uint64_t StartProcess (
-    const string& process_path, const std::vector<string>& command_line
+    const string& process_path, const vector<string>& command_line
 ) {
     static constexpr unsigned int buffer_size = ( 1 << 16 ) + 1;
 
@@ -278,8 +278,8 @@ bool IsInDebugger ( ) {
 
 #elif defined( __linux__ ) || defined( __APPLE__ )
 
-std::vector<uint64_t>& GetPids ( ) {
-    static std::vector<uint64_t> pids;
+vector<uint64_t>& GetPids ( ) {
+    static vector<uint64_t> pids;
     return pids;
 }
 
@@ -288,7 +288,7 @@ void AddPid ( uint64_t pid ) {
 }
 
 void RemovePid ( uint64_t pid ) {
-    std::vector<uint64_t>& pids = GetPids( );
+    vector<uint64_t>& pids = GetPids( );
     for ( size_t i = 0; i < pids.size( ); ++i ) {
         if ( pids[i] == pid ) {
             pids.erase ( pids.begin( ) + i );
@@ -299,7 +299,7 @@ void RemovePid ( uint64_t pid ) {
 
 void KillRunningProcesses ( int signum ) {
     // Get copy since pids will be iterated and removed.
-    std::vector<uint64_t> pids = GetPids( );
+    vector<uint64_t> pids = GetPids( );
     for ( auto pid : pids ) {
         TerminateProcess ( pid );
     }
@@ -414,9 +414,9 @@ int _kbhit ( ) {
 }
 
 uint64_t StartProcess (
-    const string& process_path, const std::vector<string>& command_line
+    const string& process_path, const vector<string>& command_line
 ) {
-    std::vector<char*> char_list;
+    vector<char*> char_list;
     // execve expects the process path to be the first argument in the list.
     char_list.push_back ( const_cast<char*> ( process_path.c_str( ) ) );
     for ( const auto& s : command_line ) {
@@ -430,7 +430,7 @@ uint64_t StartProcess (
     const pid_t p = fork( );
     if ( p == 0 ) {
         if ( execve ( char_list[0], &char_list[0], nullptr ) == -1 ) {
-            std::cerr << "Failed to execute process " << char_list[0]
+            cerr << "Failed to execute process " << char_list[0]
                       << " error: " << strerror ( errno ) << '\n';
             exit ( -1 );
         }
@@ -457,7 +457,7 @@ bool IsProcessRunning ( uint64_t process_id ) {
     char*       proc;
     asprintf ( &proc, "/proc/%lu", process_id );
     if ( stat ( proc, &sts ) == -1 && errno == ENOENT ) {
-        std::cerr << "Process not running" << '\n';
+        cerr << "Process not running" << '\n';
         return false;
     }
     return true;
@@ -495,8 +495,8 @@ bool FindLatestExe ( string& path ) {
     }
 
     static constexpr char VersionsFolder[]  = "Versions\\";
-    static std::size_t    BaseFolderNameLen = 10; // "Base00000\"
-    const std::size_t     versions_pos      = path.find ( VersionsFolder );
+    static size_t    BaseFolderNameLen = 10; // "Base00000\"
+    const size_t     versions_pos      = path.find ( VersionsFolder );
     if ( versions_pos == string::npos ) {
         return DoesFileExist ( path );
     }
@@ -520,7 +520,7 @@ bool FindLatestExe ( string& path ) {
     );
 
     // Get a list of all subfolders.
-    std::vector<string> subfolders;
+    vector<string> subfolders;
     scan_directory ( versions_path.c_str( ), subfolders, true, true );
     if ( subfolders.empty( ) ) {
         return DoesFileExist ( path );
@@ -547,7 +547,7 @@ bool FindBaseExe ( string& path, uint32_t base_build ) {
     const string base_folder = "Base";
 
     string new_path = path;
-    string new_num  = std::to_string ( base_build );
+    string new_num  = to_string ( base_build );
 
     const auto folder_start = new_path.find ( base_folder );
     if ( folder_start == string::npos ) {

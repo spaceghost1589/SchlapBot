@@ -35,7 +35,6 @@ import score;
 import type_enums;
 import unit;
 
-
 namespace {
 
 enum class AppTest;
@@ -49,8 +48,8 @@ struct MapState
     sc2::Visibility GetVisibility ( const sc2::Point2D& point ) const;
 
 private:
-    sc2::SampleImage creep_data_;
-    sc2::SampleImage visibility_data_;
+    sc2::ImageData_StepSample creep_data_;
+    sc2::ImageData_StepSample visibility_data_;
 };
 
 MapState::MapState ( const SC2APIProtocol::MapState& map )
@@ -87,7 +86,6 @@ sc2::Visibility MapState::GetVisibility ( const sc2::Point2D& point ) const {
 
 } // namespace
 
-
 export namespace sc2 {
 using namespace std;
 
@@ -98,6 +96,8 @@ GameResponsePtr WaitForResponse ( );
 //! Merged with Control Interface.
 class Client {
 public:
+
+
     // Observation from last step.
     ObservationPtr         observation_;
     ResponseObservationPtr response_;
@@ -109,7 +109,7 @@ public:
     unique_ptr<DebugInterface> debug_face_ =
         make_unique<DebugInterface> ( *observation_face_ );
 
-    ProcessInfo pi_;
+    // ProcessInfo pi_;
 
     // Errors that may have occurred during calls to the various interfaces.
     vector<ClientError> client_errors_;
@@ -352,7 +352,7 @@ public:
 
         // Relative path - Game maps directory
         const string game_relative =
-            GetGameMapsDirectory ( pi_.process_path ) + map_name;
+            GetGameMapsDirectory ( ProtoFace::pi_.process_path ) + map_name;
         if ( DoesFileExist ( game_relative ) ) {
             local_map->set_map_path ( map_name );
             return;
@@ -715,8 +715,8 @@ public:
 
         // Step 1: distinguish between a hang and a crash. Lots of time has
         // elapsed, so if there was a crash it should have finished by now.
-        assert ( pi_.process_id );
-        if ( !IsProcessRunning ( pi_.process_id ) ) {
+        assert ( ProtoFace::pi_.process_id );
+        if ( !IsProcessRunning ( ProtoFace::pi_.process_id ) ) {
             app_state = AppState::Crashed;
             cout << "Game application has terminated unexpectedly." << '\n';
             Error::Log ( ClientError::SC2AppFailure );
@@ -760,12 +760,12 @@ public:
 
         // The game application has hanged. Try and terminate it.
         app_state = AppState::Timeout;
-        for ( int i = 0; i < 10 && IsProcessRunning ( pi_.process_id ); ++i ) {
-            TerminateProcess ( pi_.process_id );
+        for ( int i = 0; i < 10 && IsProcessRunning ( ProtoFace::pi_.process_id ); ++i ) {
+            TerminateProcess ( ProtoFace::pi_.process_id );
             SleepFor ( 2000 );
         }
 
-        if ( IsProcessRunning ( pi_.process_id ) ) {
+        if ( IsProcessRunning ( ProtoFace::pi_.process_id ) ) {
             // Failed to kill the running process.
             app_state = AppState::Timeout_Zombie;
         }
@@ -777,11 +777,11 @@ public:
     }
 
     virtual void SetProcessInfo ( const ProcessInfo& pi ) {
-        pi_ = pi;
+        ProtoFace::pi_ = pi;
     }
 
     virtual const ProcessInfo& GetProcessInfo ( ) const {
-        return pi_;
+        return ProtoFace::pi_;
     }
 
     // Game status.
@@ -856,7 +856,7 @@ public:
         if ( response_observation.HasErrors( ) ) {
             cerr << '\n' << "Error in returning observation:" << '\n';
             cerr << "The main response is of type: "
-                 << to_string ( response->response_case( ) ) << '\n';
+                 << std::to_string ( response->response_case( ) ) << '\n';
             if ( response_observation.HasResponse( ) ) {
                 cerr << "There is no ResponseObservation/message!" << '\n';
             }
@@ -979,7 +979,7 @@ public:
 
         // add newly created units (if they are completed)
         for ( const auto* u : unit_pool.GetNewUnits( ) ) {
-            if ( u->build_progress >= 1.0f && u->orders.empty( ) ) {
+            if ( u->build_progress >= 1.0F && u->orders.empty( ) ) {
                 unit_pool.AddUnitIdled ( u );
             }
         }
@@ -1051,7 +1051,7 @@ public:
                 continue;
             }
 
-            cout << to_string ( i ) << ": " << to_string ( stats[i] ) << '\n';
+            cout << std::to_string ( i ) << ": " << std::to_string ( stats[i] ) << '\n';
         }
 
         cout << "******************************************************"

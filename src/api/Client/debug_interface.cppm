@@ -98,7 +98,7 @@ public:
     bool    endgame_surrender_ { false };
     bool    endgame_victory_ { false };
     bool    set_score_ { false };
-    float   score_ { 0.0f };
+    float   score_ { 0.0F };
 
     DebugInterface ( ObservationInterface& observation )
           : observation_ ( observation ) {}
@@ -561,7 +561,7 @@ public:
             set_score->set_score ( score_ );
         }
         set_score_ = false;
-        score_     = 0.0f;
+        score_     = 0.0F;
 
         if ( endgame_surrender_ ) {
             SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );

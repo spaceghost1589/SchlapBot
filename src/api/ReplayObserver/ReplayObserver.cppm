@@ -44,7 +44,7 @@ public:
     static bool
         IgnoreReplay ( const ReplayInfo& replay_info, uint32_t /*player_id*/ ) {
         // Ignore games less than 30 seconds.
-        return replay_info.duration < 30.0f;
+        return replay_info.duration < 30.0F;
     }
 
     void Reset ( ) override {

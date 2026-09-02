@@ -1,22 +1,7 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <inspection_tool class="CLangTidyLocal" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClangTidy" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="Clazy" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="CppDefaultCaseNotHandledInSwitchStatement" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="CppNonExplicitConversionOperator" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppNonExplicitConvertingConstructor" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppParameterMayBeConst" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppRedundantElseKeyword" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppRedundantElseKeywordInsideCompoundStatement" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppRedundantParentheses" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppTemplateArgumentsCanBeDeduced" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppUseAuto" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppUseAutoForNumeric" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="CppUseInternalLinkage" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="CppUseStructuredBinding" enabled="false" level="HINT" enabled_by_default="false" />
-    <inspection_tool class="IncorrectFormatting" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <list>
@@ -31,7 +16,5 @@
         </list>
       </option>
     </inspection_tool>
-    <inspection_tool class="aarcangeli.SchemaDeprecation" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="aarcangeli.SchemaValidation" enabled="false" level="ERROR" enabled_by_default="false" />
   </profile>
 </component>

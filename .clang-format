@@ -8,21 +8,20 @@ AccessModifierOffset: -4
 IndentWidth: 4
 UseTab: Never
 TabWidth: 4
-ContinuationIndentWidth: 4
 AlignAfterOpenBracket: true
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments:
   Enabled: true
-  AcrossComments: true
   AcrossEmptyLines: false
+  AcrossComments: true
   AlignCompound: true
   AlignFunctionDeclarations: false
   AlignFunctionPointers: false
   PadOperators: false
 AlignConsecutiveBitFields:
   Enabled: true
-  AcrossComments: true
   AcrossEmptyLines: false
+  AcrossComments: true
   AlignCompound: true
   AlignFunctionDeclarations: true
   AlignFunctionPointers: false
@@ -79,6 +78,7 @@ AlignTrailingComments:
   Kind: Always
   OverEmptyLines: 0
 AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false #see BinPackParameters
 AllowBreakBeforeNoexceptSpecifier: Always
 #AllowBreakBeforeQtProperty: true  # Unknown Key
 AllowShortBlocksOnASingleLine: Empty
@@ -90,7 +90,9 @@ AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
+AllowShortNamespacesOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
+AttributeMacros: [ ]
 BinPackArguments: false
 BinPackLongBracedList: true
 BinPackParameters: OnePerLine
@@ -114,7 +116,7 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BracedInitializerIndentWidth: 4
+BracedInitializerIndentWidth: 2
 BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: true
@@ -131,9 +133,10 @@ BreakBeforeCloseBracketIf: true
 BreakBeforeCloseBracketLoop: true
 BreakBeforeCloseBracketSwitch: true
 BreakBeforeConceptDeclarations: Always
+BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTemplateCloser: true
 BreakBeforeTernaryOperators: false
-BreakBinaryOperations: RespectPrecedence
+BreakBinaryOperations: Never
 BreakConstructorInitializers: BeforeColon
 BreakFunctionDefinitionParameters: false
 BreakInheritanceList: AfterComma
@@ -141,9 +144,17 @@ BreakStringLiterals: true
 BreakTemplateDeclarations: MultiLine
 CommentPragmas: "#"
 CompactNamespaces: true
-ConstructorInitializerIndentWidth: 6
-#Cpp11BracedListStyle:
-#DerivePointerAlignment: ###############################
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+Cpp11BracedListStyle: Block
+DerivePointerAlignment: false
+DisableFormat: false
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: LogicalBlock
+EnumTrailingComma: Insert
+FixNamespaceComments: true
+ForEachMacros: [ ]
+IfMacros:
 IncludeBlocks: Regroup #https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 IncludeCategories:
   - Regex: '^<[^/]+>$'
@@ -156,17 +167,34 @@ IncludeCategories:
     Priority: 3
     SortPriority: 3
 #IncludeIsMainRegex: '([-_](test|unittest))?$'
+IndentAccessModifiers: false
+IndentCaseBlocks: false
+IndentCaseLabels: true
+IndentExportBlock: false
+IndentExternBlock: Indent
+IndentGotoLabels: true
+IndentPPDirectives: BeforeHash
 IndentRequiresClause: true # Applies if RequiresClausePosition: OwnLine, OwnLineWithBrace, WithFollowing.
 IndentWrappedFunctionNames: true
 InsertBraces: false # true could lead to incorrect code formatting due to lack of complete semantic information.
 InsertNewlineAtEOF: true
 #InsertTrailingCommas: Wrapped # trailing comma insertion cannot be used with bin packing
-#IntegerLiteralSeparator:  # Readability Separators for Binary, Decimal, Hex
+IntegerLiteralSeparator:
+  Binary: 4             # Groups binary digits by nibbles (4 bits), e.g., 0b1111'0000
+  BinaryMinDigits: 5    # Only apply to binary literals with 5+ digits (leaves 0b1111 alone)
+  BinaryMaxDigitsRemove: 0
+  Decimal: 3            # Groups decimal digits by thousands, e.g., 1'000'000
+  DecimalMinDigits: 1   # Only apply to decimals with 5+ digits (leaves 1000 unformatted, formats 10'000+)
+  DecimalMaxDigitsRemove: 0
+  Hex: 2                # Groups hex digits by 8-bit words (2 characters), e.g., 0xFFFF'0000
+  HexMinDigits: 5       # Only apply to hex literals with 5+ digits (leaves 0xFFFF alone)
+  HexMaxDigitsRemove: 0
 KeepEmptyLines:
   AtEndOfFile: false
   AtStartOfBlock: false
   AtStartOfFile: false
 KeepFormFeed: false
+#KeepLineBreaksForNonEmptyLines: true # error: unknown key
 LambdaBodyIndentation: OuterScope
 LineEnding: LF
 #MacroBlockBegin: ''
@@ -181,7 +209,7 @@ NumericLiteralCase:
   ExponentLetter: Lower
   HexDigit: Upper
   Prefix: Lower
-  Suffix: Lower
+  Suffix: Upper
 ObjCBinPackProtocolList: Auto # Auto defers to BinPackParameters setting
 ObjCBlockIndentWidth: 4
 ObjCBreakBeforeNestedBlockParam: true
@@ -190,7 +218,7 @@ ObjCBreakBeforeNestedBlockParam: true
 ObjCSpaceAfterProperty: true
 ObjCSpaceBeforeProtocolList: true
 #OneLineFormatOffRegex:
-PPIndentWidth: 2
+PPIndentWidth: 4
 PackConstructorInitializers: Never
 
 #PenaltyBreakAssignment:
@@ -206,10 +234,9 @@ PackConstructorInitializers: Never
 #PenaltyIndentedWhitespace:
 #PenaltyReturnTypeOnItsOwnLine:
 
-PointerAlignment: Left
-QualifierAlignment: Left
-#QualifierOrder: [ friend, typedef, extern, static, thread_local, mutable, inline, constexpr, consteval, constinit, explicit, const, volatile, restrict, signed, unsigned, short, long, type ]
-#QualifierOrder: [ friend, static, inline, constexpr, const, volatile, restrict, type ]
+PointerAlignment: Right
+QualifierAlignment: Custom
+QualifierOrder: [ friend, static, inline, constexpr, const, volatile, restrict, type ]
 #RawStringFormats:
 #  - Language: TextProto
 #      Delimiters:
@@ -225,7 +252,7 @@ QualifierAlignment: Left
 #      BasedOnStyle: google
 #      CanonicalDelimiter: cc
 
-ReferenceAlignment: Left
+ReferenceAlignment: Right
 ReflowComments: Always
 RemoveBracesLLVM: false
 RemoveEmptyLinesInUnwrappedLines: true
@@ -269,7 +296,7 @@ SpaceBeforeParensOptions:
 SpaceBeforeRangeBasedForLoopColon: true
 SpaceBeforeSquareBrackets: false
 SpacesBeforeTrailingComments: 1
-#SpaceInEmptyBraces: Always
+SpaceInEmptyBraces: Always
 SpacesInAngles: Never
 SpacesInContainerLiterals: true
 SpacesInLineCommentPrefix:
@@ -293,5 +320,5 @@ TypenameMacros: [ ]
 VariableTemplates: [ ]
 VerilogBreakBetweenInstancePorts: true
 WhitespaceSensitiveMacros: [ ]
-WrapNamespaceBodyWithEmptyLines: Always
+WrapNamespaceBodyWithEmptyLines: Leave
 ...

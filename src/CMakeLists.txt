@@ -4,6 +4,9 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR} # <[This]> folder
                      ${CMAKE_BINARY_DIR} # <root>/out/build/<Preset_Name>
                      )
 
+# Tells CMake to build `import std`
+set(CMAKE_CXX_MODULE_STD ON)
+
 add_subdirectory (api)
 add_subdirectory (utils)
 add_subdirectory (lib)
@@ -11,7 +14,7 @@ if (BUILD_SC2_RENDERER) # Process optional Renderer
 	add_subdirectory (renderer)
 endif ()
 
-# Define the bot executable and link everything
+#Define the bot executable and link everything
 add_executable (SchlapBot main.cpp)
 
 if (CACHE_DEPENDENCIES)
@@ -42,21 +45,24 @@ target_sources (SchlapBot PRIVATE ${LEGACY_FILES})
 
 set (CMAKE_CXX_SCAN_FOR_MODULES ON)
 file (GLOB_RECURSE MODULES CONFIGURE_DEPENDS
-      "api/*.cppm"
-      "lib/*.cppm"
-      "renderer/*.cppm"
-      "utils/*.cppm"
-      )
+        SchlapBot.cppm
+        "api/*.cppm"
+        "lib/*.cppm"
+        "renderer/*.cppm"
+        "utils/*.cppm")
+
 set_source_files_properties ( # Disable PCH force-inclusion for module files
 				${MODULES} # The invisible header interferes with the module header
-				PROPERTIES SKIP_PRECOMPILE_HEADERS ON # which needs to be the first line
+				PROPERTIES
+				    SKIP_PRECOMPILE_HEADERS ON # which needs to be the first line
 				)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/lib/map_data.cppm PROPERTIES
+        COMPILE_OPTIONS "-save-temps=obj;-freport-bug"
+)
+
 target_sources (SchlapBot PUBLIC
-                FILE_SET CXX_MODULES
-                FILES
-                ${MODULES}
-                SchlapBot.cppm
-                )
+                FILE_SET CXX_MODULES FILES
+                ${MODULES})
 
 # Platform-specific system networking and threading libraries
 if (WIN32)

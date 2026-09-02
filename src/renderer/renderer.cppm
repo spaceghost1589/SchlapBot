@@ -11,6 +11,7 @@ export module renderer;
 
 #ifdef BUILD_SC2_RENDERER
 export namespace sc2::renderer {
+using namespace std;
 
 void
     Initialize (
@@ -18,7 +19,7 @@ void
     ) {
     if ( SDL_Init ( SDL_INIT_VIDEO ) ) {
         const char* error = SDL_GetError( );
-        std::cerr << "SDL_Init failed with error: " << error << '\n';
+        cerr << "SDL_Init failed with error: " << error << '\n';
         exit ( 1 );
     }
 

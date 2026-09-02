@@ -10,8 +10,8 @@ import type_enums;
 import unit;
 
 export namespace sc2 {
-using namespace std;
 
+using namespace std;
 
 /*! @brief The ActionInterface issues actions to units in a game. Not available
  * in replays.
@@ -32,8 +32,7 @@ public:
     static bool Convert (
         ChatChannel channel, SC2APIProtocol::ActionChat::Channel& channel_proto
     ) {
-        switch ( channel )
-        {
+        switch ( channel ) {
             case ChatChannel::All :
                 channel_proto = SC2APIProtocol::ActionChat_Channel_Broadcast;
                 return true;
@@ -47,7 +46,7 @@ public:
     /*! @brief Sends a message to the game chat.
      * @param message Text of message to send.
      * @param channel Which players will see the message. */
-    void SendChat ( const std::string& message, ChatChannel channel ) {
+    void SendChat ( const string& message, ChatChannel channel ) {
         SC2APIProtocol::RequestAction* request_action = GetRequestAction( );
         SC2APIProtocol::Action*        action = request_action->add_actions( );
         SC2APIProtocol::ActionChat*    action_chat =
@@ -128,7 +127,7 @@ public:
             tag_command->add_unit_tags ( tag );
     }
 
-//------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
 
     /*! @brief Issues a command to a unit. Targets a point.
      * @param unit The unit to send the command to.
@@ -309,9 +308,9 @@ public:
         visit ( [autocast]<typename T0> ( T0&& unit_tags_T0 ) {
             using T = decay_t<T0>;
 
-            if constexpr ( std::is_same_v<T, Tag> ) {
+            if constexpr ( is_same_v<T, Tag> ) {
                 autocast->add_unit_tags ( unit_tags_T0 );
-            } else if constexpr ( std::is_same_v<T, Tags> )
+            } else if constexpr ( is_same_v<T, Tags> )
                 for ( const Tag& tag : unit_tags_T0 ) {
                     autocast->add_unit_tags ( tag );
                 }

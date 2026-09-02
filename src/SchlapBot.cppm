@@ -13,33 +13,19 @@ import search;
 import type_enums;
 import unit;
 
-namespace sc2 {
+export namespace sc2 {
 using namespace std;
-namespace {
-
 using enum Unit::Alliance;
 
-using sc2::CalculateExpansionLocations;
-using sc2::ClientError;
-using sc2::GameInfo;
-using sc2::MapData;
-using sc2::Point3D;
-using sc2::Unit;
-using sc2::UpgradeID;
-using sc2::UpgradeIDToName;
-
-
-} // namespace
-
 // The main bot class.
-export struct SchlapBot : Agent
+struct SchlapBot : Agent
 {
-    SchlapBot ( ) = default;
-
     GameInfo        game_info { };
     MapData         map_data { };
-    Point3D         starting_location_;
+    Point3D         starting_location_{};
     vector<Point3D> expansions { };
+
+    SchlapBot ( ) = default;
 
     void OnGameFullStart ( ) override {}
 
@@ -48,9 +34,14 @@ export struct SchlapBot : Agent
         cout << "game started." << '\n';
 
         starting_location_ = Observation( )->GetStartLocation( );
+        cout << "GetStartLocation finished" << '\n';
 
-        vector<Point3D> expansions =
-            CalculateExpansionLocations ( Observation( ), Query( ) );
+        // vector<Point3D> expansions = CalculateExpansionLocations (
+        //     Observation( ),
+        //     Query( ),
+        //     ExpansionParameters { }
+        // );
+
     }
 
     void OnStep ( ) override {
@@ -59,9 +50,7 @@ export struct SchlapBot : Agent
         // Units units = Observation()->GetUnits(Self);
     }
 
-    void OnGameEnd ( ) override {
-        cout << "Game over!" << '\n';
-    }
+//------------------------------------------------------------------------------
 
     void OnBuildingConstructionComplete ( const Unit* building_ ) override {
         cout << UnitTypeToName ( building_->unit_type ) << "(" << building_->tag
@@ -100,6 +89,11 @@ export struct SchlapBot : Agent
             cerr << "Encountered protocol error: " << err << '\n';
         }
     }
+
+    void OnGameEnd ( ) override {
+        cout << "Game over!" << '\n';
+    }
+
 }; // struct SchlapBot
 
 } // namespace sc2

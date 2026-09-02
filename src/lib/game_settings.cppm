@@ -5,7 +5,6 @@ module;
 export module game_settings;
 import game_types;
 
-
 export namespace sc2 {
 using namespace std;
 
@@ -17,8 +16,7 @@ struct ProcessInfo
     ProcessInfo ( const string& path, uint64_t id, int port )
           : process_path ( path ),
             process_id ( id ),
-            port ( port )
-    {}
+            port ( port ) {}
 
     string   process_path;
     uint64_t process_id;
@@ -52,7 +50,7 @@ struct ProcessSettings
         int           in_timeout_ms,
         int           in_port_start,
         bool          in_multi_threaded = false,
-        bool          in_full_screen = false
+        bool          in_full_screen    = false
     )
           : realtime ( in_real_time ),
             step_size ( in_step_size ),
@@ -61,8 +59,7 @@ struct ProcessSettings
             timeout_ms ( in_timeout_ms ),
             port_start ( in_port_start ),
             multi_threaded ( in_multi_threaded ),
-            full_screen ( in_full_screen )
-    {}
+            full_screen ( in_full_screen ) {}
 };
 
 //! Settings for an RGB rendered output.
@@ -74,8 +71,7 @@ struct RenderSettings
           : map_x ( map_x ),
             map_y ( map_y ),
             minimap_x ( minimap_x ),
-            minimap_y ( minimap_y )
-    {}
+            minimap_y ( minimap_y ) {}
 
     //! X size of rendered bitmap for the world screen.
     int map_x     = 800;
@@ -103,8 +99,7 @@ struct FeatureLayerSettings
             map_x ( in_map_x ),
             map_y ( in_map_y ),
             minimap_x ( in_minimap_x ),
-            minimap_y ( in_minimap_y )
-    {}
+            minimap_y ( in_minimap_y ) {}
 
     //! The width of the camera view as it would appear in the world. The size
     //! is in game world units.
@@ -140,7 +135,12 @@ struct GameSettings
     string              map_name;
     vector<PlayerSetup> player_setup;
     Ports               ports;
-    bool                raw_affects_selection { false };
+
+    /*! @retval true Will not generate a deselect command after sending a
+     * command to a unit.
+     * @note performance increase
+     * @see SetRawAffectsSelection */
+    bool raw_affects_selection { false };
 };
 
 //! Settings for starting a replay.
@@ -148,7 +148,7 @@ struct ReplaySettings
 {
     ReplaySettings ( ) = default;
 
-    string         replay_dir;
+    string replay_dir;
     //! Fill with replays to analyze.
     vector<string> replay_file;
     uint32_t       player_id { 1 };

@@ -250,16 +250,16 @@ bool Convert (
 ) {
     switch ( type_proto ) {
         case SC2APIProtocol::DisplayType::Visible :
-            type = Unit::Visible;
+            type = Unit::DisplayType::Visible;
             return true;
         case SC2APIProtocol::DisplayType::Snapshot :
-            type = Unit::Snapshot;
+            type = Unit::DisplayType::Snapshot;
             return true;
         case SC2APIProtocol::DisplayType::Hidden :
-            type = Unit::Hidden;
+            type = Unit::DisplayType::Hidden;
             return true;
         case SC2APIProtocol::DisplayType::Placeholder :
-            type = Unit::Placeholder;
+            type = Unit::DisplayType::Placeholder;
             return true;
     }
     return false;
@@ -391,16 +391,16 @@ bool Convert (
 ) {
     switch ( alliance_proto ) {
         case SC2APIProtocol::Alliance::Self :
-            alliance = Unit::Self;
+            alliance = Unit::Alliance::Self;
             return true;
         case SC2APIProtocol::Alliance::Ally :
-            alliance = Unit::Ally;
+            alliance = Unit::Alliance::Ally;
             return true;
         case SC2APIProtocol::Alliance::Neutral :
-            alliance = Unit::Neutral;
+            alliance = Unit::Alliance::Neutral;
             return true;
         case SC2APIProtocol::Alliance::Enemy :
-            alliance = Unit::Enemy;
+            alliance = Unit::Alliance::Enemy;
             return true;
     }
     return false;
@@ -411,19 +411,19 @@ bool Convert (
 ) {
     switch ( cloak_proto ) {
         case SC2APIProtocol::CloakState::CloakedUnknown :
-            cloak = Unit::CloakedUnknown;
+            cloak = Unit::CloakState::CloakedUnknown;
             return true;
         case SC2APIProtocol::CloakState::Cloaked :
-            cloak = Unit::Cloaked;
+            cloak = Unit::CloakState::Cloaked;
             return true;
         case SC2APIProtocol::CloakState::CloakedDetected :
-            cloak = Unit::CloakedDetected;
+            cloak = Unit::CloakState::CloakedDetected;
             return true;
         case SC2APIProtocol::CloakState::NotCloaked :
-            cloak = Unit::NotCloaked;
+            cloak = Unit::CloakState::NotCloaked;
             return true;
         case SC2APIProtocol::CloakState::CloakedAllied :
-            cloak = Unit::CloakedAllied;
+            cloak = Unit::CloakState::CloakedAllied;
             return true;
     }
     return false;
@@ -478,7 +478,7 @@ bool Convert (
                 return false;
             }
         } else {
-            unit->cloak = Unit::CloakedUnknown;
+            unit->cloak = Unit::CloakState::CloakedUnknown;
         }
 
         unit->detect_range = observation_unit.detect_range( );

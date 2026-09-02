@@ -211,18 +211,18 @@ public:
         }
 
         if ( !ProtoFace::SendRequest ( request ) ) {
-            return vector<float> ( queries.size( ), 0.0f );
+            return vector<float> ( queries.size( ), 0.0F );
         }
 
         const GameResponsePtr response = ProtoFace::WaitForResponse( );
         ResponseQueryPtr      response_query;
         SET_MESSAGE_RESPONSE ( response_query, response, query );
         if ( response_query.HasErrors( ) ) {
-            return vector<float> ( queries.size( ), 0.0f );
+            return vector<float> ( queries.size( ), 0.0F );
         }
 
         if ( response_query->pathing_size( ) != queries.size( ) ) {
-            return vector<float> ( queries.size( ), 0.0f );
+            return vector<float> ( queries.size( ), 0.0F );
         }
 
         vector<float> distances;
