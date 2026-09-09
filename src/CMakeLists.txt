@@ -8,7 +8,7 @@ add_executable(SchlapBot main.cpp)
 # Expose source and binary directories globally
 target_include_directories(SchlapBot PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}" # <[This]> folder
-    "${CMAKE_SOURCE_DIR}/include"
+    "${CMAKE_BINARY_DIR}"
     )
 
 target_include_directories(SchlapBot SYSTEM PUBLIC
@@ -79,11 +79,14 @@ file(GLOB_RECURSE MODULES CONFIGURE_DEPENDS
 #Remove server.cppm as it's duplicate code. Same function as connection.cppm
 list(REMOVE_ITEM MODULES "${CMAKE_CURRENT_SOURCE_DIR}/api/Protocol/server.cppm")
 
-set_source_files_properties( # Disable PCH force-inclusion for module files.
-    ${MODULES} # The invisible header interferes with the module header
-    PROPERTIES # which needs to be the first line.
-    SKIP_PRECOMPILE_HEADERS ON
-    )
+set_source_files_properties ( # Disable PCH force-inclusion for module files
+				${MODULES} # The invisible header interferes with the module header
+				PROPERTIES
+				    SKIP_PRECOMPILE_HEADERS ON # which needs to be the first line
+				)
+#set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/lib/map_data.cppm PROPERTIES
+#        COMPILE_OPTIONS "-save-temps=obj;-freport-bug"
+#)
 
 target_sources(SchlapBot PUBLIC
     FILE_SET CXX_MODULES FILES

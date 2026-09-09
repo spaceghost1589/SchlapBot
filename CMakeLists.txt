@@ -54,6 +54,53 @@ endif()
 #VERSION 4.4.3 f35a9ac6-8463-4D38-8eeC-5D6008153e7d
 #set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d" CACHE INTERNAL "Experimental import std")
 #endregion
+option(CMAKE_DEBUG "CMake Debug" OFF)
+message(STATUS "--------------------------------------------------------------")
+message(STATUS "----- Configuration Summary :")
+message(STATUS "-----    BUILD_SC2_RENDERER : ${BUILD_SC2_RENDERER}")
+message(STATUS "-----      BUILD_FOR_LADDER : ${BUILD_FOR_LADDER}")
+message(STATUS "-----    BUILD_API_EXAMPLES : ${BUILD_API_EXAMPLES}")
+message(STATUS "-----       BUILD_API_TESTS : ${BUILD_API_TESTS}")
+message(STATUS "-----    CACHE_DEPENDENCIES : ${SCCACHE}")
+message(STATUS "-----   DEPENDENCY_WARNINGS : ${DEPENDENCY_WARNINGS}")
+message(STATUS "-----           CMAKE_DEBUG : ${CMAKE_DEBUG}")
+message(STATUS "----- Changeable in root CMakeLists.txt")
+message(STATUS "--------------------------------------------------------------")
+#endregion
+
+#region Simplified Compiler Bools
+set(GNU_ OFF)
+set(CLANG_ OFF)
+# Check compiler and set state accordingly
+# MSVC is natively supported.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(GNU_ ON)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CLANG_ ON)
+endif()
+# Define the cache options using those defaults
+option(GNU "GNU / GCC / MinGW" ${GNU_})
+option(CLANG "Clang" ${CLANG_})
+#endregion
+
+#region Compiler No Warnings Flags
+if(NOT DEPENDENCY_WARNINGS)
+  if(MSVC)
+    set(_no_warn_flag " /W0")
+  else() # GNU or Clang
+    set(_no_warn_flag " -w")
+  endif()
+else()
+  set(_no_warn_flag "")
+endif()
+#endregion
+
+#region CMake UUID Version String
+#( check CMake's Help / dev / experimental.rst )
+#VERSION 4.3.1 451F2Fe2-a8a2-47C3-bc32-94786D8FC91B
+#VERSION 4.4.3 f35a9ac6-8463-4D38-8eeC-5D6008153e7d
+#set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "f35a9ac6-8463-4d38-8eec-5d6008153e7d" CACHE INTERNAL "Experimental import std")
+#endregion
 
 project(SchlapBot LANGUAGES CXX)
 
@@ -145,7 +192,7 @@ set(CMAKE_DEBUG_POSTFIX ${LIBRARY_DEBUG_POSTFIX})
 list(
     APPEND CMAKE_MODULE_PATH
     "${PROJECT_SOURCE_DIR}/thirdparty/civetweb"
-    "${PROJECT_SOURCE_DIR}/thirdparty/protobuf"
+  #    "${PROJECT_SOURCE_DIR}/thirdparty/protobuf"
     "${PROJECT_SOURCE_DIR}/thirdparty/sc2protocol"
     "${PROJECT_SOURCE_DIR}/thirdparty/SDL"
     )
