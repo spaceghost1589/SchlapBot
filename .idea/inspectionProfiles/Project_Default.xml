@@ -2,6 +2,31 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="ClangTidy" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="CppClassCanBeFinal" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAArrayIndexOutOfBounds" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAConstantConditions" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAConstantFunctionResult" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAConstantParameter" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFADeletedPointer" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAEndlessLoop" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAInfiniteRecursion" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAInvalidatedMemory" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFALocalValueEscapesFunction" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFALocalValueEscapesScope" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFALoopConditionNotUpdated" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAMemoryLeak" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFANotInitializedField" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFANullDereference" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFATimeOver" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAUnreachableCode" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAUnreachableFunctionCall" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAUnreadVariable" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppDFAUnusedValue" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppLocalVariableWithNonTrivialDtorIsNeverUsed" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="CppNonExplicitConvertingConstructor" enabled="false" level="HINT" enabled_by_default="false" />
+    <inspection_tool class="CppPrecompiledHeaderIsNotIncluded" enabled="false" level="ERROR" enabled_by_default="false" />
+    <inspection_tool class="CppTemplateArgumentsCanBeDeduced" enabled="false" level="HINT" enabled_by_default="false" />
+    <inspection_tool class="CppUnusedIncludeDirective" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <list>
@@ -16,5 +41,7 @@
         </list>
       </option>
     </inspection_tool>
+    <inspection_tool class="aarcangeli.SchemaDeprecation" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="aarcangeli.SchemaValidation" enabled="false" level="ERROR" enabled_by_default="false" />
   </profile>
 </component>

@@ -1,0 +1,74 @@
+diff --git a/absl/container/internal/hashtable_control_bytes.h b/absl/container/internal/hashtable_control_bytes.h
+index abaadc3b..a6ec9877 100644
+--- a/absl/container/internal/hashtable_control_bytes.h
++++ b/absl/container/internal/hashtable_control_bytes.h
+@@ -66,9 +66,9 @@ uint32_t TrailingZeros(T x) {
+ }
+ 
+ // 8 bytes bitmask with most significant bit set for every byte.
+-constexpr uint64_t kMsbs8Bytes = 0x8080808080808080ULL;
++inline constexpr uint64_t kMsbs8Bytes = 0x8080808080808080ULL;
+ // 8 kEmpty bytes that is useful for small table initialization.
+-constexpr uint64_t k8EmptyBytes = kMsbs8Bytes;
++inline constexpr uint64_t k8EmptyBytes = kMsbs8Bytes;
+ 
+ // An abstract bitmask, such as that emitted by a SIMD instruction.
+ //
+diff --git a/absl/container/internal/raw_hash_set.h b/absl/container/internal/raw_hash_set.h
+index 3effc441..e3174248 100644
+--- a/absl/container/internal/raw_hash_set.h
++++ b/absl/container/internal/raw_hash_set.h
+@@ -1439,7 +1439,7 @@ inline probe_seq<Group::kWidth> probe(const CommonFields& common, size_t hash) {
+ // slots in the same group. Such tables appear during `erase()`.
+ FindInfo find_first_non_full(const CommonFields& common, size_t hash);
+ 
+-constexpr size_t kProbedElementIndexSentinel = ~size_t{};
++inline constexpr size_t kProbedElementIndexSentinel = ~size_t{};
+ 
+ // Implementation detail of transfer_unprobed_elements_to_next_capacity_fn.
+ // Tries to find the new index for an element whose hash corresponds to
+diff --git a/absl/strings/internal/cord_rep_flat.h b/absl/strings/internal/cord_rep_flat.h
+index 27c4b21e..50a0b8bd 100644
+--- a/absl/strings/internal/cord_rep_flat.h
++++ b/absl/strings/internal/cord_rep_flat.h
+@@ -39,17 +39,17 @@ namespace cord_internal {
+ // ideally a 'nice' size aligning with allocation and cacheline sizes like 32.
+ // kMaxFlatSize is bounded by the size resulting in a computed tag no greater
+ // than MAX_FLAT_TAG. MAX_FLAT_TAG provides for additional 'high' tag values.
+-static constexpr size_t kFlatOverhead = offsetof(CordRep, storage);
+-static constexpr size_t kMinFlatSize = 32;
+-static constexpr size_t kMaxFlatSize = 4096;
+-static constexpr size_t kMaxFlatLength = kMaxFlatSize - kFlatOverhead;
+-static constexpr size_t kMinFlatLength = kMinFlatSize - kFlatOverhead;
+-static constexpr size_t kMaxLargeFlatSize = 256 * 1024;
+-static constexpr size_t kMaxLargeFlatLength = kMaxLargeFlatSize - kFlatOverhead;
++inline constexpr size_t kFlatOverhead = offsetof(CordRep, storage);
++inline constexpr size_t kMinFlatSize = 32;
++inline constexpr size_t kMaxFlatSize = 4096;
++inline constexpr size_t kMaxFlatLength = kMaxFlatSize - kFlatOverhead;
++inline constexpr size_t kMinFlatLength = kMinFlatSize - kFlatOverhead;
++inline constexpr size_t kMaxLargeFlatSize = 256 * 1024;
++inline constexpr size_t kMaxLargeFlatLength = kMaxLargeFlatSize - kFlatOverhead;
+ 
+ // kTagBase should make the Size <--> Tag computation resilient
+ // against changes to the value of FLAT when we add a new tag..
+-static constexpr uint8_t kTagBase = FLAT - 4;
++inline constexpr uint8_t kTagBase = FLAT - 4;
+ 
+ // Converts the provided rounded size to the corresponding tag
+ constexpr uint8_t AllocatedSizeToTagUnchecked(size_t size) {
+diff --git a/absl/time/time.h b/absl/time/time.h
+index 53bca90d..9260b873 100644
+--- a/absl/time/time.h
++++ b/absl/time/time.h
+@@ -124,8 +124,8 @@ ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Duration MakeDuration(int64_t hi,
+ ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Duration MakeDuration(int64_t hi,
+                                                               int64_t lo);
+ ABSL_ATTRIBUTE_CONST_FUNCTION inline Duration MakePosDoubleDuration(double n);
+-constexpr int64_t kTicksPerNanosecond = 4;
+-constexpr int64_t kTicksPerSecond = 1000 * 1000 * 1000 * kTicksPerNanosecond;
++inline constexpr int64_t kTicksPerNanosecond = 4;
++inline constexpr int64_t kTicksPerSecond = 1000 * 1000 * 1000 * kTicksPerNanosecond;
+ template <std::intmax_t N>
+ ABSL_ATTRIBUTE_CONST_FUNCTION constexpr Duration FromInt64(int64_t v,
+                                                            std::ratio<1, N>);

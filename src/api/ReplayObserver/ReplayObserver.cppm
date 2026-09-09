@@ -7,7 +7,7 @@ export module ReplayObserver;
 import Client;
 import observer_action_interface;
 import protocol_interface;
-import common;
+import point;
 import error_handler;
 import game_settings;
 import game_types;
@@ -19,7 +19,7 @@ using namespace std;
 
 
 //! A client for running a replay.
-class ReplayObserver : public Client {
+class ReplayObserver final : public Client {
 public:
     ReplayInfo replay_info_;
 

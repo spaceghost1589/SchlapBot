@@ -1,0 +1,26 @@
+﻿diff --git a/cmake/abseil-cpp.cmake b/cmake/abseil-cpp.cmake
+index 9ef06a23d8..fdf693995b 100644
+--- a/cmake/abseil-cpp.cmake
++++ b/cmake/abseil-cpp.cmake
+@@ -26,6 +26,8 @@ if (NOT TARGET absl::strings)
+       absl
+       GIT_REPOSITORY "https://github.com/abseil/abseil-cpp.git"
+       GIT_TAG "${abseil-cpp-version}"
++      UPDATE_DISCONNECTED TRUE
++      PATCH_COMMAND git apply "${CMAKE_SOURCE_DIR}/thirdparty/protobuf/absl_cxx_module_fix_v35.1.patch"
+     )
+     if (protobuf_INSTALL)
+       # When protobuf_INSTALL is enabled and Abseil will be built as a module,
+diff --git a/src/google/protobuf/map.h b/src/google/protobuf/map.h
+index d384d2ad51..ee620f16e7 100644
+--- a/src/google/protobuf/map.h
++++ b/src/google/protobuf/map.h
+@@ -169,7 +169,7 @@ struct NodeBase {
+   const void* GetVoidKey() const { return this + 1; }
+ };
+ 
+-constexpr size_t kGlobalEmptyTableSize = 1;
++inline constexpr size_t kGlobalEmptyTableSize = 1;
+ PROTOBUF_EXPORT extern NodeBase* const kGlobalEmptyTable[kGlobalEmptyTableSize];
+ 
+ class UntypedMapBase;

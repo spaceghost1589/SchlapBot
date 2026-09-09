@@ -18,16 +18,16 @@ bool IsReading(const Stream& /*stream*/) {
 }
 
 // Strings.
-static inline void SerializeT(ifstream& s, string& t) {
+static void SerializeT(ifstream& s, string& t) {
     getline(s, t);
 }
 
-static inline void SerializeT(ofstream& s, const string& t) {
+static void SerializeT(ofstream& s, const string& t) {
     s << t << '\n';
 }
 
 // Bools.
-static inline void SerializeT(ifstream& s, bool& t) {
+static void SerializeT(ifstream& s, bool& t) {
     string linein;
     if (!getline(s, linein)) {
         return;
@@ -60,7 +60,7 @@ void SerializeT(ofstream& s, T t) {
     s << to_string(static_cast<uint32_t>(t)) << '\n';
 }
 
-static inline void SerializeT(ofstream& data_file, const set<uint32_t>& s) {
+static void SerializeT(ofstream& data_file, const set<uint32_t>& s) {
     data_file << to_string(s.size()) << '\n';
     for (auto it : s) {
         data_file << to_string(it) << '\n';

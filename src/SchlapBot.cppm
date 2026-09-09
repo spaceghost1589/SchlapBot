@@ -4,7 +4,7 @@ module;
 #include <vector>
 export module SchlapBot;
 import Agent;
-import common;
+import point;
 import error_handler;
 import game_types;
 import map_info;

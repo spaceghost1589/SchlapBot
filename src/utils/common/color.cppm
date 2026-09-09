@@ -2,10 +2,17 @@ module;
 #include <cstdint>
 #include <iostream>
 #include <string>
-export module common:color;
+export module color;
+
+namespace {
+using std::stoul;
+using std::string;
+using std::string_view;
+using std::cout;
+} // using declarations
+
 
 export namespace sc2 {
-using namespace std;
 
 //! RGB Color.
 struct Color

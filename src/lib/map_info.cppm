@@ -11,14 +11,19 @@ module;
 #include <s2clientprotocol/common.pb.h>
 export module map_info;
 import error_handler;
-import common;
+import point;
 import game_types;
+
+namespace {
+using std::move;
+using std::string;
+using std::uint32_t;
+} // namespace
 
 /* TODO create a struct for each type of map_data:
  *  Creep, Visibility, Pathing, Placement, Height */
 
 export namespace sc2 {
-using namespace std;
 
 struct PlayerInfo
 {
@@ -28,26 +33,27 @@ struct PlayerInfo
     Race       race_actual { };
     Difficulty difficulty { };
     AIBuild    ai_build { };
-    string     player_name { };
+    string     player_name;
 
     PlayerInfo ( ) = default;
 
     PlayerInfo (
-      const uint32_t   player_id,
-      const PlayerType player_type,
-      const Race       race_requested,
-      const Race       race_actual,
-      const Difficulty difficulty,
-      const AIBuild    ai_build,
-      const string    &player_name
-    )
-      : player_id ( player_id ),
-        player_type ( player_type ),
-        race_requested ( race_requested ),
-        race_actual ( race_actual ),
-        difficulty ( difficulty ),
-        ai_build ( ai_build ),
-        player_name ( player_name ) { }
+      const uint32_t   playerID,
+      const PlayerType playerType,
+      const Race       raceRequested,
+      const Race       raceActual,
+      const Difficulty diff,
+      const AIBuild    aiBuild,
+      const string    &playerName
+    ) {
+        player_id      = playerID;
+        player_type    = playerType;
+        race_requested = raceRequested;
+        race_actual    = raceActual;
+        difficulty     = diff;
+        ai_build       = aiBuild;
+        player_name    = playerName;
+    }
 };
 
 struct ImageData
@@ -63,8 +69,6 @@ struct ImageData
     /*! Binary data; the size of this buffer in bytes is width * height *
      * bits_per_pixel / 8.*/
     string data_ { };
-
-    ImageData ( ) = default;
 
     explicit ImageData ( const SC2APIProtocol::ImageData &image )
       : bits_per_pixel { image.bits_per_pixel( ) },
@@ -87,9 +91,8 @@ struct ImageData
     ) {
         if ( need_return ) {
             const int expectedSizeBits { bits_per_pixel * map_area_.Area( ) };
-            need_return =
-              ( image.data( ).size( ) * 8 == expectedSizeBits &&
-                expectedSizeBits > 0 );
+            need_return = image.data( ).size( ) * 8 == expectedSizeBits &&
+                          expectedSizeBits > 0;
         }
 
         // TODO Verify if data_ should be updated on check failure.
@@ -299,10 +302,10 @@ private:
     int bits_per_pixel;
 
 public:
-    explicit ImageData_StepSample ( const SC2APIProtocol::ImageData &data )
-      : data_ ( data.data( ) ),
-        map_area_ ( { 0, 0 }, { data.size( ).x( ), data.size( ).y( ) } ),
-        bits_per_pixel ( data.bits_per_pixel( ) ) { }
+    //explicit ImageData_StepSample ( const SC2APIProtocol::ImageData &data )
+    //  : data_ ( data.data( ) ),
+    //    map_area_ ( { 0, 0 }, { data.size( ).x( ), data.size( ).y( ) } ),
+    //    bits_per_pixel ( data.bits_per_pixel( ) ) { }
 
     explicit ImageData_StepSample ( const ImageData &data )
       : data_ ( data.data_ ),
@@ -347,9 +350,6 @@ public:
 
 struct PathingGrid
 {
-private:
-    ImageData_StepSample pathing_grid_;
-
 public:
     PathingGrid ( ) = delete;
 
@@ -388,6 +388,9 @@ public:
             dst << '\n';
         }
     }
+
+private:
+    ImageData_StepSample pathing_grid_;
 }; // PathingGrid
 
 struct PlacementGrid

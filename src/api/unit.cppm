@@ -1,18 +1,17 @@
 module;
-// #include <algorithm>
-// #include <cstdint>
-// #include <functional>
-// #include <ranges>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <utility>
-// #include <vector>
+#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <ranges>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 export module unit;
-import common;
+import point;
 import type_enums;
 import error_handler;
 import game_types;
-import std;
 
 namespace {
 
@@ -23,23 +22,25 @@ using std::ranges::transform;
 using std::uint8_t;
 using std::unordered_map;
 using std::vector;
+using std::views::values;
 
-} // namespace
+} // using declarations
 
 export namespace sc2 {
-// using namespace std;
 
 //! An order that is active on a unit.
 struct UnitOrder
 {
-    //! Ability ID that triggered the order.
-    AbilityID ability_id { ABILITY_ID::INVALID };
     //! Target unit of the order, if there is one.
     Tag       target_unit_tag { NullTag };
     //! Target position of the order, if there is one.
-    sc2::Point2D   target_pos { };
+    Point2D   target_pos { };
     //! Progress of the order.
     float     progress { 0.0F };
+    //! Ability ID that triggered the order.
+    AbilityID ability_id { ABILITY_ID::INVALID };
+
+    UnitOrder ( ) = default;
 };
 
 //! A passenger on a transport.
@@ -227,7 +228,6 @@ public:
         return build_progress >= 1.0F;
     }
 
-    // ReSharper disable once CppNonExplicitConversionOperator
     operator const Point2D &( ) const {
         return pos;
     }
@@ -249,7 +249,7 @@ using UnitIdxMap = unordered_map<Tag, size_t>;
 [[deprecated]]
 Tags ConvertToTags ( const Units &units ) {
     Tags tags;
-    ranges::transform ( units, back_inserter ( tags ), [] ( const Unit *unit ) {
+    std::ranges::transform ( units, back_inserter ( tags ), [] ( const Unit *unit ) {
         return unit->tag;
     } );
     return tags;
@@ -316,7 +316,7 @@ public:
     void ForEachExistingUnit (
       const function<void ( Unit &unit )> &functor
     ) const {
-        for ( const auto &val : tag_to_existing_unit_ | views::values ) {
+        for ( const auto &val : tag_to_existing_unit_ | values ) {
             Assert ( val );
             functor ( *val );
         }

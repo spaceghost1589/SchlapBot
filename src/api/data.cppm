@@ -8,7 +8,7 @@ module;
 #include <s2clientprotocol/raw.pb.h>
 export module data;
 import protocol_interface;
-import common;
+import point;
 import game_types;
 import proto_to_pods;
 import type_enums;
@@ -40,7 +40,7 @@ enum class Target : uint8_t {
     //! Target can be a point or another unit.
     PointOrUnit = 4,
     //! Target can be a point or no target.
-    PointOrNone = 5
+    PointOrNone = 5,
 };
 
 string TargetToName ( const Target target ) {
@@ -59,17 +59,17 @@ struct AbilityData
 {
     //! Range unit can cast ability without needing to approach target.
     float     cast_range;
-    //! This ability id may be represented by the given more generic id.
-    uint16_t  remaps_to_ability_id;
     //! Stable ID. For a given ability, this value will be immutable throughout
     //! different patches.
     AbilityID ability_id;
+    //! This ability id may be represented by the given more generic id.
+    uint16_t  remaps_to_ability_id;
     //! Determines if a point, unit, both or none is required as a target.
     Target    target;
-    //! Autocast can be set.
-    bool      allow_autocast;
     //! If the ability is placing a building, give the radius of the footprint.
     uint8_t   footprint_diameter;
+    //! Autocast can be set.
+    bool      allow_autocast;
     //! Placement next to an existing structure, e.g., an add-on like a Tech
     //! Lab.
     bool      is_instant_placement;
@@ -107,25 +107,28 @@ struct AbilityData
     AbilityData ( ) = default;
 
     AbilityData (
+        float     cast_range,
         AbilityID ability_id,
         uint16_t  remaps_to_ability_id,
         Target    target,
-        bool      allow_autocast,
         uint8_t   footprint_diameter,
-        bool      is_instant_placement,
-        float     cast_range
-    ) // ReSharper disable once CppMemberInitializersOrder
-          : ability_id ( ability_id ),
-            remaps_to_ability_id ( remaps_to_ability_id ),
-            target ( target ),
-            allow_autocast ( allow_autocast ),
-            footprint_diameter ( footprint_diameter ),
-            is_instant_placement ( is_instant_placement ),
-            cast_range ( cast_range ) {}
+        bool      allow_autocast,
 
-    //! Serialize this ability entry from the .proto file (used internally).
-    //! @param ability_data The proto entry for this ability.
-    void ReadFromProto ( const SC2APIProtocol::AbilityData& ability_data ) {
+        bool is_instant_placement
+
+    )
+        : cast_range ( cast_range ),
+          ability_id ( ability_id ),
+          remaps_to_ability_id ( remaps_to_ability_id ),
+          target ( target ),
+          footprint_diameter ( footprint_diameter ),
+          allow_autocast ( allow_autocast ),
+          is_instant_placement ( is_instant_placement ) { }
+
+    // TODO: Move to ProtoToPots
+    /*! @brief Serialize this ability entry from the .proto file (used internally).
+     * @param ability_data The proto entry for this ability. */
+    void ReadFromProto ( const SC2APIProtocol::AbilityData &ability_data ) {
         // ability_id_
         if ( ability_data.has_ability_id( ) ) {
             ability_id = ability_data.ability_id( );
@@ -165,10 +168,11 @@ struct AbilityData
         }
     }
 
+
     //! Serialize this ability to a string.
     string Log ( ) const {
         return to_string ( ability_id ) + ":\n" +
-            "  Target: " + TargetToName ( target );
+               "  Target: " + TargetToName ( target );
     }
 };
 
@@ -259,11 +263,12 @@ enum class Attribute : uint8_t {
     Psionic    = 1 << 4, // 16
     Massive    = 1 << 5, // 32
     Structure  = 1 << 6, // 64
-    Flying     = 1 << 7  // 128 // formerly Hover
+    Flying     = 1 << 7, // 128 // formerly Hover
 };
 
 uint8_t ConvertAttributeEnum (
-    const SC2APIProtocol::Attribute& SC2API_attr, uint8_t bit_mask = 0
+    const SC2APIProtocol::Attribute &SC2API_attr,
+    uint8_t                          bit_mask = 0
 ) { // clang-format off
     switch ( SC2API_attr ) {
         case SC2APIProtocol::Attribute::Light :
@@ -304,7 +309,7 @@ struct DamageBonus
 
     DamageBonus ( ) = default;
 
-    void ReadFromProto ( const SC2APIProtocol::DamageBonus& damage_bonus ) {
+    void ReadFromProto ( const SC2APIProtocol::DamageBonus &damage_bonus ) {
         // attribute_
         attribute = ConvertAttributeEnum ( damage_bonus.attribute( ) );
 
@@ -348,7 +353,7 @@ struct Weapon
         }
     }
 
-    void ReadFromProto ( const SC2APIProtocol::Weapon& weapon ) {
+    void ReadFromProto ( const SC2APIProtocol::Weapon &weapon ) {
         // type_
         type = ConvertTargetTypeEnum ( weapon.type( ) );
 
@@ -432,7 +437,7 @@ struct UnitTypeData
 
     //! Serialize this ability entry from the .proto file (used internally).
     //! @param unit_data The proto entry for this ability.
-    void ReadFromProto ( const SC2APIProtocol::UnitTypeData& unit_data ) {
+    void ReadFromProto ( const SC2APIProtocol::UnitTypeData &unit_data ) {
         // unit_type_id_
         unit_type_id = unit_data.unit_id( );
 
@@ -502,7 +507,7 @@ struct UnitTypeData
     //! Serialize this unit type to a string.
     string Log ( ) const {
         return to_string ( unit_type_id ) + ":\n" + "  " +
-            ( !name.empty( ) ? name : "Null" ) + "\n";
+               ( !name.empty( ) ? name : "Null" ) + "\n";
     }
 };
 
@@ -527,7 +532,7 @@ struct UpgradeData
 
     UpgradeData ( ) = default;
 
-    void ReadFromProto ( const SC2APIProtocol::UpgradeData& upgrade_data ) {
+    void ReadFromProto ( const SC2APIProtocol::UpgradeData &upgrade_data ) {
         upgrade_id    = upgrade_data.upgrade_id( );
         name          = upgrade_data.name( );
         mineral_cost  = upgrade_data.mineral_cost( );
@@ -555,7 +560,7 @@ struct BuffData
 
     BuffData ( ) = default;
 
-    void ReadFromProto ( const SC2APIProtocol::BuffData& buff_data ) {
+    void ReadFromProto ( const SC2APIProtocol::BuffData &buff_data ) {
         // upgrade_id_
         buff_id = buff_data.buff_id( );
 
@@ -584,7 +589,7 @@ struct EffectData
     //! Size of the circle the effect impacts.
     float    radius;
 
-    void ReadFromProto ( const SC2APIProtocol::EffectData& effect_data ) {
+    void ReadFromProto ( const SC2APIProtocol::EffectData &effect_data ) {
         effect_id     = effect_data.effect_id( );
         name          = effect_data.name( );
         friendly_name = effect_data.friendly_name( );
@@ -603,10 +608,14 @@ using Effects = vector<EffectData>;
 //! Power source information for Protoss.
 struct PowerSource
 {
-    PowerSource ( const Point2D in_position, float in_radius, Tag in_tag )
-          : position ( in_position ),
-            radius ( in_radius ),
-            tag ( in_tag ) {}
+    PowerSource (
+        const Point2D in_position,
+        const float   in_radius,
+        const Tag     in_tag
+    )
+        : position ( in_position ),
+          radius ( in_radius ),
+          tag ( in_tag ) { }
 
     //! Power source position.
     Point2D position;
@@ -625,10 +634,10 @@ struct Effect
     //! eg. The Lurker's attack impacts multiple positions in a line.
     vector<Point2D> positions;
 
-    void ReadFromProto ( const SC2APIProtocol::Effect& effect ) {
+    void ReadFromProto ( const SC2APIProtocol::Effect &effect ) {
         effect_id = effect.effect_id( );
         for ( int i = 0; i < effect.pos_size( ); ++i ) {
-            const SC2APIProtocol::Point2D& pos = effect.pos ( i );
+            const SC2APIProtocol::Point2D &pos = effect.pos ( i );
             positions.push_back ( Point2D ( pos.x( ), pos.y( ) ) );
         }
     }
@@ -638,13 +647,14 @@ struct Effect
 
 namespace {
 
-using sc2::Target::None;
-using sc2::Target::Point;
-using sc2::Target::PointOrNone;
-using sc2::Target::PointOrUnit;
-using sc2::Target::Unit;
+// using sc2::Target::None;
+// using sc2::Target::Point;
+// using sc2::Target::PointOrNone;
+// using sc2::Target::PointOrUnit;
+// using sc2::Target::Unit;
+using enum sc2::Target;
 
-} // namespace
+} // using declaration
 
 namespace sc2 {
 

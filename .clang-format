@@ -116,7 +116,7 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
-BracedInitializerIndentWidth: 2
+BracedInitializerIndentWidth: 4
 BreakAdjacentStringLiterals: true
 BreakAfterAttributes: Leave
 BreakAfterJavaFieldAnnotations: true
@@ -144,17 +144,17 @@ BreakStringLiterals: true
 BreakTemplateDeclarations: MultiLine
 CommentPragmas: "#"
 CompactNamespaces: true
-ConstructorInitializerIndentWidth: 2
-ContinuationIndentWidth: 2
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
 Cpp11BracedListStyle: Block
 DerivePointerAlignment: false
 DisableFormat: false
-EmptyLineAfterAccessModifier: Never
+EmptyLineAfterAccessModifier: Leave
 EmptyLineBeforeAccessModifier: LogicalBlock
 EnumTrailingComma: Insert
 FixNamespaceComments: true
 ForEachMacros: [ ]
-IfMacros:
+#IfMacros:
 IncludeBlocks: Regroup #https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 IncludeCategories:
   - Regex: '^<[^/]+>$'
@@ -255,7 +255,7 @@ QualifierOrder: [ friend, static, inline, constexpr, const, volatile, restrict, 
 ReferenceAlignment: Right
 ReflowComments: Always
 RemoveBracesLLVM: false
-RemoveEmptyLinesInUnwrappedLines: true
+RemoveEmptyLinesInUnwrappedLines: false
 RemoveParentheses: MultipleParentheses
 RemoveSemicolon: true
 RequiresClausePosition: OwnLine

@@ -10,7 +10,8 @@ export module search;
 import debug_interface;
 import observation_interface;
 import query_interface;
-import common;
+import color;
+import point;
 import type_enums;
 import unit;
 
@@ -18,10 +19,10 @@ export namespace sc2 {
 using namespace std;
 
 size_t CalculateQueries (
-    float                                   radius,
-    float                                   step_size,
-    const Point2D&                          center,
-    vector<QueryInterface::PlacementQuery>& queries
+    const float                             radius,
+    const float                             step_size,
+    const Point2D                          &center,
+    vector<QueryInterface::PlacementQuery> &queries
 ) {
     Point2D previous_grid (
         numeric_limits<float>::max( ),
@@ -29,12 +30,12 @@ size_t CalculateQueries (
     );
     size_t valid_queries = 0;
     // Find a buildable location on the circumference of the sphere
-    float  loc           = 0.0f;
-    while ( loc < 360.0f ) {
+    float  loc           = 0.0F;
+    while ( loc < 360.0F ) {
         const Point2D point = Point2D (
-            ( radius * cos ( ( loc * numbers::pi_v<float> ) / 180.0f ) ) +
+            ( radius * cos ( ( loc * numbers::pi_v<float> ) / 180.0F ) ) +
                 center.x,
-            ( radius * sin ( ( loc * numbers::pi_v<float> ) / 180.0f ) ) +
+            ( radius * sin ( ( loc * numbers::pi_v<float> ) / 180.0F ) ) +
                 center.y
         );
 
@@ -57,21 +58,19 @@ size_t CalculateQueries (
     return valid_queries;
 }
 
-
 /*! @brief Clusters units within some distance of each other and returns a list
  * of them and their center of mass. */
-vector<pair<Point3D, vector<Unit>>> Cluster (
-    const Units& units, float distance_apart
-) {
+vector<pair<Point3D, vector<Unit>>>
+    Cluster ( const Units &units, float distance_apart ) {
     const float squared_distance_apart = distance_apart * distance_apart;
     vector<pair<Point3D, vector<Unit>>> clusters;
-    for ( const Unit* unit : units ) {
-        const Unit& u = *unit;
+    for ( const Unit *unit : units ) {
+        const Unit &u = *unit;
 
         float                        distance = numeric_limits<float>::max( );
-        pair<Point3D, vector<Unit>>* target_cluster = nullptr;
+        pair<Point3D, vector<Unit>> *target_cluster = nullptr;
         // Find the cluster this mineral patch is closest to.
-        for ( pair<Point3D, vector<Unit>>& cluster : clusters ) {
+        for ( pair<Point3D, vector<Unit>> &cluster : clusters ) {
             if ( const float d = DistanceSquared3D ( cluster.first, u );
                  d < distance )
             {
@@ -103,31 +102,30 @@ struct ExpansionParameters
     // certain maps.
 
     //! The various radius to check at from the center of an expansion.
-    vector<float> radii_ = { 6.4f, 5.3f };
+    vector<float> radii_ = { 6.4F, 5.3F };
 
     //! With what granularity to step the circumference of the circle.
-    float circle_step_size_ = 0.5f;
+    float circle_step_size_ = 0.5F;
 
     /*! With what distance to cluster mineral/vespene in, this will be used for
      * center of mass calculation. */
-    float cluster_distance_ = 15.0f;
+    float cluster_distance_ = 15.0F;
 
     /*! If filled out CalculateExpansionLocations will render spheres to show
      * what it calculated. */
-    DebugInterface* debug_ = nullptr;
+    DebugInterface *debug_ = nullptr;
 };
 
 /*! @brief Calculates expansion locations, this call can take on the order of
  * 100ms since it makes blocking queries to SC2 so call it once and cache the
  * results.*/
 vector<Point3D> CalculateExpansionLocations (
-    const ObservationInterface* resources,
-    const QueryInterface*       query,
-    const ExpansionParameters&  parameters
+    const ObservationInterface *resources,
+    const QueryInterface       *query,
+    const ExpansionParameters  &parameters
 ) {
-    const Units resources_ = resources->GetUnits ( [] ( const Unit& unit ) {
-        return unit.unit_type ==
-            UNIT_TYPEID // clang-format off
+    const Units resources_ = resources->GetUnits ( [] ( const Unit &unit ) {
+        return unit.unit_type == UNIT_TYPEID // clang-format off
                                 ::NEUTRAL_MINERALFIELD ||
                unit.unit_type == UNIT_TYPEID
                                 ::NEUTRAL_MINERALFIELD750 ||
@@ -171,7 +169,7 @@ vector<Point3D> CalculateExpansionLocations (
 
     vector<size_t>                         query_size;
     vector<QueryInterface::PlacementQuery> queries;
-    for ( const pair<Point3D, vector<Unit>>& cluster : clusters ) {
+    for ( const pair<Point3D, vector<Unit>> &cluster : clusters ) {
         if ( parameters.debug_ ) {
             for ( const float radius : parameters.radii_ ) {
                 parameters.debug_
@@ -196,7 +194,7 @@ vector<Point3D> CalculateExpansionLocations (
     vector<bool> results     = query->Placement ( queries );
     size_t       start_index = 0;
     for ( int i = 0; i < clusters.size( ); ++i ) { // pt3d, vUnit
-        const pair<Point3D, vector<Unit>>& cluster = clusters[i];
+        const pair<Point3D, vector<Unit>> &cluster = clusters[i];
         float   distance = numeric_limits<float>::max( );
         Point2D closest;
 
@@ -209,7 +207,7 @@ vector<Point3D> CalculateExpansionLocations (
                 continue;
             }
 
-            const Point2D& pt = queries[j].target_pos;
+            const Point2D &pt = queries[j].target_pos;
 
             if ( const float d = Distance ( pt, cluster.first ); d < distance )
             {
@@ -225,7 +223,7 @@ vector<Point3D> CalculateExpansionLocations (
         );
 
         if ( parameters.debug_ ) {
-            parameters.debug_->DebugSphereOut ( expansion, 0.35f, Red );
+            parameters.debug_->DebugSphereOut ( expansion, 0.35F, Red );
         }
 
         expansion_locations.push_back ( expansion );

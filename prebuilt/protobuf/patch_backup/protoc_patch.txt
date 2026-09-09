@@ -1,0 +1,5 @@
+This protoc.exe includes patches for C++20 module compatibility.
+
+Only replace with newer, patched versions.
+
+DO NOT replace with unpatched version.

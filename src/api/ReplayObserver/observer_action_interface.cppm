@@ -2,7 +2,7 @@ module;
 #include <s2clientprotocol/sc2api.pb.h>
 export module observer_action_interface;
 import protocol_interface;
-import common;
+import point;
 
 export namespace sc2 {
 
@@ -10,13 +10,13 @@ export namespace sc2 {
  * observer UI. */
 class ObserverActionInterface {
 public:
-    GameRequestPtr request_{nullptr};
+    GameRequestPtr request_ { nullptr };
 
     explicit ObserverActionInterface ( ) = default;
 
     virtual ~ObserverActionInterface ( ) = default;
 
-    SC2APIProtocol::RequestObserverAction* GetRequest ( ) {
+    SC2APIProtocol::RequestObserverAction *GetRequest ( ) {
         if ( request_ == nullptr ) {
             request_ = ProtoFace::MakeRequest( );
         }
@@ -28,11 +28,11 @@ public:
      * @param point The 2D world position to target.
      * @param distance Distance between camera and terrain. Larger value zooms
      * out camera. Defaults to standard camera distance if set to 0. */
-    void CameraMove ( const Point2D& point, float distance = 0.0F ) {
-        SC2APIProtocol::RequestObserverAction* request = GetRequest( );
-        SC2APIProtocol::ObserverAction*        action = request->add_actions( );
-        SC2APIProtocol::ActionObserverCameraMove* camera_move =
-            action->mutable_camera_move( );
+    void CameraMove ( const Point2D &point, float distance = 0.0F ) {
+        SC2APIProtocol::RequestObserverAction *request = GetRequest( );
+        SC2APIProtocol::ObserverAction        *action = request->add_actions( );
+        SC2APIProtocol::ActionObserverCameraMove *camera_move =
+          action->mutable_camera_move( );
         camera_move->set_distance ( distance );
         camera_move->mutable_world_pos( )->set_x ( point.x );
         camera_move->mutable_world_pos( )->set_y ( point.y );
@@ -41,8 +41,8 @@ public:
     /*! @brief Makes the observer camera follow the observed player's
      * perspective. */
     void CameraFollowPlayer ( ) {
-        SC2APIProtocol::RequestObserverAction* request = GetRequest( );
-        SC2APIProtocol::ObserverAction*        action = request->add_actions( );
+        SC2APIProtocol::RequestObserverAction *request = GetRequest( );
+        SC2APIProtocol::ObserverAction        *action = request->add_actions( );
         action->mutable_camera_follow_player( );
     }
 
