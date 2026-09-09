@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/prebuilt/absl-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/prebuilt/protobuf-src" vcs="Git" />
   </component>
 </project>

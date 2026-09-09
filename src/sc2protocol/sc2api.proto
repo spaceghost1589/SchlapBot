@@ -1,5 +1,6 @@
 
 syntax = "proto2";
+option cc_enable_arenas = true;
 
 package SC2APIProtocol;
 
@@ -677,7 +678,7 @@ message ActionObserverCameraFollowPlayer {
 }
 
 message ActionObserverCameraFollowUnits {
-  repeated uint64 unit_tags = 1;
+  repeated uint64 unit_tags = 1 [packed = true];
 }
 
 enum Alert {

@@ -1,7 +1,7 @@
 #if ( BUILD_SC2_RENDERER ) #Process optional Renderer
 #add_subdirectory( renderer )
 #endif( )
-message( STATUS "========== add_executable(SchlapBot main.cpp) ==========" )
+
 # Define the bot executable and link everything
 add_executable(SchlapBot main.cpp)
 
@@ -24,7 +24,7 @@ target_include_directories(SchlapBot SYSTEM PUBLIC
 
 if(CMAKE_DEBUG)
   if(GNU)
-#    target_compile_options(SchlapBot PRIVATE -save-temps=cwd)
+    target_compile_options(SchlapBot PRIVATE -save-temps=cwd)
   elseif(MSVC)
     target_compile_options(SchlapBot PRIVATE
         /P
@@ -40,17 +40,17 @@ endif()
 # #appears to be broken on MinGW / Windows
 #target_compile_options( SchlapBot PRIVATE - freport - bug )
 #endif( )
-message( STATUS "========== ERROR: target_precompile_headers(SchlapBot PRIVATE ==========" )
-#target_precompile_headers(SchlapBot PRIVATE
-#    <vector>
-#    <string>
-#    <memory>
-#    <unordered_map>
-#    <iostream>
-#    <civetweb.h>
-#    <google/protobuf/message.h>
-#    $<$<BOOL:${BUILD_SC2_RENDERER}>:<SDL.h$<ANGLE-R>>
-#    )                              # $<ANGLE-R> is `>`
+
+target_precompile_headers(SchlapBot PRIVATE
+    <vector>
+    <string>
+    <memory>
+    <unordered_map>
+    <iostream>
+    <civetweb.h>
+    <google/protobuf/message.h>
+    $<$<BOOL:${BUILD_SC2_RENDERER}>:<SDL.h$<ANGLE-R>>
+    )                              # $<ANGLE-R> is `>`
 
 target_link_libraries(
     SchlapBot PUBLIC
@@ -97,4 +97,3 @@ endif()
 if(BUILD_FOR_LADDER)
   target_compile_definitions(SchlapBot PRIVATE BUILD_FOR_LADDER)
 endif()
-message( STATUS "========== END src/CMakeLists.txt ==========" )

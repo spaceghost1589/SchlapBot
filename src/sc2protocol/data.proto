@@ -1,5 +1,6 @@
 
 syntax = "proto2";
+option cc_enable_arenas = true;
 
 package SC2APIProtocol;
 
@@ -85,7 +86,7 @@ message UnitTypeData {
   optional bool has_minerals = 20;
   optional float sight_range = 25;                                // Range unit reveals vision.
 
-  repeated uint32 tech_alias = 21;                                // Other units that satisfy the same tech requirement.
+  repeated uint32 tech_alias = 21 [packed = true];                // Other units that satisfy the same tech requirement.
   optional uint32 unit_alias = 22;                                // The morphed variant of this unit.
 
   optional uint32 tech_requirement = 23;                          // Structure required to build this unit. (Or any with the same tech_alias)

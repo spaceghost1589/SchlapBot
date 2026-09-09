@@ -25,7 +25,7 @@ message(STATUS "--------------------------------------------------------------")
 set(GNU_ OFF)
 set(CLANG_ OFF)
 # Check compiler and set state accordingly
-# MSVC is natively supported.
+# "MSVC" is natively supported.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(GNU_ ON)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -115,13 +115,13 @@ set(SC2_VERSION
     CACHE STRING "Version of the target StarCraft II client")
 message(STATUS "===== Target SC2 version: ${SC2_VERSION}")
 
-##region Executable Directory
-# # Use bin as the directory for all executables.
-# # This will make protoc easy to find.
-#set(CPP_SC2_BUILD_DIR "${PROJECT_BINARY_DIR}/bin")
-#set(EXECUTABLE_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
-#set(LIBRARY_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
-##endregion
+#region Executable Directory
+ # Use bin as the directory for all executables.
+ # This will make protoc easy to find.
+set(CPP_SC2_BUILD_DIR "${PROJECT_BINARY_DIR}/bin")
+set(EXECUTABLE_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
+set(LIBRARY_OUTPUT_PATH "${CPP_SC2_BUILD_DIR}")
+#endregion
 
 # Windows builds subdirectories Debug/Release. These variables will overwrite
 # that and put binaries in bin.
@@ -145,7 +145,7 @@ set(CMAKE_DEBUG_POSTFIX ${LIBRARY_DEBUG_POSTFIX})
 list(
     APPEND CMAKE_MODULE_PATH
     "${PROJECT_SOURCE_DIR}/thirdparty/civetweb"
-#    "${PROJECT_SOURCE_DIR}/thirdparty/protobuf"
+    "${PROJECT_SOURCE_DIR}/thirdparty/protobuf"
     "${PROJECT_SOURCE_DIR}/thirdparty/sc2protocol"
     "${PROJECT_SOURCE_DIR}/thirdparty/SDL"
     )
@@ -206,8 +206,7 @@ endif()
 
 #region External Subproject Dependencies
 include(${CMAKE_SOURCE_DIR}/thirdparty/civetweb/civetweb.cmake)
-#include(${CMAKE_SOURCE_DIR}/thirdparty/protobuf/protobuf.cmake)
-#include(${CMAKE_SOURCE_DIR}/thirdparty/protobuf/protobuf_external.cmake)
+include(${CMAKE_SOURCE_DIR}/thirdparty/protobuf/protobuf.cmake)
 include(${CMAKE_SOURCE_DIR}/thirdparty/sc2protocol/sc2protocol.cmake)
 if(BUILD_SC2_RENDERER)
   include(${CMAKE_SOURCE_DIR}/thirdparty/SDL/SDL.cmake)
