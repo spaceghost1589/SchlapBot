@@ -7,10 +7,9 @@ module;
 
 #include "utils/macro/message_response.h"
 export module observation_interface;
-import std;
 import protocol_interface;
 import action;
-import common;
+import point;
 import data;
 import enum_db;
 import error_handler;
@@ -25,14 +24,9 @@ namespace {
 
 struct MapState
 {
-private:
-    sc2::ImageData_StepSample creep_data_;
-    sc2::ImageData_StepSample visibility_data_;
-
-public:
     explicit MapState ( const SC2APIProtocol::MapState &map )
-      : creep_data_ ( map.creep( ) ),
-        visibility_data_ ( map.visibility( ) ) { }
+        : creep_data_ ( map.creep( ) ),
+          visibility_data_ ( map.visibility( ) ) { }
 
     bool HasCreep ( const sc2::Point2DI &point ) const {
         if ( creep_data_.BPP( ) == 1 ) {
@@ -50,22 +44,21 @@ public:
         return value > 0;
     }
 
-    sc2::Visibility GetVisibility ( const sc2::Point2DI &point ) const {
+    sc2::Visibility GetVisibility ( const sc2::Point2D &point ) const {
         unsigned char value;
         if ( !visibility_data_.GetBit ( point, &value ) )
             return sc2::Visibility::FullHidden;
-
-        if ( value == 0 )
-            return sc2::Visibility::Hidden;
-
-        if ( value == 1 )
-            return sc2::Visibility::Fogged;
-
-        if ( value == 2 )
-            return sc2::Visibility::Visible;
-
-        return sc2::Visibility::FullHidden;
+        switch ( value ) {
+            case 0  : return sc2::Visibility::Hidden;
+            case 1  : return sc2::Visibility::Fogged;
+            case 2  : return sc2::Visibility::Visible;
+            default : return sc2::Visibility::FullHidden;
+        }
     }
+
+private:
+    sc2::ImageData creep_data_;
+    sc2::ImageData visibility_data_;
 };
 
 
@@ -135,13 +128,12 @@ public:
     vector<PlayerResult> player_results_;
 
     ObservationInterface (
-      ObservationPtr         &observation,
-      ResponseObservationPtr &response
+        ObservationPtr         &observation,
+        ResponseObservationPtr &response
     )
-      : observation_ ( observation ),
-        response_ ( response ),
-        game_info_ ( GetGameInfo( ) )
-    {
+        : observation_ ( observation ),
+          response_ ( response ),
+          game_info_ ( GetGameInfo( ) ) {
         ClearFlags( );
     }
 
@@ -321,9 +313,8 @@ public:
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
 
-        if (
-          response_data.HasErrors( ) || response_data->abilities_size( ) == 0
-        )
+        if ( response_data.HasErrors( ) ||
+             response_data->abilities_size( ) == 0 )
         {
             return abilities_;
         }
@@ -341,7 +332,7 @@ public:
 
         for ( const AbilityData &ability_data : abilities_ ) {
             AbilityID genAbility =
-              GetGeneralizedAbilityID ( ability_data.ability_id );
+                GetGeneralizedAbilityID ( ability_data.ability_id );
             if ( genAbility == ability_data.ability_id )
                 continue;
 
@@ -454,9 +445,8 @@ public:
         const GameResponsePtr response = ProtoFace::WaitForResponse( );
         ResponseDataPtr       response_data;
         SET_MESSAGE_RESPONSE ( response_data, response, data );
-        if (
-          response_data.HasErrors( ) || response_data->upgrades_size( ) == 0
-        )
+        if ( response_data.HasErrors( ) ||
+             response_data->upgrades_size( ) == 0 )
         {
             return upgrade_ids_;
         }
@@ -636,7 +626,7 @@ public:
         }
 
         return MapState ( observation_raw->map_state( ) )
-          .GetVisibility ( point );
+            .GetVisibility ( point );
     }
 
     // TODO
@@ -791,7 +781,7 @@ public:
         current_game_loop_            = next_game_loop;
 
         const SC2APIProtocol::PlayerCommon &player_common =
-          observation_->player_common( );
+            observation_->player_common( );
         Assert ( player_common.has_player_id( ) );
         if ( player_common.has_player_id( ) ) {
             player_id_ = player_common.player_id( );
@@ -824,27 +814,27 @@ public:
         {
             for ( ActionRaw &action : raw_actions_ ) {
                 action.ability_id =
-                  GetGeneralizedAbilityID ( action.ability_id );
+                    GetGeneralizedAbilityID ( action.ability_id );
             }
             for ( SpatialUnitCommand &spatial_action :
                   feature_layer_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                  GetGeneralizedAbilityID ( spatial_action.ability_id );
+                    GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
             for ( SpatialUnitCommand &spatial_action :
                   rendered_actions_.unit_commands )
             {
                 spatial_action.ability_id =
-                  GetGeneralizedAbilityID ( spatial_action.ability_id );
+                    GetGeneralizedAbilityID ( spatial_action.ability_id );
             }
         }
 
         chat_.clear( );
         for ( const auto &message : response_->chat( ) ) {
             chat_.push_back (
-              { .player_id = message.player_id( ),
-                .message   = message.message( ) }
+                { .player_id = message.player_id( ),
+                  .message   = message.message( ) }
             );
         }
 
@@ -856,10 +846,10 @@ public:
 
         unit_pool_.ClearExisting( );
         Convert (
-          observation_raw,
-          unit_pool_,
-          current_game_loop_,
-          previous_game_loop
+            observation_raw,
+            unit_pool_,
+            current_game_loop_,
+            previous_game_loop
         );
 
         // Remap ability ids in orders.
@@ -867,7 +857,7 @@ public:
             for ( UnitOrder &unit_order : unit.orders ) {
                 if ( use_generalized_ability_ ) {
                     unit_order.ability_id =
-                      GetGeneralizedAbilityID ( unit_order.ability_id );
+                        GetGeneralizedAbilityID ( unit_order.ability_id );
                 }
             }
         } );
@@ -883,7 +873,7 @@ public:
         }
 
         const SC2APIProtocol::PlayerRaw &player_raw =
-          observation_raw->player( );
+            observation_raw->player( );
         if ( !player_raw.has_camera( ) ) {
             return false;
         }
@@ -894,11 +884,11 @@ public:
         power_sources_.clear( );
         for ( int i = 0, e = player_raw.power_sources_size( ); i < e; ++i ) {
             const SC2APIProtocol::PowerSource &power_source =
-              player_raw.power_sources ( i );
+                player_raw.power_sources ( i );
             power_sources_.push_back ( PowerSource (
-              Point2D ( power_source.pos( ).x( ), power_source.pos( ).y( ) ),
-              power_source.radius( ),
-              power_source.tag( )
+                Point2D ( power_source.pos( ).x( ), power_source.pos( ).y( ) ),
+                power_source.radius( ),
+                power_source.tag( )
             ) );
         }
 
@@ -911,8 +901,8 @@ public:
         player_results_.clear( );
         for ( const auto &player_result : response_->player_result( ) ) {
             player_results_.push_back ( PlayerResult (
-              player_result.player_id( ),
-              ConvertGameResultFromProto ( player_result.result( ) )
+                player_result.player_id( ),
+                ConvertGameResultFromProto ( player_result.result( ) )
             ) );
         }
 

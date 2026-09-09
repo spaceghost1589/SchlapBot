@@ -3,9 +3,10 @@ module;
 export module debug_interface;
 import observation_interface;
 import protocol_interface;
-import common;
+import color;
 import enum_db;
 import game_types;
+import point;
 import type_enums;
 import unit;
 

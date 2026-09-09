@@ -13,12 +13,11 @@ import enum_db;
 import error_handler;
 import game_settings;
 
-
 using Response = SC2APIProtocol::Response::ResponseCase;
 using Request  = SC2APIProtocol::Request::RequestCase;
 
 //! Helper to produce a string for the protocol type.
-const char* RequestResponseIDToName ( int type ) {
+const char *RequestResponseIDToName ( int type ) {
     switch ( type ) {
         case 1  : return "CreateGame";
         case 2  : return "JoinGame";
@@ -47,10 +46,11 @@ const char* RequestResponseIDToName ( int type ) {
 }
 
 export namespace sc2 {
+
 using namespace std;
 
 // A generous 120 seconds.
-constexpr unsigned int kDefaultProtoInterfaceTimeout = 120000;
+constexpr unsigned int kDefaultProtoInterfaceTimeout = 120'000;
 
 using GameRequestPtr  = shared_ptr<SC2APIProtocol::Request>;
 using GameResponsePtr = shared_ptr<SC2APIProtocol::Response>;
@@ -58,9 +58,9 @@ using GameResponsePtr = shared_ptr<SC2APIProtocol::Response>;
 template<class MessageType> class MessageResponsePtr {
 public:
     MessageResponsePtr ( )
-          : message_ ( nullptr ) {}
+      : message_ ( nullptr ) { }
 
-    void Set ( const GameResponsePtr& response, const MessageType* message ) {
+    void Set ( const GameResponsePtr &response, const MessageType *message ) {
         response_ = response;
         message_  = message;
     }
@@ -81,12 +81,12 @@ public:
         response_ = nullptr;
     }
 
-    const MessageType* operator ->( ) const {
+    const MessageType *operator ->( ) const {
         Assert ( message_ );
         return message_;
     }
 
-    const MessageType* get ( ) const {
+    const MessageType *get ( ) const {
         Assert ( message_ );
         return message_;
     }
@@ -104,7 +104,7 @@ public:
     }
 
 private:
-    const MessageType* message_;
+    const MessageType *message_;
     GameResponsePtr    response_;
 };
 
@@ -113,15 +113,15 @@ namespace ProtoFace {
 
 Connection   connection_;
 string       address_ { "127.0.0.1" };
-int          port_ { 5000 };
+int          port_ { 5'000 };
 unsigned int default_timeout_ms_ ( kDefaultProtoInterfaceTimeout );
-function<void ( const string& error_str )> error_callback_;
+function<void ( const string &error_str )> error_callback_;
 
 ProcessInfo pi_;
 
 SC2APIProtocol::Status latest_status_ ( SC2APIProtocol::Status::unknown );
 SC2APIProtocol::Response::ResponseCase response_pending_ (
-    SC2APIProtocol::Response::RESPONSE_NOT_SET
+  SC2APIProtocol::Response::RESPONSE_NOT_SET
 );
 
 vector<uint32_t> count_uses_;
@@ -134,7 +134,7 @@ GameRequestPtr MakeRequest ( ) {
 }
 
 void SetErrorCallback (
-    const function<void ( const string& error_str )>& error_callback
+  const function<void ( const string &error_str )> &error_callback
 ) {
     error_callback_ = error_callback;
 }
@@ -146,6 +146,7 @@ bool PollResponse ( ) {
 SC2APIProtocol::Status GetLastStatus ( ) {
     return latest_status_;
 }
+
 
 bool HasResponsePending ( ) {
     return response_pending_ != Response::RESPONSE_NOT_SET;
@@ -159,7 +160,7 @@ int GetAssignedPort ( ) {
     return port_;
 }
 
-const vector<uint32_t>& GetStats ( ) {
+const vector<uint32_t> &GetStats ( ) {
     return count_uses_;
 }
 
@@ -167,7 +168,7 @@ uint32_t GetBaseBuild ( ) {
     return base_build_;
 }
 
-const string& GetDataVersion ( ) {
+const string &GetDataVersion ( ) {
     return data_version_;
 }
 
@@ -176,7 +177,8 @@ const string& GetDataVersion ( ) {
  * @param ignore_pending_requests
  * @returns The success or failure of the SendRequest. */
 bool SendRequest (
-    const GameRequestPtr& request, bool ignore_pending_requests = false
+  const GameRequestPtr &request,
+  bool                  ignore_pending_requests = false
 ) {
     const uint32_t request_type = ( request->request_case( ) );
     if ( request_type >= count_uses_.size( ) ) {
@@ -218,7 +220,7 @@ bool SendRequest (
 
 GameResponsePtr WaitForResponseInternal ( ) {
     latest_status_                     = SC2APIProtocol::Status::unknown;
-    SC2APIProtocol::Response* response = nullptr;
+    SC2APIProtocol::Response *response = nullptr;
     if ( !connection_.Receive ( response, default_timeout_ms_ ) ) {
         // If the receive fails, it means a timeout has occurred.
         return nullptr;
@@ -242,8 +244,10 @@ GameResponsePtr WaitForResponseInternal ( ) {
                 cerr << "LogError: " << response->error ( i ) << '\n';
             }
         } else {
-            if ( const Response actual_response = response->response_case( );
-                 response_pending_ != actual_response )
+            if (
+              const Response actual_response = response->response_case( );
+              response_pending_ != actual_response
+            )
             {
                 // This is bad, it means we did not get the response
                 // that matches the last request.
@@ -326,7 +330,7 @@ GameResponsePtr WaitForResponse ( ) {
     app_state = AppState::Timeout;
     for ( int i = 0; i < 10 && IsProcessRunning ( pi_.process_id ); ++i ) {
         TerminateProcess ( pi_.process_id );
-        SleepFor ( 2000 );
+        SleepFor ( 2'000 );
     }
 
     if ( IsProcessRunning ( pi_.process_id ) ) {
@@ -355,13 +359,13 @@ inline bool PingGame ( ) {
         return false;
     }
 
-    const auto& response_ping = response->ping( );
+    const auto &response_ping = response->ping( );
     base_build_               = response_ping.base_build( );
     data_version_             = response_ping.data_version( );
     return true;
 }
 
-bool ConnectToGame ( const string& address, int port, int timeout_ms ) {
+bool ConnectToGame ( const string &address, int port, int timeout_ms ) {
     latest_status_      = SC2APIProtocol::Status::unknown;
     address_            = address;
     port_               = port;
@@ -376,7 +380,7 @@ bool ConnectToGame ( const string& address, int port, int timeout_ms ) {
 }
 
 void DumpProtoUsage ( ) {
-    const vector<uint32_t>& stats = GetStats( );
+    const vector<uint32_t> &stats = GetStats( );
     cout << "******************************************************" << '\n';
     cout << "Protocol use by message type:" << '\n';
     for ( size_t i = 0; i < stats.size( ); ++i ) {

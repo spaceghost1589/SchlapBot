@@ -4,7 +4,7 @@ module;
 #include <s2clientprotocol/sc2api.pb.h>
 export module action_interface;
 import protocol_interface;
-import common;
+import point;
 import game_types;
 import type_enums;
 import unit;

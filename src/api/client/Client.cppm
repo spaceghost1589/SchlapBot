@@ -1,9 +1,3 @@
-/*! @file Client.cppm
- * @brief The base class for Agent and ReplayObserver.
- * The Client and ClientEvents provides most of the functionality a user would
- * be interested in for examining game state and scripting bots. A user should
- * prefer to inherit from either Agent or ReplayObserver, those classes both
- * inherit from Client. */
 module;
 #include <cassert>
 #include <fstream>
@@ -23,12 +17,12 @@ import debug_interface;
 import observation_interface;
 import protocol_interface;
 import query_interface;
-import common;
 import data;
 import error_handler;
 import game_settings;
 import game_types;
 import map_info;
+import point;
 import proto_to_pods;
 import renderer;
 import score;
@@ -36,68 +30,26 @@ import type_enums;
 import unit;
 
 namespace {
-
-enum class AppTest;
-
-struct MapState
-{
-    explicit MapState ( const SC2APIProtocol::MapState& map );
-
-    bool HasCreep ( const sc2::Point2D& point ) const;
-
-    sc2::Visibility GetVisibility ( const sc2::Point2D& point ) const;
-
-private:
-    sc2::ImageData_StepSample creep_data_;
-    sc2::ImageData_StepSample visibility_data_;
-};
-
-MapState::MapState ( const SC2APIProtocol::MapState& map )
-      : creep_data_ ( map.creep( ) ),
-        visibility_data_ ( map.visibility( ) ) {}
-
-bool MapState::HasCreep ( const sc2::Point2D& point ) const {
-    if ( creep_data_.BPP( ) == 1 ) {
-        bool value;
-        if ( !creep_data_.GetBit ( point, &value ) )
-            return false;
-
-        return value;
-    }
-
-    unsigned char value;
-    if ( !creep_data_.GetBit ( point, &value ) )
-        return false;
-
-    return value > 0;
-}
-
-sc2::Visibility MapState::GetVisibility ( const sc2::Point2D& point ) const {
-    unsigned char value;
-    if ( !visibility_data_.GetBit ( point, &value ) )
-        return sc2::Visibility::FullHidden;
-    switch ( value ) {
-        case ( 0 ) : return sc2::Visibility::Hidden;
-        case ( 1 ) : return sc2::Visibility::Fogged;
-        case ( 2 ) : return sc2::Visibility::Visible;
-        default    : return sc2::Visibility::FullHidden;
-    }
-}
-
+using namespace std;
 } // namespace
 
 export namespace sc2 {
-using namespace std;
+
 
 
 GameResponsePtr WaitForResponse ( );
+
+/*! The base class for Agent and ReplayObserver.
+ * The Client and ClientEvents provides most of the functionality a user would
+ * be interested in for examining game state and scripting bots. A user should
+ * prefer to inherit from either Agent or ReplayObserver, those classes both
+ * inherit from Client. */
+
 
 //! The base class for Agent (then Bot) and ReplayObserver.\n\n
 //! Merged with Control Interface.
 class Client {
 public:
-
-
     // Observation from last step.
     ObservationPtr         observation_;
     ResponseObservationPtr response_;
@@ -119,7 +71,7 @@ public:
 
     bool is_multiplayer_ { false };
 
-    explicit Client ( ) {}
+    explicit Client ( ) { }
 
     virtual ~Client ( ) {
         ProtoFace::Quit( );
@@ -127,13 +79,13 @@ public:
 
     /*! @brief Called when a game is started after a load. Fast restarting will
      * not call this. */
-    virtual void OnGameFullStart ( ) {}
+    virtual void OnGameFullStart ( ) { }
 
     /*! @brief Called when a game is started or restarted. */
     virtual void OnGameStart ( ) {
         const Units units = observation_face_->GetUnits (
             Unit::Alliance::Self,
-            [] ( const Unit& unit ) {
+            [] ( const Unit &unit ) {
             return unit.unit_type == UNIT_TYPEID::TERRAN_COMMANDCENTER ||
                    unit.unit_type == UNIT_TYPEID::PROTOSS_NEXUS ||
                    unit.unit_type == UNIT_TYPEID::ZERG_HATCHERY;
@@ -157,26 +109,26 @@ public:
     }
 
     /*! @brief Called when a game has ended. */
-    virtual void OnGameEnd ( ) {}
+    virtual void OnGameEnd ( ) { }
 
     /*! @brief In non realtime games this function gets called after each step
      * as indicated by step size. In realtime this function gets called as often
      * as possible after request/responses are received from the game gathering
      * observation state. */
-    virtual void OnStep ( ) {}
+    virtual void OnStep ( ) { }
 
     /*! @brief Called whenever one of the player's units has been destroyed.
      * @param unit The destroyed unit. */
-    virtual void OnUnitDestroyed ( const Unit* unit ) {}
+    virtual void OnUnitDestroyed ( const Unit *unit ) { }
 
     /*! @brief Called when a neutral unit is created. For example, mineral
      * fields observed for the first time.
      * @param unit The observed unit. */
-    virtual void OnNeutralUnitCreated ( const Unit* unit ) {}
+    virtual void OnNeutralUnitCreated ( const Unit *unit ) { }
 
     /*! @brief Called when a Unit has been created by the player.
      * @param unit The created unit. */
-    virtual void OnUnitCreated ( const Unit* unit ) {}
+    virtual void OnUnitCreated ( const Unit *unit ) { }
 
     /*! @brief Called when a unit becomes idle, this will only occur as an event
      * so will only be called when the unit becomes idle and not a second time.
@@ -185,17 +137,17 @@ public:
      * and now does, a unit being created, for instance, will call both
      * OnUnitCreated and OnUnitIdle if it does not have a rally set.
      * @param unit The idle unit. */
-    virtual void OnUnitIdle ( const Unit* unit ) {}
+    virtual void OnUnitIdle ( const Unit *unit ) { }
 
     /*! @brief Called when an upgrade is finished, warp gate, ground weapons,
      * baneling speed, etc.
      * @param upgrade The completed upgrade. */
-    virtual void OnUpgradeCompleted ( UpgradeID upgrade ) {}
+    virtual void OnUpgradeCompleted ( UpgradeID upgrade ) { }
 
     /*! @brief Called when the unit in the previous step had a build progress
      * less than 1.0 but is greater than or equal to 1.0 in the current step.
      * @param unit The constructed unit. */
-    virtual void OnBuildingConstructionComplete ( const Unit* unit ) {}
+    virtual void OnBuildingConstructionComplete ( const Unit *unit ) { }
 
     /*! @brief Called when the unit in the current observation has lower health
      * or shields than in the previous observation.
@@ -203,36 +155,35 @@ public:
      * @param unit The unit taking damage.
      * @param health The change in health (damage is positive)
      * @param shields The change in shields (damage is positive) */
-    virtual void OnUnitDamaged (
-        const Unit* unit, float health, float shields
-    ) {}
+    virtual void
+        OnUnitDamaged ( const Unit *unit, float health, float shields ) { }
 
     /*! @brief Called when a nydus is placed. */
-    virtual void OnNydusDetected ( ) {}
+    virtual void OnNydusDetected ( ) { }
 
     /*! @brief Called when a nuclear launch is detected. */
-    virtual void OnNuclearLaunchDetected ( ) {}
+    virtual void OnNuclearLaunchDetected ( ) { }
 
     /*! @brief Called when an enemy unit enters vision from out of fog of war.
      * @param unit The unit entering vision. */
-    virtual void OnUnitEnterVision ( const Unit* unit ) {}
+    virtual void OnUnitEnterVision ( const Unit *unit ) { }
 
     /*! @brief Called for various errors the library can encounter.
      * @see ClientError enum for possible errors. */
     virtual void OnError (
-        const vector<ClientError>& client_errors,
-        const vector<string>&      protocol_errors = { }
-    ) {}
+        const vector<ClientError> &client_errors,
+        const vector<string>      &protocol_errors = { }
+    ) { }
 
     /*! @brief The ObservationInterface is used to query game state. */
-    const ObservationInterface* Observation ( ) const {
+    const ObservationInterface *Observation ( ) const {
         // TODO (?): Should this return a nullptr if the interface is not
         // valid (e.g., before a game is started)?
         return observation_face_.get( );
     }
 
     /*! @brief The UnitQuery interface is used to issue commands to units. */
-    QueryInterface* Query ( ) const {
+    QueryInterface *Query ( ) const {
         // TODO (?): Should this return a nullptr if the interface is not
         // valid (e.g., before a game is started)?
         return query_face_.get( );
@@ -240,7 +191,7 @@ public:
 
     /*! @brief The DebugInterface allows a derived class to print text, draw
      * primitive shapes and spawn/destroy units. */
-    DebugInterface* Debug ( ) const {
+    DebugInterface *Debug ( ) const {
         return debug_face_.get( );
     }
 
@@ -256,11 +207,11 @@ public:
         // ctrl_face_ = new ControlInterface ( *this );
     }
 
-    virtual bool Connect ( const string& address, int port, int timeout_ms ) {
+    virtual bool Connect ( const string &address, int port, int timeout_ms ) {
         // Keep retrying the connection until the timeout is hit.
         bool         connected = false;
         unsigned int timeout_seconds =
-            ( static_cast<unsigned int> ( timeout_ms ) + 1500 ) / 1000;
+            ( static_cast<unsigned int> ( timeout_ms ) + 1'500 ) / 1'000;
         if ( timeout_seconds < 1 ) {
             timeout_seconds = 1;
         }
@@ -274,7 +225,7 @@ public:
                 connected = true;
                 break;
             }
-            SleepFor ( 1000 );
+            SleepFor ( 1'000 );
         }
 
         if ( !connected ) {
@@ -288,12 +239,14 @@ public:
     }
 
     virtual bool RemoteSaveMap (
-        const void* data, int data_size, string remote_path
+        const void *data,
+        const int   data_size,
+        string      remote_path
     ) {
         // Request.
         {
-            GameRequestPtr                  request = ProtoFace::MakeRequest( );
-            SC2APIProtocol::RequestSaveMap* request_save_map =
+            const GameRequestPtr            request = ProtoFace::MakeRequest( );
+            SC2APIProtocol::RequestSaveMap *request_save_map =
                 request->mutable_save_map( );
             request_save_map->set_map_path ( remote_path );
             request_save_map->set_map_data ( data, data_size );
@@ -313,29 +266,37 @@ public:
             cerr << "Error in ResponseSaveMap" << endl;
             return false;
         }
-        const SC2APIProtocol::ResponseSaveMap& response_save_game =
+        const SC2APIProtocol::ResponseSaveMap &response_save_game =
             response->save_map( );
 
         bool success = true;
         if ( response_save_game.has_error( ) ) {
-            success          = false;
-            string errorCode = "Unknown"; // TODO
-            switch ( response_save_game.error( ) ) {
-                case SC2APIProtocol::ResponseSaveMap::InvalidMapData : {
-                    errorCode = "Invalid Map Data";
-                    break;
-                }
-                default : {
-                    break;
-                }
-            }
+            success = false;
+
+            if ( response_save_game.error( ) ==
+                 SC2APIProtocol::ResponseSaveMap::InvalidMapData )
+                string errorCode = "Invalid Map Data";
+            else
+                string errorCode = "Unknown";
+
+
+            // switch ( response_save_game.error( ) ) {
+            //     case SC2APIProtocol::ResponseSaveMap::InvalidMapData : {
+            //         errorCode = "Invalid Map Data";
+            //         break;
+            //     }
+            //     default : {
+            //         break;
+            //     }
+            // }
         }
 
         return success;
     }
 
     void ResolveMap (
-        const string& map_name, SC2APIProtocol::RequestCreateGame* request
+        const string                      &map_name,
+        SC2APIProtocol::RequestCreateGame *request
     ) const {
         // BattleNet map
         if ( !HasExtension ( map_name, ".SC2Map" ) ) {
@@ -344,7 +305,7 @@ public:
         }
 
         // Absolute path
-        SC2APIProtocol::LocalMap* local_map = request->mutable_local_map( );
+        SC2APIProtocol::LocalMap *local_map = request->mutable_local_map( );
         if ( DoesFileExist ( map_name ) ) {
             local_map->set_map_path ( map_name );
             return;
@@ -371,16 +332,16 @@ public:
     }
 
     virtual bool CreateGame (
-        const string&              map_name,
-        const vector<PlayerSetup>& players,
+        const string              &map_name,
+        const vector<PlayerSetup> &players,
         bool                       realtime
     ) {
         const GameRequestPtr               request = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestCreateGame* request_create_game =
+        SC2APIProtocol::RequestCreateGame *request_create_game =
             request->mutable_create_game( );
         ResolveMap ( map_name, request_create_game );
-        for ( const PlayerSetup& setup : players ) {
-            SC2APIProtocol::PlayerSetup* playerSetup =
+        for ( const PlayerSetup &setup : players ) {
+            SC2APIProtocol::PlayerSetup *playerSetup =
                 request_create_game->add_player_setup( );
             playerSetup->set_type (
                 static_cast<SC2APIProtocol::PlayerType> ( setup.type )
@@ -415,7 +376,7 @@ public:
             return false;
         }
 
-        const SC2APIProtocol::ResponseCreateGame& response_create_game =
+        const SC2APIProtocol::ResponseCreateGame &response_create_game =
             response->create_game( );
 
         bool success { true };
@@ -480,8 +441,8 @@ public:
 
     virtual bool RequestJoinGame (
         PlayerSetup              setup,
-        const InterfaceSettings& settings,
-        const Ports&             ports,
+        const InterfaceSettings &settings,
+        const Ports             &ports,
         bool                     raw_affects_selection
     ) {
         observation_face_->ClearFlags( );
@@ -489,7 +450,7 @@ public:
         is_multiplayer_ = ports.IsValid( );
 
         const GameRequestPtr             request = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestJoinGame* request_join_game =
+        SC2APIProtocol::RequestJoinGame *request_join_game =
             request->mutable_join_game( );
 
         request_join_game->set_race (
@@ -504,21 +465,21 @@ public:
             request_join_game->set_shared_port ( ports.shared_port );
 
             // Set server ports.
-            SC2APIProtocol::PortSet* server_ports =
+            SC2APIProtocol::PortSet *server_ports =
                 request_join_game->mutable_server_ports( );
             server_ports->set_game_port ( ports.server_ports.game_port );
             server_ports->set_base_port ( ports.server_ports.base_port );
 
             // Set client ports. Right now only 1v1 is supported.
-            for ( const PortSet& client_ports : ports.client_ports ) {
-                SC2APIProtocol::PortSet* client_port =
+            for ( const PortSet &client_ports : ports.client_ports ) {
+                SC2APIProtocol::PortSet *client_port =
                     request_join_game->add_client_ports( );
                 client_port->set_game_port ( client_ports.game_port );
                 client_port->set_base_port ( client_ports.base_port );
             }
         }
 
-        SC2APIProtocol::InterfaceOptions* options =
+        SC2APIProtocol::InterfaceOptions *options =
             request_join_game->mutable_options( );
 
         options->set_raw ( true );
@@ -532,16 +493,16 @@ public:
         options->set_raw_affects_selection ( raw_affects_selection );
 
         if ( settings.use_feature_layers ) {
-            SC2APIProtocol::SpatialCameraSetup* setupProto =
+            SC2APIProtocol::SpatialCameraSetup *setupProto =
                 options->mutable_feature_layer( );
             setupProto->set_width (
                 settings.feature_layer_settings.camera_width
             );
-            SC2APIProtocol::Size2DI* resolution =
+            SC2APIProtocol::Size2DI *resolution =
                 setupProto->mutable_resolution( );
             resolution->set_x ( settings.feature_layer_settings.map_x );
             resolution->set_y ( settings.feature_layer_settings.map_y );
-            SC2APIProtocol::Size2DI* minimap_resolution =
+            SC2APIProtocol::Size2DI *minimap_resolution =
                 setupProto->mutable_minimap_resolution( );
             minimap_resolution->set_x (
                 settings.feature_layer_settings.minimap_x
@@ -551,13 +512,13 @@ public:
             );
         }
         if ( settings.use_render ) {
-            SC2APIProtocol::SpatialCameraSetup* setupProto =
+            SC2APIProtocol::SpatialCameraSetup *setupProto =
                 options->mutable_render( );
-            SC2APIProtocol::Size2DI* resolution =
+            SC2APIProtocol::Size2DI *resolution =
                 setupProto->mutable_resolution( );
             resolution->set_x ( settings.render_settings.map_x );
             resolution->set_y ( settings.render_settings.map_y );
-            SC2APIProtocol::Size2DI* minimap_resolution =
+            SC2APIProtocol::Size2DI *minimap_resolution =
                 setupProto->mutable_minimap_resolution( );
             minimap_resolution->set_x ( settings.render_settings.minimap_x );
             minimap_resolution->set_y ( settings.render_settings.minimap_y );
@@ -632,15 +593,14 @@ public:
         }
 
         GameRequestPtr               request = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestStep* step    = request->mutable_step( );
+        SC2APIProtocol::RequestStep *step    = request->mutable_step( );
         step->set_count ( count );
         return ProtoFace::SendRequest ( request );
     }
 
     virtual bool WaitStep ( ) {
         const GameResponsePtr response = WaitForResponse( );
-        if ( !response.get( ) ||
-             !response->has_step( ) ||
+        if ( !response.get( ) || !response->has_step( ) ||
              response->error_size( ) > 0 )
         {
             return false;
@@ -649,7 +609,7 @@ public:
         return GetObservation( );
     }
 
-    virtual bool SaveReplay ( const string& path ) {
+    virtual bool SaveReplay ( const string &path ) {
         GameRequestPtr request = ProtoFace::MakeRequest( );
         request->mutable_save_replay( );
         if ( !ProtoFace::SendRequest ( request ) ) {
@@ -657,14 +617,13 @@ public:
         }
 
         const GameResponsePtr response = WaitForResponse( );
-        if ( !response.get( ) ||
-             !response->has_save_replay( ) ||
+        if ( !response.get( ) || !response->has_save_replay( ) ||
              response->error_size( ) > 0 )
         {
             return false;
         }
 
-        const SC2APIProtocol::ResponseSaveReplay& response_replay =
+        const SC2APIProtocol::ResponseSaveReplay &response_replay =
             response->save_replay( );
 
         if ( response_replay.data( ).empty( ) ) {
@@ -760,9 +719,12 @@ public:
 
         // The game application has hanged. Try and terminate it.
         app_state = AppState::Timeout;
-        for ( int i = 0; i < 10 && IsProcessRunning ( ProtoFace::pi_.process_id ); ++i ) {
+        for ( int i = 0;
+              i < 10 && IsProcessRunning ( ProtoFace::pi_.process_id );
+              ++i )
+        {
             TerminateProcess ( ProtoFace::pi_.process_id );
-            SleepFor ( 2000 );
+            SleepFor ( 2'000 );
         }
 
         if ( IsProcessRunning ( ProtoFace::pi_.process_id ) ) {
@@ -776,11 +738,11 @@ public:
         return response;
     }
 
-    virtual void SetProcessInfo ( const ProcessInfo& pi ) {
+    virtual void SetProcessInfo ( const ProcessInfo &pi ) {
         ProtoFace::pi_ = pi;
     }
 
-    virtual const ProcessInfo& GetProcessInfo ( ) const {
+    virtual const ProcessInfo &GetProcessInfo ( ) const {
         return ProtoFace::pi_;
     }
 
@@ -898,7 +860,7 @@ public:
         return response.get( );
     }
 
-    virtual bool IssueEvents ( const Tags& commands = { } ) {
+    virtual bool IssueEvents ( const Tags &commands = { } ) {
         if ( observation_face_->current_game_loop_ ==
              observation_face_->previous_game_loop )
         {
@@ -924,11 +886,11 @@ public:
             return;
         }
 
-        const SC2APIProtocol::ObservationRaw& raw = observation_->raw_data( );
+        const SC2APIProtocol::ObservationRaw &raw = observation_->raw_data( );
         if ( raw.has_event( ) ) {
-            const SC2APIProtocol::Event& event = raw.event( );
-            for ( const auto& tag : event.dead_units( ) ) {
-                const Unit* unit =
+            const SC2APIProtocol::Event &event = raw.event( );
+            for ( const auto &tag : event.dead_units( ) ) {
+                const Unit *unit =
                     observation_face_->unit_pool_.GetUnit ( tag );
 
                 if ( !unit ) {
@@ -965,12 +927,12 @@ public:
         }
     }
 
-    void IssueIdleEvents ( const Tags& commands ) {
-        auto& unit_pool = observation_face_->unit_pool_;
+    void IssueIdleEvents ( const Tags &commands ) {
+        auto &unit_pool = observation_face_->unit_pool_;
         // identify idled units where commands were issued last step, but units
         // have no orders now (maybe failed, maybe executed instantly)
-        for ( auto t : commands ) {
-            if ( const auto* unit = unit_pool.GetExistingUnit ( t );
+        for ( const auto tag : commands ) {
+            if ( const auto *unit = unit_pool.GetExistingUnit ( tag );
                  unit && unit->orders.empty( ) )
             {
                 unit_pool.AddUnitIdled ( unit );
@@ -978,14 +940,14 @@ public:
         }
 
         // add newly created units (if they are completed)
-        for ( const auto* u : unit_pool.GetNewUnits( ) ) {
+        for ( const auto *u : unit_pool.GetNewUnits( ) ) {
             if ( u->build_progress >= 1.0F && u->orders.empty( ) ) {
                 unit_pool.AddUnitIdled ( u );
             }
         }
 
         // send only one idle event for any unit in any frame
-        for ( const auto* u : unit_pool.GetIdledUnits( ) ) {
+        for ( const auto *u : unit_pool.GetIdledUnits( ) ) {
             OnUnitIdle ( u );
         }
     }
@@ -1001,7 +963,7 @@ public:
     }
 
     void IssueUnitDamagedEvents ( ) {
-        for ( const auto& [unit, health, shields] :
+        for ( const auto &[unit, health, shields] :
               observation_face_->unit_pool_.GetDamagedUnits( ) )
         {
             OnUnitDamaged ( unit, health, shields );
@@ -1042,7 +1004,7 @@ public:
 
     // Diagnostic.
     static void DumpProtoUsage ( ) {
-        const vector<uint32_t>& stats = ProtoFace::GetStats( );
+        const vector<uint32_t> &stats = ProtoFace::GetStats( );
         cout << "******************************************************"
              << '\n';
         cout << "Protocol use by message type:" << '\n';
@@ -1051,14 +1013,15 @@ public:
                 continue;
             }
 
-            cout << std::to_string ( i ) << ": " << std::to_string ( stats[i] ) << '\n';
+            cout << std::to_string ( i ) << ": " << std::to_string ( stats[i] )
+                 << '\n';
         }
 
         cout << "******************************************************"
              << '\n';
     }
 
-    const vector<ClientError>& GetClientErrors ( ) const {
+    const vector<ClientError> &GetClientErrors ( ) const {
         return client_errors_;
     }
 

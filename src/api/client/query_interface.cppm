@@ -5,7 +5,7 @@ module;
 export module query_interface;
 import observation_interface;
 import protocol_interface;
-import common;
+import point;
 import data;
 import error_handler;
 import game_types;
@@ -27,16 +27,16 @@ public:
     QueryInterface ( ObservationInterface& observation )
           : observation_ ( observation ) {}
 
-    virtual ~QueryInterface ( ) = default;
+    ~QueryInterface ( ) = default;
 
-    /*! @brief Returns a list of abilities represented as a uint32_t see the
+    /*! @brief Returns a list of abilities represented as a @c uint32_t see the
      * ABILITY_ID enum for their corresponding, named, representations.
-     * @param unit Tag of unit.
+     * @param unit Tag of @c Unit*.
      * @param ignore_resource_requirements Ignores supply, mineral and gas
      * costs, as well as cooldowns.
-     * @param use_generalized_ability_id e.g. if true BUILD_TECHLAB_BARRACKS,
-     * BUILD_TECHLAB_FACTORY and BUILD_TECHLAB_STARPORT ability ids are
-     * generalized to BUILD_TECHLAB
+     * @param use_generalized_ability_id e.g. if true @c BUILD_TECHLAB_BARRACKS,
+     * @c BUILD_TECHLAB_FACTORY and @c BUILD_TECHLAB_STARPORT ability ids are
+     * generalized to @c BUILD_TECHLAB
      * @return Abilities for the unit. */
     static AvailableAbilities GetAbilitiesForUnit (
         const Unit* unit,

@@ -1,13 +1,15 @@
 module;
+#include <string>
+#include <vector>
 export module map_data;
-import common;
-import std;
+import point;
 
 // #ifndef SCHLAPBOT_MAP_DATA_H
 // #define SCHLAPBOT_MAP_DATA_H
 //
 // #endif //SCHLAPBOT_MAP_DATA_H
-
+//
+// template class std::vector<sc2::Point2D>;
 
 export namespace sc2 {
 using namespace std;
@@ -16,28 +18,28 @@ struct MapData
 {
     string map_path_new { };
 
-    vector<Point2D> expansion_locations { };
+    vector<Point2D> expansion_locations;
     MapData ( ) = default;
 
     explicit MapData ( const string &map_path )
-      : map_path_new ( map_path ) {
+        : map_path_new ( map_path ) {
         ExpansionLocations ( map_path );
     }
 
     ~MapData ( ) = default;
 
-    [[nodiscard]] const Point2D &StartingPoint_1 ( ) const {
-        return expansion_locations.front( );
-    }
+    // [[nodiscard]] const Point2D &StartingPoint_1 ( ) const {
+    //     return expansion_locations.front( );
+    // }
 
-    [[nodiscard]] const Point2D &StartingPoint_2 ( ) const {
-        return expansion_locations.back( );
-    }
+    // [[nodiscard]] const Point2D &StartingPoint_2 ( ) const {
+    //     return expansion_locations.back( );
+    // }
 
     void ExpansionLocations ( const string &map_path ) {
         if ( map_path == "IncorporealAIE_v4" ) {
             map_path_new =
-              "Sc2-AI-Arena-2026-Season-1/IncorporealAIE_v4.SC2Map";
+                "Sc2-AI-Arena-2026-Season-1/IncorporealAIE_v4.SC2Map";
             expansion_locations = {
                 Point2D ( 123.5F, 24.5F ), // starting_point_1,
                 Point2D ( 96.5F, 25.5F ),  // Natural Expansion 1-1 (West)

@@ -11,8 +11,8 @@
             "description": "Base Ninja inheritance which all other build are based on",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}"
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}"
         },
         {
             "name": "base-windows-msvc",

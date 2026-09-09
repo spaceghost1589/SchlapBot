@@ -74,6 +74,7 @@ noexcept
 NPROCESSORS
 nullptr
 nullptr_t
+oneof
 ONLN
 optional
 ostream

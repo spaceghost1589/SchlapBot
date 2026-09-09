@@ -1,9 +1,11 @@
 module;
+
+
+#ifdef BUILD_SC2_RENDERER
 #include <cassert>
 #include <cstdint>
 #include <iostream>
 
-#ifdef BUILD_SC2_RENDERER
 #include "SDL.h"
 #endif
 export module renderer;

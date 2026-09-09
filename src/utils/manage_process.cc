@@ -1,5 +1,3 @@
-#pragma once
-
 #include "manage_process.h"
 
 #include <algorithm>

@@ -11,14 +11,13 @@
             "description": "Base Ninja inheritance which all other build are based on",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}",
             "warnings": {
                 "dev": false
             },
             "cacheVariables": {
-                "CMAKE_CXX_STANDARD": "23",
-                "Protobuf_PROTOC_EXECUTABLE": "${sourceDir}/thirdparty/protoc/bin/protoc.exe"
+                "CMAKE_CXX_STANDARD": "23"
             }
         },
         {

@@ -1,4 +1,7 @@
 module;
+#include <memory>
+#include <cassert>
+
 #include <s2clientprotocol/sc2api.pb.h>
 export module Agent;
 import Client;

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "utils/arg_parser.h"
 
 #include <algorithm>

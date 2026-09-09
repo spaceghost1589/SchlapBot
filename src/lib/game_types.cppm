@@ -1,27 +1,22 @@
 module;
-// #include <algorithm>
-// #include <array>
-// #include <functional>
-// #include <sstream>
-// #include <string>
-// #include <string_view>
-// #include <utility>
-// #include <vector>
+#include <algorithm>
+#include <array>
+#include <functional>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "utils/arg_parser.h"
 export module game_types;
-import std;
-
-namespace {
-class Agent;
-} // namespace
 
 export namespace sc2 {
 using namespace std;
 
 using Tag = uint64_t;
 
-inline constexpr Tag NullTag = 0ll;
+inline constexpr Tag NullTag = 0LL;
 
 enum class Race : uint8_t {
     NoRace  = 0,
@@ -120,6 +115,7 @@ inline string_view AIBuildToString ( const AIBuild build ) {
 
 
 enum class PlayerType : uint8_t {
+    //! Bot
     Participant = 1,
     Computer    = 2,
     Observer    = 3,
@@ -136,8 +132,10 @@ enum class GameResult : uint8_t {
 using enum GameResult;
 
 
-enum class ChatChannel : uint8_t { All = 0, Team = 1 };
-
+enum class ChatChannel : uint8_t {
+    All  = 0,
+    Team = 1,
+};
 
 //! Setup for a player in a game.
 struct PlayerSetup
@@ -161,17 +159,17 @@ struct PlayerSetup
     PlayerSetup ( );
 
     PlayerSetup (
-        const PlayerType in_type,
-        const Race       in_race,
-        string           in_player_name = "",
-        const Difficulty in_difficulty  = Easy,
-        const AIBuild    in_ai_build    = RandomBuild
+        string           _player_name = "",
+        const PlayerType _type,
+        const Race       _race,
+        const Difficulty _difficulty = Easy,
+        const AIBuild    _ai_build   = RandomBuild
     )
-          : type ( in_type ),
-            player_name ( std::move ( in_player_name ) ),
-            race ( in_race ),
-            difficulty ( in_difficulty ),
-            ai_build ( in_ai_build ) {}
+        : player_name ( std::move ( _player_name ) ),
+          type ( _type ),
+          race ( _race ),
+          difficulty ( _difficulty ),
+          ai_build ( _ai_build ) { }
 };
 
 //! Port setup for a client.
@@ -208,7 +206,7 @@ struct Ports
         if ( client_ports.empty( ) ) {
             return false;
         }
-        return ranges::all_of ( client_ports, [&] ( const auto& PortSet ) {
+        return ranges::all_of ( client_ports, [&] ( const auto &PortSet ) {
             return PortSet.IsValid( );
         } );
     }
@@ -224,7 +222,7 @@ struct ReplayPlayerInfo
     //! Player ID.
     int        player_id { 0 };
     //! Player ranking.
-    int        mmr { -10000 };
+    int        mmr { -10'000 };
     //! Player actions per minute.
     int        apm { 0 };
     //! Actual player race.
@@ -256,7 +254,8 @@ struct ReplayInfo
     ReplayInfo ( ) = default;
 
     bool GetPlayerInfo (
-        ReplayPlayerInfo& replay_player_info, const int playerID
+        ReplayPlayerInfo &replay_player_info,
+        const int         playerID
     ) const {
         for ( int i = 0; i < num_players; ++i ) {
             if ( playerID == players.at ( i ).player_id ) {
@@ -277,8 +276,8 @@ struct ReplayInfo
 struct PlayerResult
 {
     PlayerResult ( const uint32_t player_id, const GameResult result )
-          : player_id ( player_id ),
-            result ( result ) {}
+        : player_id ( player_id ),
+          result ( result ) { }
 
     uint32_t   player_id { 0 };
     GameResult result = Undecided;

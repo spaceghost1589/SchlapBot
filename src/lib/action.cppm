@@ -1,9 +1,8 @@
 module;
-// #include <cstdint>
-// #include <vector>
+#include <cstdint>
+#include <vector>
 export module action;
-import std;
-import common;
+import point;
 import game_types;
 import type_enums;
 
@@ -34,7 +33,7 @@ struct ActionRaw
 
     /*! Units this action applies to. In normal use, this would be the currently
      * selected units. */
-    vector<Tag> unit_tags { };
+    vector<Tag> unit_tags;
     //! The target of this action. Valid only when target_type == TargetUnitTag.
     Tag         target_tag { NullTag };
     /*! The target point for this action.\n\n

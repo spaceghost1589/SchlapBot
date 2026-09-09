@@ -3,7 +3,7 @@ module;
 export module action_feature_layer_interface;
 import protocol_interface;
 import action;
-import common;
+import point;
 import type_enums;
 
 export namespace sc2 {
