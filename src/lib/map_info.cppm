@@ -38,13 +38,13 @@ struct PlayerInfo
     PlayerInfo ( ) = default;
 
     PlayerInfo (
-      const uint32_t   playerID,
-      const PlayerType playerType,
-      const Race       raceRequested,
-      const Race       raceActual,
-      const Difficulty diff,
-      const AIBuild    aiBuild,
-      const string    &playerName
+        const uint32_t   playerID,
+        const PlayerType playerType,
+        const Race       raceRequested,
+        const Race       raceActual,
+        const Difficulty diff,
+        const AIBuild    aiBuild,
+        const string    &playerName
     ) {
         player_id      = playerID;
         player_type    = playerType;
@@ -71,27 +71,28 @@ struct ImageData
     string data_ { };
 
     explicit ImageData ( const SC2APIProtocol::ImageData &image )
-      : bits_per_pixel { image.bits_per_pixel( ) },
-        map_area_ { Point2DI ( image.size( ).x( ), image.size( ).y( ) ) },
-        data_ { image.data( ) } { }
+        : bits_per_pixel { image.bits_per_pixel( ) },
+          map_area_ { Point2DI ( image.size( ).x( ), image.size( ).y( ) ) },
+          data_ { image.data( ) } { }
 
     explicit ImageData (
-      const int32_t   BBP,
-      const Point2DI &i_area,
-      const string   &i_data
+        const int32_t   BBP,
+        const Point2DI &i_area,
+        const string   &i_data
     )
-      : bits_per_pixel { BBP },
-        map_area_ ( i_area ),
-        data_ { move ( i_data ) } { }
+        : bits_per_pixel { BBP },
+          map_area_ ( i_area ),
+          data_ { move ( i_data ) } { }
 
     // Update data string every frame
     bool UpdateImageDataLocal (
-      const SC2APIProtocol::ImageData &image,
-      bool                             need_return = false
+        const SC2APIProtocol::ImageData &image,
+        bool                             need_return = false
     ) {
         if ( need_return ) {
             const int expectedSizeBits { bits_per_pixel * map_area_.Area( ) };
-            need_return = image.data( ).size( ) * 8 == expectedSizeBits &&
+            need_return = static_cast<int> ( image.data( ).size( ) ) * 8 ==
+                              expectedSizeBits &&
                           expectedSizeBits > 0;
         }
 
@@ -110,8 +111,9 @@ struct ImageData
         if ( !map_area_.Contain ( point ) )
             return false;
 
-        const div_t idx = div ( point.x + point.y * map_area_.Width( ), 8 );
-        *distance       = ( data_[idx.quot] >> ( 7 - idx.rem ) ) & 1;
+        const auto [byte, bit] =
+            div ( map_area_.Width( ) * point.y + point.x, 8 );
+        *distance = ( data_[byte] >> ( 7 - bit ) ) & 1;
         return true;
     }
 
@@ -124,7 +126,7 @@ struct ImageData
 
         // Image data is stored with an upper left origin.
         assert ( data_.size( ) == map_area_.Area( ) );
-        *distance = data_.at ( point.x + ( point.y * map_area_.Width( ) ) );
+        *distance = data_.at ( map_area_.Width( ) * point.y + point.x );
         return true;
     }
 
@@ -132,8 +134,8 @@ struct ImageData
     template<typename T>
         requires is_same_v<T, bool> || is_same_v<T, unsigned char *>
     bool GetBit (
-      const Point2DI &point,
-      T               dst
+        const Point2DI &point,
+        T               dst
     ) const { // Image data is stored with an upper left origin.
               // TODO: is upper-left correct? common.proto says bottom left.
         if ( !map_area_.Contain ( point ) ) {
@@ -143,18 +145,19 @@ struct ImageData
         if ( is_same_v<T, bool> ) {
             Assert ( bits_per_pixel == 1, "" );
             auto [quot, rem] =
-              div ( point.x + ( point.y * map_area_.Width( ) ), 8 );
-            *dst =
-              static_cast<unsigned char> ( data_.at ( quot ) ) >> ( 7 - rem ) &
-              1U;
+                div ( map_area_.Width( ) * point.y + point.x, 8 );
+            *dst = static_cast<unsigned char> ( data_.at ( quot ) ) >>
+                       ( 7 - rem ) &
+                   1U;
             return true;
-        } else if ( is_same_v<T, unsigned char *> ) {
+        }
+        if ( is_same_v<T, unsigned char *> ) {
             assert ( bits_per_pixel == 8 );
             assert ( data_.size( ) == map_area_.Area( ) );
-            *dst = data_.at ( point.x + ( point.y * map_area_.Width( ) ) );
+            *dst = data_.at ( map_area_.Width( ) * point.y + point.x );
             return true;
-        } else // TODO: else error logging
-            return false;
+        } // TODO: else error logging
+        return false;
     }
 
     [[nodiscard]]
@@ -208,15 +211,17 @@ class VisibilityMap : public ImageData {
         unsigned char value { };
         if ( !GetBit ( point, &value ) ) {
             return FullHidden;
-        } else if ( value == 0 ) {
-            return Hidden;
-        } else if ( value == 1 ) {
-            return Fogged;
-        } else if ( value == 2 ) {
-            return Visible;
-        } else {
-            return FullHidden;
         }
+        if ( value == 0 ) {
+            return Hidden;
+        }
+        if ( value == 1 ) {
+            return Fogged;
+        }
+        if ( value == 2 ) {
+            return Visible;
+        }
+        return FullHidden;
     }
 };
 
@@ -280,8 +285,6 @@ struct GameInfo
     InterfaceOptions options;
 
     vector<PlayerInfo> player_info { };
-
-    GameInfo ( ) = default;
 };
 
 //! Rendered data for a game frame.
@@ -302,18 +305,18 @@ private:
     int bits_per_pixel;
 
 public:
-    //explicit ImageData_StepSample ( const SC2APIProtocol::ImageData &data )
-    //  : data_ ( data.data( ) ),
-    //    map_area_ ( { 0, 0 }, { data.size( ).x( ), data.size( ).y( ) } ),
-    //    bits_per_pixel ( data.bits_per_pixel( ) ) { }
+    // explicit ImageData_StepSample ( const SC2APIProtocol::ImageData &data )
+    //   : data_ ( data.data( ) ),
+    //     map_area_ ( { 0, 0 }, { data.size( ).x( ), data.size( ).y( ) } ),
+    //     bits_per_pixel ( data.bits_per_pixel( ) ) { }
 
     explicit ImageData_StepSample ( const ImageData &data )
-      : data_ ( data.data_ ),
-        map_area_ (
-          { 0, 0 },
-          { data.map_area_.Width( ), data.map_area_.Height( ) }
-        ),
-        bits_per_pixel ( data.bits_per_pixel ) { }
+        : data_ ( data.data_ ),
+          map_area_ (
+              { 0, 0 },
+              { data.map_area_.Width( ), data.map_area_.Height( ) }
+          ),
+          bits_per_pixel ( data.bits_per_pixel ) { }
 
     bool GetBit ( const Point2DI &point, bool *distance ) const {
         assert ( bits_per_pixel == 1 );
@@ -321,8 +324,9 @@ public:
         if ( !map_area_.Contain ( point ) )
             return false;
 
-        const div_t idx = div ( point.x + point.y * map_area_.Width( ), 8 );
-        *distance       = ( data_.at ( idx.quot ) >> ( 7 - idx.rem ) ) & 1;
+        const auto [byte, bit] =
+            div ( map_area_.Width( ) * point.y + point.x, 8 );
+        *distance = ( data_.at ( byte ) >> ( 7 - bit ) ) & 1;
         return true;
     }
 
@@ -350,11 +354,10 @@ public:
 
 struct PathingGrid
 {
-public:
     PathingGrid ( ) = delete;
 
     explicit PathingGrid ( const GameInfo &info )
-      : pathing_grid_ ( info.pathing_grid ) { }
+        : pathing_grid_ ( info.pathing_grid ) { }
 
     [[nodiscard]]
     bool IsPathable ( const Point2DI &point ) const {
@@ -398,7 +401,7 @@ struct PlacementGrid
     PlacementGrid ( ) = delete;
 
     explicit PlacementGrid ( const GameInfo &info )
-      : placement_grid_ ( info.placement_grid ) { }
+        : placement_grid_ ( info.placement_grid ) { }
 
     [[nodiscard]]
     bool IsPlacable ( const Point2DI &point ) const {
@@ -448,7 +451,7 @@ public:
     HeightMap ( ) = delete;
 
     explicit HeightMap ( const GameInfo &info )
-      : height_map_ ( info.terrain_height ) { }
+        : height_map_ ( info.terrain_height ) { }
 
     [[nodiscard]]
     float TerrainHeight ( const Point2DI &point ) const {

@@ -30,7 +30,7 @@ int main ( const int argc, char *const argv[] ) {
 
     constexpr size_t num_agents = 2;
     coordinator.SetParticipants (
-      { CreateParticipant ( Terran, &bot, "SchlapBot" ) }
+        { CreateParticipant ( Terran, &bot, "SchlapBot" ) }
     );
 
     cout << "Connecting to port " << options.game_port << '\n';
@@ -54,8 +54,8 @@ int main ( const int argc, char *const argv[] ) {
 #else
 
 int main (
-  int   argc,
-  char *argv[]
+    const int argc,
+    char     *argv[]
 ) // NOLINT(*-avoid-c-arrays, *-use-internal-linkage)
 {
     const span args ( argv, static_cast<size_t> ( argc ) );
@@ -82,14 +82,14 @@ int main (
 
     constexpr bool realtime = true;
     coordinator.SetRealtime ( realtime );
-    SRC_LocationOut ( format ( "Realtime set: {}", realtime ).c_str( ) ) ;
+    SRC_LocationOut ( format ( "Realtime set: {}", realtime ).c_str( ) );
 
     SchlapBot Schlap_Bot { };
 
     coordinator.SetParticipants (
-      unordered_map<Agent*, PlayerSetup> {
-        { &Schlap_Bot, CreateParticipant ( Terran, "SchlapBot" ) },
-        { nullptr, CreateComputer ( Random, Easy, Macro ) }
+        unordered_map<Agent *, PlayerSetup> {
+            { &Schlap_Bot, CreateParticipant ( "SchlapBot", Terran ) },
+            { nullptr, CreateComputer ( Random, Easy, Macro ) }
     }
     );
 

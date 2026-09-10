@@ -23,7 +23,7 @@ struct Color
 
     constexpr Color ( ) = default;
 
-    constexpr Color ( uint8_t in_R, uint8_t in_G, uint8_t in_B )
+    constexpr Color (const uint8_t in_R, const uint8_t in_G, const uint8_t in_B )
       : R ( in_R ),
         G ( in_G ),
         B ( in_B ) {}

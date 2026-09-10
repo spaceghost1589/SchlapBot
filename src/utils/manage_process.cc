@@ -9,51 +9,51 @@
 #include <thread>
 
 #if defined( _WIN32 ) // Windows headers for process manipulation.
-#include <codecvt>
-#include <conio.h>
-#include <cstring>
-#include <locale>
-#include <shlobj.h>
-#include <string>
-#include <tchar.h>
-#include <vector>
-#include <windows.h>
+    #include <codecvt>
+    #include <conio.h>
+    #include <cstring>
+    #include <locale>
+    #include <shlobj.h>
+    #include <string>
+    #include <tchar.h>
+    #include <vector>
+    #include <windows.h>
 #elif defined( __APPLE__ )
 
 // Mac headers for process manipulation.
-#include <cstring>
-#include <ctype.h>
-#include <errno.h>
-#include <pwd.h>
-#include <signal.h>
-#include <termios.h>
-#include <unistd.h>
+    #include <cstring>
+    #include <ctype.h>
+    #include <errno.h>
+    #include <pwd.h>
+    #include <signal.h>
+    #include <termios.h>
+    #include <unistd.h>
 
-#include <Carbon/Carbon.h>
-#include <mach-o/dyld.h>
-#include <sys/ioctl.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+    #include <Carbon/Carbon.h>
+    #include <mach-o/dyld.h>
+    #include <sys/ioctl.h>
+    #include <sys/select.h>
+    #include <sys/stat.h>
+    #include <sys/types.h>
 
 #elif defined( __linux__ )
 
 // Linux headers for process manipulation.
-#include <cstring>
-#include <errno.h>
-#include <pwd.h>
-#include <signal.h>
-#include <termios.h>
-#include <unistd.h>
+    #include <cstring>
+    #include <errno.h>
+    #include <pwd.h>
+    #include <signal.h>
+    #include <termios.h>
+    #include <unistd.h>
 
-#include <linux/limits.h>
-#include <sys/ioctl.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+    #include <linux/limits.h>
+    #include <sys/ioctl.h>
+    #include <sys/select.h>
+    #include <sys/stat.h>
+    #include <sys/types.h>
 
 #else
-#error "Unsupported platform"
+    #error "Unsupported platform"
 #endif
 
 import scan_directory;
@@ -63,25 +63,25 @@ import scan_directory;
 namespace sc2 {
 using namespace std;
 
-void SleepFor ( unsigned int ms ) {
+void SleepFor ( const unsigned int ms ) {
     this_thread::sleep_for ( chrono::milliseconds ( ms ) );
 }
 
-bool DoesFileExist ( const string& path ) {
+bool DoesFileExist ( const string &path ) {
     return ifstream ( path ).good( );
 }
 
-bool HasExtension ( const string& map_name, const string& extension ) {
-    if ( map_name.size( ) < extension.size( ) ) {
+bool HasExtension ( const string &path, const string &extension ) {
+    if ( path.size( ) < extension.size( ) ) {
         return false;
     }
 
     return equal (
-        map_name.end( ) - extension.size( ),
-        map_name.end( ),
+        path.end( ) - extension.size( ),
+        path.end( ),
         extension.begin( ),
         extension.end( ),
-        [] ( char a, char b ) {
+        [] ( const char a, const char b ) {
         return tolower ( a ) == tolower ( b );
     }
     );
@@ -97,8 +97,8 @@ struct WindowsProcess
 
 vector<WindowsProcess> windows_processes;
 
-static int GetIndexOfProcess ( uint64_t process_id ) {
-    for ( int i = 0; i < windows_processes.size( ); ++i ) {
+static int GetIndexOfProcess ( const uint64_t process_id ) {
+    for ( int i = 0; i < static_cast<int> ( windows_processes.size( ) ); ++i ) {
         if ( static_cast<DWORD> ( process_id ) ==
              windows_processes[i].pi_.dwProcessId )
             return i;
@@ -110,7 +110,7 @@ string GetUserDirectory ( ) {
     constexpr unsigned int csidl = CSIDL_PERSONAL;
     WCHAR                  windowsPath[MAX_PATH];
 
-    HRESULT result = SHGetFolderPathW (
+    const HRESULT result = SHGetFolderPathW (
         nullptr,
         csidl,
         nullptr,
@@ -119,7 +119,7 @@ string GetUserDirectory ( ) {
     );
 
     if ( result == S_OK ) {
-        wstring_convert<codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
+        wstring_convert<codecvt_utf8_utf16<WCHAR>> convertor;
         return convertor.to_bytes ( windowsPath );
     }
 
@@ -129,9 +129,11 @@ string GetUserDirectory ( ) {
 static string GetExePath ( ) {
     WCHAR windowsPath[MAX_PATH];
 
-    if ( const DWORD length = GetModuleFileNameW ( nullptr, windowsPath, MAX_PATH );
-         length > 0 ) {
-        wstring_convert<codecvt_utf8_utf16<WCHAR>, WCHAR> convertor;
+    if ( const DWORD length =
+             GetModuleFileNameW ( nullptr, windowsPath, MAX_PATH );
+         length > 0 )
+    {
+        wstring_convert<codecvt_utf8_utf16<WCHAR>> convertor;
         return convertor.to_bytes ( windowsPath );
     }
 
@@ -147,7 +149,7 @@ string GetLibraryMapsDirectory ( ) {
     return result;
 }
 
-string GetGameMapsDirectory ( const string& process_path ) {
+string GetGameMapsDirectory ( const string &process_path ) {
     string result = process_path;
     result        = result.substr ( 0, result.find_last_of ( "\\" ) );
     result        = result.substr ( 0, result.find_last_of ( "\\" ) );
@@ -158,8 +160,8 @@ string GetGameMapsDirectory ( const string& process_path ) {
 
 BOOL WINAPI ConsoleHandlerRoutine ( DWORD /*dwCtrlType*/ ) {
     while ( windows_processes.size( ) ) {
-        const uint64_t pid = ( windows_processes[windows_processes.size( ) - 1]
-                             .pi_.dwProcessId );
+        const uint64_t pid =
+            windows_processes[windows_processes.size( ) - 1].pi_.dwProcessId;
         if ( !TerminateProcess ( pid ) )
             windows_processes.pop_back( );
     }
@@ -167,7 +169,8 @@ BOOL WINAPI ConsoleHandlerRoutine ( DWORD /*dwCtrlType*/ ) {
 }
 
 uint64_t StartProcess (
-    const string& process_path, const vector<string>& command_line
+    const string         &process_path,
+    const vector<string> &command_line
 ) {
     static constexpr unsigned int buffer_size = ( 1 << 16 ) + 1;
 
@@ -202,7 +205,7 @@ uint64_t StartProcess (
 
     char buffer[buffer_size];
     memset ( buffer, 0, buffer_size );
-    for ( int i = 0; i < command_line.size( ); ++i ) {
+    for ( int i = 0; i < static_cast<int> ( command_line.size( ) ); ++i ) {
         strcat_s ( buffer, " " );
         strcat_s ( buffer, command_line[i].c_str( ) );
     }
@@ -223,20 +226,20 @@ uint64_t StartProcess (
     )
     {
         SetCurrentDirectory ( current_directory );
-        return ( 0 );
+        return 0;
     }
 
     windows_processes.push_back ( process );
     SetCurrentDirectory ( current_directory );
-    SleepFor ( 1000 );
+    SleepFor ( 1'000 );
 
     // Hook.
     SetConsoleCtrlHandler ( ConsoleHandlerRoutine, TRUE );
 
-    return ( process.pi_.dwProcessId );
+    return process.pi_.dwProcessId;
 }
 
-bool IsProcessRunning ( uint64_t process_id ) {
+bool IsProcessRunning ( const uint64_t process_id ) {
     const int index = GetIndexOfProcess ( process_id );
     if ( index < 0 )
         return false;
@@ -251,7 +254,7 @@ bool IsProcessRunning ( uint64_t process_id ) {
     return exit_code == STILL_ACTIVE;
 }
 
-bool TerminateProcess ( uint64_t process_id ) {
+bool TerminateProcess (const uint64_t process_id ) {
     const int index = GetIndexOfProcess ( process_id );
     if ( index < 0 )
         return false;
@@ -260,7 +263,7 @@ bool TerminateProcess ( uint64_t process_id ) {
         windows_processes[index].pi_.hProcess,
         static_cast<UINT> ( -1 )
     );
-    WaitForSingleObject ( windows_processes[index].pi_.hProcess, 120 * 1000 );
+    WaitForSingleObject ( windows_processes[index].pi_.hProcess, 120 * 1'000 );
 
     CloseHandle ( windows_processes[index].pi_.hProcess );
     CloseHandle ( windows_processes[index].pi_.hThread );
@@ -276,7 +279,7 @@ bool IsInDebugger ( ) {
 
 #elif defined( __linux__ ) || defined( __APPLE__ )
 
-vector<uint64_t>& GetPids ( ) {
+vector<uint64_t> &GetPids ( ) {
     static vector<uint64_t> pids;
     return pids;
 }
@@ -286,7 +289,7 @@ void AddPid ( uint64_t pid ) {
 }
 
 void RemovePid ( uint64_t pid ) {
-    vector<uint64_t>& pids = GetPids( );
+    vector<uint64_t> &pids = GetPids( );
     for ( size_t i = 0; i < pids.size( ); ++i ) {
         if ( pids[i] == pid ) {
             pids.erase ( pids.begin( ) + i );
@@ -304,18 +307,18 @@ void KillRunningProcesses ( int signum ) {
     exit ( -1 );
 }
 
-#if defined( __linux__ )
+    #if defined( __linux__ )
 string GetUserDirectory ( ) {
-    const char* home_directory = getenv ( "HOME" );
+    const char *home_directory = getenv ( "HOME" );
     if ( !home_directory )
         home_directory = getpwuid ( getuid( ) )->pw_dir;
     return string ( home_directory );
 }
-#else
+    #else
 
-void GetDirectory ( string& path, uint32_t folderType, short domain ) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+void GetDirectory ( string &path, uint32_t folderType, short domain ) {
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
     FSRef fsref;
     OSErr err = FSFindFolder ( domain, folderType, false, &fsref );
@@ -324,13 +327,13 @@ void GetDirectory ( string& path, uint32_t folderType, short domain ) {
         char pathBuffer[PATH_MAX];
         FSRefMakePath (
             &fsref,
-            reinterpret_cast<unsigned char*> ( pathBuffer ),
+            reinterpret_cast<unsigned char *> ( pathBuffer ),
             PATH_MAX
         );
         path = pathBuffer;
     }
 
-#pragma clang diagnostic pop
+        #pragma clang diagnostic pop
 }
 
 string GetUserDirectory ( ) {
@@ -339,29 +342,29 @@ string GetUserDirectory ( ) {
     result += "/Blizzard";
     return result;
 }
-#endif
+    #endif
 
 static string GetExePath ( ) {
-#if defined( __linux__ )
+    #if defined( __linux__ )
     char path[PATH_MAX + 1] = { 0 };
     if ( readlink ( "/proc/self/exe", path, PATH_MAX ) == -1 )
         return string( );
 
     return string ( path );
-#else
+    #else
     char     path[PATH_MAX];
     uint32_t size = sizeof ( path );
     if ( _NSGetExecutablePath ( path, &size ) != 0 )
         return string( );
 
     return string ( path );
-#endif
+    #endif
 }
 
 string GetLibraryMapsDirectory ( ) {
     string result = GetExePath( );
 
-    char* resolvedPath = realpath ( result.c_str( ), nullptr );
+    char *resolvedPath = realpath ( result.c_str( ), nullptr );
     if ( resolvedPath != nullptr ) {
         result = resolvedPath;
         free ( resolvedPath );
@@ -374,20 +377,20 @@ string GetLibraryMapsDirectory ( ) {
     return result;
 }
 
-string GetGameMapsDirectory ( const string& process_path ) {
+string GetGameMapsDirectory ( const string &process_path ) {
     string result = process_path;
-#if defined( __linux__ )
+    #if defined( __linux__ )
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
-#else
+    #else
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
     result = result.substr ( 0, result.find_last_of ( "/" ) );
-#endif
+    #endif
     result += "/maps/";
     return result;
 }
@@ -412,13 +415,14 @@ int _kbhit ( ) {
 }
 
 uint64_t StartProcess (
-    const string& process_path, const vector<string>& command_line
+    const string         &process_path,
+    const vector<string> &command_line
 ) {
-    vector<char*> char_list;
+    vector<char *> char_list;
     // execve expects the process path to be the first argument in the list.
-    char_list.push_back ( const_cast<char*> ( process_path.c_str( ) ) );
-    for ( const auto& s : command_line ) {
-        char_list.push_back ( const_cast<char*> ( s.c_str( ) ) );
+    char_list.push_back ( const_cast<char *> ( process_path.c_str( ) ) );
+    for ( const auto &s : command_line ) {
+        char_list.push_back ( const_cast<char *> ( s.c_str( ) ) );
     }
 
     // List needs to be null terminated for execve.
@@ -429,7 +433,7 @@ uint64_t StartProcess (
     if ( p == 0 ) {
         if ( execve ( char_list[0], &char_list[0], nullptr ) == -1 ) {
             cerr << "Failed to execute process " << char_list[0]
-                      << " error: " << strerror ( errno ) << '\n';
+                 << " error: " << strerror ( errno ) << '\n';
             exit ( -1 );
         }
 
@@ -450,22 +454,22 @@ uint64_t StartProcess (
 }
 
 bool IsProcessRunning ( uint64_t process_id ) {
-#if defined( __linux__ )
+    #if defined( __linux__ )
     struct stat sts;
-    char*       proc;
+    char       *proc;
     asprintf ( &proc, "/proc/%lu", process_id );
     if ( stat ( proc, &sts ) == -1 && errno == ENOENT ) {
         cerr << "Process not running" << '\n';
         return false;
     }
     return true;
-#else
+    #else
     if ( process_id == 0 ) {
         return false;
     }
 
     return kill ( process_id, 0 ) != -1;
-#endif
+    #endif
 }
 
 bool TerminateProcess ( uint64_t process_id ) {
@@ -487,14 +491,14 @@ bool PollKeyPress ( ) {
     return _kbhit( );
 }
 
-bool FindLatestExe ( string& path ) {
+bool FindLatestExe ( string &path ) {
     if ( path.length( ) < 4 ) {
         return false;
     }
 
     static constexpr char VersionsFolder[]  = "Versions\\";
-    static size_t    BaseFolderNameLen = 10; // "Base00000\"
-    const size_t     versions_pos      = path.find ( VersionsFolder );
+    static size_t         BaseFolderNameLen = 10; // "Base00000\"
+    const size_t          versions_pos      = path.find ( VersionsFolder );
     if ( versions_pos == string::npos ) {
         return DoesFileExist ( path );
     }
@@ -510,11 +514,8 @@ bool FindLatestExe ( string& path ) {
     string exe_name = path;
     exe_name.erase (
         exe_name.begin( ),
-        exe_name.begin( ) +
-            versions_pos +
-            sizeof ( VersionsFolder ) +
-            BaseFolderNameLen -
-            1
+        exe_name.begin( ) + versions_pos + sizeof ( VersionsFolder ) +
+            BaseFolderNameLen - 1
     );
 
     // Get a list of all subfolders.
@@ -531,8 +532,10 @@ bool FindLatestExe ( string& path ) {
           folder_index >= 0;
           --folder_index )
     {
-        const string test_path = subfolders[folder_index] + "\\" + exe_name;
-        if ( DoesFileExist ( test_path ) ) {
+        if ( const string test_path =
+                 subfolders[folder_index] + "\\" + exe_name;
+             DoesFileExist ( test_path ) )
+        {
             path = test_path;
             return true;
         }
@@ -541,7 +544,7 @@ bool FindLatestExe ( string& path ) {
     return DoesFileExist ( path );
 }
 
-bool FindBaseExe ( string& path, uint32_t base_build ) {
+bool FindBaseExe ( string &path, const uint32_t base_build ) {
     const string base_folder = "Base";
 
     string new_path = path;

@@ -24,7 +24,7 @@ using std::unordered_map;
 using std::vector;
 using std::views::values;
 
-} // using declarations
+} // namespace
 
 export namespace sc2 {
 
@@ -228,14 +228,17 @@ public:
         return build_progress >= 1.0F;
     }
 
+    // ReSharper disable once CppNonExplicitConversionOperator
     operator const Point2D &( ) const {
         return pos;
     }
 
+    // ReSharper disable once CppNonExplicitConversionOperator
     operator const Point3D &( ) const {
         return pos;
     }
 
+    // ReSharper disable once CppNonExplicitConversionOperator
     operator const Tag &( ) const {
         return tag;
     }
@@ -249,9 +252,13 @@ using UnitIdxMap = unordered_map<Tag, size_t>;
 [[deprecated]]
 Tags ConvertToTags ( const Units &units ) {
     Tags tags;
-    std::ranges::transform ( units, back_inserter ( tags ), [] ( const Unit *unit ) {
+    std::ranges::transform (
+        units,
+        back_inserter ( tags ),
+        [] ( const Unit *unit ) {
         return unit->tag;
-    } );
+    }
+    );
     return tags;
 }
 
@@ -272,9 +279,8 @@ public:
             return existing;
         }
 
-        if (
-          unit_pool_.empty( ) || unit_pool_.size( ) == available_index_.first
-        )
+        if ( unit_pool_.empty( ) ||
+             unit_pool_.size( ) == available_index_.first )
         {
             unit_pool_.push_back ( vector<Unit> ( ENTRY_SIZE ) );
         }
@@ -282,7 +288,7 @@ public:
         vector<Unit> &pool = unit_pool_[available_index_.first];
         Unit         *unit = &pool[available_index_.second];
         unit->last_seen_game_loop =
-          0; // initialization required for OnUnitEnterVision
+            0; // initialization required for OnUnitEnterVision
         tag_to_unit_[tag]          = unit;
         tag_to_existing_unit_[tag] = unit;
         AddNewUnit ( unit );
@@ -314,7 +320,7 @@ public:
 
     // TODO(?): Change alive -> Exist
     void ForEachExistingUnit (
-      const function<void ( Unit &unit )> &functor
+        const function<void ( Unit &unit )> &functor
     ) const {
         for ( const auto &val : tag_to_existing_unit_ | values ) {
             Assert ( val );
@@ -379,12 +385,12 @@ public:
     }
 
     void AddUnitDamaged (
-      const Unit *u,
-      const float health,
-      const float shield
+        const Unit *u,
+        const float health,
+        const float shield
     ) {
         units_damaged_.push_back (
-          { .unit = u, .health = health, .shields = shield }
+            { .unit = u, .health = health, .shields = shield }
         );
     }
 

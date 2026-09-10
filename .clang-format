@@ -92,7 +92,7 @@ AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
 AllowShortNamespacesOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
-AttributeMacros: [ ]
+#AttributeMacros: [ ]
 BinPackArguments: false
 BinPackLongBracedList: true
 BinPackParameters: OnePerLine

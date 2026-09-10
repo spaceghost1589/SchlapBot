@@ -6,6 +6,7 @@ any
 array
 atomic
 baneling
+boolalpha
 buildinfo
 callback
 capacity
@@ -16,6 +17,7 @@ cerr
 cin
 civetweb
 clientprotocol
+closedir
 condition_variable
 constexpr
 constructor
@@ -26,12 +28,14 @@ cpumask
 csidl
 cstdint
 CYCLECLOCK
+datap
 dcross
 decltype
 deque
 destructor
 dimen
 ebuff
+entp
 ENTRYNAME
 emplace
 emplace_back
@@ -40,6 +44,7 @@ execve
 explicit
 FETCHCONTENT
 freport
+fsanitize
 fsref
 fstream
 fullname
@@ -65,6 +70,8 @@ Magannatha
 make_shared
 make_unique
 map
+mbstowcs
+mbstr
 mutable
 mutex
 namespace
@@ -91,6 +98,7 @@ rbegin
 reclen
 rend
 reserve
+rewinddir
 rvalue
 sc2utils
 set
@@ -129,6 +137,10 @@ vcore
 vector
 volatile
 wclosedir
+wcstombs
+wcstr
+WDIR
+wdirp
 wdirent
 weak_ptr
 WINAPI
@@ -137,6 +149,7 @@ windowwidth
 windowx
 windowy
 winmm
+wname
 wopendir
 wreaddir
 wrewinddir

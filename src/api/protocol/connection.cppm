@@ -9,7 +9,7 @@ module;
 #include <iostream>
 #include <malloc.h>
 #include <mutex>
-#include <source_location> // IWYU pragma: keep
+#include <source_location>
 #include <string>
 
 #include <s2clientprotocol/sc2api.pb.h>
@@ -55,10 +55,9 @@ bool StartCivetweb ( ) {
     mg_start_error_data.text             = ebuff;
     mg_start_error_data.text_buffer_size = sizeof ( ebuff );
 
-    if (
-      const auto *ctx = mg_start2 ( &mg_start_init_data, &mg_start_error_data );
-      !ctx
-    )
+    if ( const auto *ctx =
+             mg_start2 ( &mg_start_init_data, &mg_start_error_data );
+         !ctx )
     {
         cerr << "Failed to start civetweb server: " << ebuff << '\n';
         return false;
@@ -70,11 +69,11 @@ bool StartCivetweb ( ) {
 
 } // anonymous namespace
 
-namespace sc2 {
+export namespace sc2 {
 
 /*! This class acts as a wrapper around a websocket connection and queue
     responsible for both sending out and receiving protobuf messages.*/
-export class Connection {
+class Connection {
     //! A queue that contains responses received off the socket.
     deque<SC2APIProtocol::Response *> queue_;
 
@@ -95,7 +94,7 @@ export class Connection {
 
 public:
     Connection ( )
-      : connection_ ( nullptr ) { }
+        : connection_ ( nullptr ) { }
 
     ~Connection ( ) {
         Disconnect( );
@@ -123,10 +122,10 @@ public:
                     "protobuf size of 2GB:"
                  << size << '\n';
         mg_websocket_write (
-          connection_,
-          MG_WEBSOCKET_OPCODE_BINARY,
-          static_cast<const char *> ( buffer ),
-          size
+            connection_,
+            MG_WEBSOCKET_OPCODE_BINARY,
+            static_cast<const char *> ( buffer ),
+            size
         );
 
         free ( buffer );
@@ -134,34 +133,33 @@ public:
         if ( verbose_ ) {
             cout << "Sending: " << request->DebugString( );
         }
-    }
+    } // Send
 
-    /*! @brief Receive will block until a message is received from its websocket
-     * connection. If a message is not received within the timeout it will set
-     * response to null and return false, it also calls a timeout callback that
-     * can be used if a user has any timeout logic.
+    /*! @brief @c Receive will block until a message is received from its
+     * websocket connection. If a message is not received within the timeout it
+     * will set response to null and return false, it also calls a timeout
+     * callback that can be used if a user has any timeout logic.
      * @param response The response pointer to be filled out.
      * @param timeout_ms The max time, in milliseconds, the function will wait
      * to receive a message.
-     * @return Returns true if a message is received, false otherwise.*/
+     * @return @c true if a message is received, otherwise @c false. */
     bool Receive (
-      SC2APIProtocol::Response *&response,
-      unsigned int               timeout_ms
+        SC2APIProtocol::Response *&response,
+        const unsigned int         timeout_ms
     ) {
         unique_lock<mutex> lock ( mutex_ );
         // Block until a message is received.
         if ( verbose_ ) {
             cout << "Waiting for response..." << '\n';
         }
-        if (
-          const auto now = chrono::system_clock::now( ); condition_.wait_until (
-            lock,
-            now + chrono::milliseconds ( timeout_ms ),
-            [&] {
+        if ( const auto now = chrono::system_clock::now( );
+             condition_.wait_until (
+                 lock,
+                 now + chrono::milliseconds ( timeout_ms ),
+                 [&] {
             return queue_.size( ) != 0;
         }
-          )
-        )
+             ) )
         {
             lock.unlock( );
             PopResponse ( response );
@@ -181,13 +179,13 @@ public:
         return false;
     }
 
-    /*! @brief PushResponse is called by a civetweb thread when it receives a
+    /*! @brief @c PushResponse is called by a civetweb thread when it receives a
      * message off the socket. Pushing a response triggers a condition and
      * enqueues a message. The condition will cause anyone currently blocking
-     * for a response (if Receive is called) to wake up and be able to consume
-     * that message.
-     * @param response A pointer to the Response to queue.*/
-    void PushResponse ( SC2APIProtocol::Response *&response ) {
+     * for a response (if @c Receive is called) to wake up and be able to
+     * consume that message.
+     * @param response A pointer to the @c Response to queue.*/
+    void PushResponse ( SC2APIProtocol::Response *response ) {
         lock_guard<mutex> guard ( mutex_ );
         queue_.push_back ( response );
         condition_.notify_one( );
@@ -239,8 +237,6 @@ public:
         return has_response_;
     }
 
-
-
     function<void( )> timeout_callback_;           //! Timeout callback.
     function<void( )> connection_closed_callback_; //! Timeout callback.
 
@@ -259,30 +255,28 @@ public:
         return true;
     } // GetClientData
 
-    
     int DataHandler (
-      const mg_connection *conn,
-      int /*flags*/,
-      const char *data,
-      size_t      data_len,
-      void *
+        const mg_connection *conn,
+        int /*flags*/,
+        const char  *data,
+        const size_t data_len,
+        void *
     ) {
         Connection *sc2_connection;
         if ( !GetClientData ( conn, sc2_connection ) ) {
             return 0;
         }
 
-        SC2APIProtocol::Response *response = new SC2APIProtocol::Response( );
+        auto response = make_unique<SC2APIProtocol::Response>( );
         if ( !response->ParseFromArray ( data, static_cast<int> ( data_len ) ) )
         {
             return 1;
         }
 
-        sc2_connection->PushResponse ( response );
+        sc2_connection->PushResponse ( response.release( ) );
 
         return 1;
     } // DataHandler
-
 
     void ConnectionClosedHandler ( const mg_connection *conn, void * ) {
         Connection *sc2_connection;
@@ -307,41 +301,40 @@ public:
  * @param verbose
  * @return Returns true if the connection was successful and false
  * otherwise.*/
-// bool Connect ( const string &address, int port, bool verbose = true ) {
-//     if ( !StartCivetweb( ) ) {
-//         SRC_LocationOut ( "StartCivetweb Failed" );
-//         return false;
-//     }
-//     verbose_ = verbose;
-//
-//     char ebuff[256] = { };
-//
-//     connection_ = mg_connect_websocket_client (
-//       address.c_str( ),
-//       port,
-//       0,
-//       ebuff,
-//       256,
-//       "/sc2api",
-//       nullptr,
-//       reinterpret_cast<mg_websocket_data_handler> ( DataHandler ),
-//       ConnectionClosedHandler,
-//       this
-//     );
-//
-//     if ( !connection_ ) {
-//         cerr << "Failed to establish websocket connection: " << ebuff
-//              << '\n';
-//         return false;
-//     }
-//
-//     if ( verbose_ ) {
-//         cout << "Connected..." << '\n';
-//     }
-//
-//     return true;
-// }
+bool Connection::Connect ( const string &address, int port, const bool verbose = true ) {
+    if ( !StartCivetweb( ) ) {
+        SRC_LocationOut ( "StartCivetweb Failed" );
+        return false;
+    }
+    verbose_ = verbose;
 
+    char ebuff[256] = { };
+
+    connection_ = mg_connect_websocket_client (
+      address.c_str( ),
+      port,
+      0,
+      ebuff,
+      256,
+      "/sc2api",
+      nullptr,
+      reinterpret_cast<mg_websocket_data_handler> ( DataHandler ),
+      ConnectionClosedHandler,
+      this
+    );
+
+    if ( !connection_ ) {
+        cerr << "Failed to establish websocket connection: " << ebuff
+             << '\n';
+        return false;
+    }
+
+    if ( verbose_ ) {
+        cout << "Connected..." << '\n';
+    }
+
+    return true;
+}
 
 
 } // namespace sc2

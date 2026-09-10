@@ -11,3 +11,5 @@ build/
 .vscode/
 
 .idea/
+/prebuilt/protobuf/bin/protoc.exe
+/src/CMakeLists_src.txt

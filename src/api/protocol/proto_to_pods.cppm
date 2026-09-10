@@ -437,8 +437,8 @@ bool Convert (
 bool Convert (
     const ObservationRawPtr &observation_raw,
     UnitPool                &unit_pool,
-    uint32_t                 game_loop,
-    uint32_t                 prev_game_loop
+    const uint32_t           game_loop,
+    const uint32_t           prev_game_loop
 ) {
     for ( int i = 0; i < observation_raw->units_size( ); ++i ) {
         const SC2APIProtocol::Unit &observation_unit =

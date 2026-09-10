@@ -6,9 +6,9 @@ module;
 #include <vector>
 
 #ifdef _WIN32
-#include "dirent.h"
+    #include "dirent.h"
 #else
-#include <dirent.h>
+    #include <dirent.h>
 #endif
 export module scan_directory;
 
@@ -16,21 +16,21 @@ export namespace sc2 {
 using namespace std;
 
 int scan_directory (
-    const char*     directory_path,
-    vector<string>& files,
-    bool            full_path,
-    bool            list_directories
+    const char     *directory_path,
+    vector<string> &files,
+    const bool            full_path,
+    const bool            list_directories
 ) {
     if ( !directory_path || !*directory_path ) {
         return 0;
     }
 
-    DIR* dir = opendir ( directory_path );
+    DIR *dir = opendir ( directory_path );
     if ( !dir ) {
         return 0;
     }
 
-    dirent* ent;
+    dirent *ent;
 
     while ( ( ent = readdir ( dir ) ) != nullptr ) {
         switch ( ent->d_type ) {
@@ -66,6 +66,7 @@ int scan_directory (
                     );
                 }
             } break;
+            default : break;
         }
     }
 

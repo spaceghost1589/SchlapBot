@@ -13,10 +13,10 @@ struct ProcessInfo
 {
     ProcessInfo ( ) = default;
 
-    ProcessInfo ( const string& path, uint64_t id, int port )
-          : process_path ( path ),
-            process_id ( id ),
-            port ( port ) {}
+    ProcessInfo ( const string &path, const uint64_t id, const int port )
+        : process_path ( path ),
+          process_id ( id ),
+          port ( port ) { }
 
     string   process_path;
     uint64_t process_id;
@@ -43,23 +43,23 @@ struct ProcessSettings
     ProcessSettings ( ) = default;
 
     ProcessSettings (
-        bool          in_real_time,
-        int           in_step_size,
-        const string& in_process_path,
-        const string& in_net_address,
-        int           in_timeout_ms,
-        int           in_port_start,
-        bool          in_multi_threaded = false,
-        bool          in_full_screen    = false
+        const bool    in_real_time,
+        const int     in_step_size,
+        const string &in_process_path,
+        const string &in_net_address,
+        const int     in_timeout_ms,
+        const int     in_port_start,
+        const bool    in_multi_threaded = false,
+        const bool    in_full_screen    = false
     )
-          : realtime ( in_real_time ),
-            step_size ( in_step_size ),
-            process_path ( in_process_path ),
-            net_address ( in_net_address ),
-            timeout_ms ( in_timeout_ms ),
-            port_start ( in_port_start ),
-            multi_threaded ( in_multi_threaded ),
-            full_screen ( in_full_screen ) {}
+        : realtime ( in_real_time ),
+          step_size ( in_step_size ),
+          process_path ( in_process_path ),
+          net_address ( in_net_address ),
+          timeout_ms ( in_timeout_ms ),
+          port_start ( in_port_start ),
+          multi_threaded ( in_multi_threaded ),
+          full_screen ( in_full_screen ) { }
 };
 
 //! Settings for an RGB rendered output.
@@ -67,11 +67,16 @@ struct RenderSettings
 {
     RenderSettings ( ) = default;
 
-    RenderSettings ( int map_x, int map_y, int minimap_x, int minimap_y )
-          : map_x ( map_x ),
-            map_y ( map_y ),
-            minimap_x ( minimap_x ),
-            minimap_y ( minimap_y ) {}
+    RenderSettings (
+        const int map_x,
+        const int map_y,
+        const int minimap_x,
+        const int minimap_y
+    )
+        : map_x ( map_x ),
+          map_y ( map_y ),
+          minimap_x ( minimap_x ),
+          minimap_y ( minimap_y ) { }
 
     //! X size of rendered bitmap for the world screen.
     int map_x     = 800;
@@ -89,17 +94,17 @@ struct FeatureLayerSettings
     FeatureLayerSettings ( ) = default;
 
     FeatureLayerSettings (
-        float in_camera_width,
-        int   in_map_x,
-        int   in_map_y,
-        int   in_minimap_x,
-        int   in_minimap_y
+        const float in_camera_width,
+        const int   in_map_x,
+        const int   in_map_y,
+        const int   in_minimap_x,
+        const int   in_minimap_y
     )
-          : camera_width ( in_camera_width ),
-            map_x ( in_map_x ),
-            map_y ( in_map_y ),
-            minimap_x ( in_minimap_x ),
-            minimap_y ( in_minimap_y ) {}
+        : camera_width ( in_camera_width ),
+          map_x ( in_map_x ),
+          map_y ( in_map_y ),
+          minimap_x ( in_minimap_x ),
+          minimap_y ( in_minimap_y ) { }
 
     //! The width of the camera view as it would appear in the world. The size
     //! is in game world units.
@@ -148,7 +153,7 @@ struct ReplaySettings
 {
     ReplaySettings ( ) = default;
 
-    string replay_dir;
+    string         replay_dir;
     //! Fill with replays to analyze.
     vector<string> replay_file;
     uint32_t       player_id { 1 };

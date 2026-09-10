@@ -1,16 +1,16 @@
 module;
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 #include <format>
 #include <functional>
 #include <iosfwd>
+#include <ostream>
 #include <string>
 #include <type_traits>
 #include <variant>
 
 #include <s2clientprotocol/common.pb.h>
-#include <concepts>
-#include <ostream>
 export module point;
 
 namespace {
@@ -28,7 +28,7 @@ using std::roundf;
 using std::string;
 using std::to_string;
 using std::variant;
-} // using declarations
+} // namespace
 
 export namespace sc2 {
 
@@ -54,7 +54,7 @@ concept PointLike2D = HasXY<PL2D> || Pair2D<PL2D>;
 //! Establishes X coordinate base on type concept.
 template<PointLike2D PL2D> constexpr auto get_x ( PL2D p ) {
     if constexpr ( HasXY<PL2D> ) // Raw X coord
-        return ( p.x );
+        return p.x;
     else // pairs, tuples, arrays, etc.
         return get<0> ( p );
 }
@@ -208,7 +208,7 @@ using Point2D  = Point_2D<float>;
 using Point2DI = Point_2D<int>;
 
 auto Dot2D ( const Point2D &a, const Point2D &b ) {
-    return ( a.x * b.x ) + ( a.y * b.y );
+    return a.x * b.x + a.y * b.y;
 }
 
 auto DistanceSquared ( const Point2D &a, const auto &b ) {
@@ -273,8 +273,8 @@ struct Rect_2D
           } { }
 
     Rect_2D ( const SC2APIProtocol::PointI &pt )
-    : pt_min { 0, 0 },
-      pt_max { pt } { }
+        : pt_min { 0, 0 },
+          pt_max { pt } { }
 
     Rect_2D ( const SC2APIProtocol::RectangleI &rectangle_i )
         : Rect_2D (
@@ -303,10 +303,8 @@ struct Rect_2D
     //! @brief Checks to see if a Point2D is contained within the Rectangle.
     [[nodiscard]]
     bool Contain ( const Point_2D<T> &point ) const {
-        return (
-            point.x >= pt_min.x && point.y >= pt_min.y && point.x <= pt_max.x &&
-            point.y <= pt_max.y
-        );
+        return point.x >= pt_min.x && point.y >= pt_min.y && point.x <= pt_max.x &&
+            point.y <= pt_max.y;
     }
 };
 
@@ -365,13 +363,17 @@ struct Point_3D : Point_2D<T>
         return this - rhs;
     }
 
-
+    [[nodiscard]] friend constexpr Point_3D
+        operator * ( const Point_3D &lhs, const float rhs ) {
+        return { lhs.x * rhs, lhs.y * rhs, lhs.z * rhs };
+    }
 
     Point_3D &operator *= ( const float rhs ) {
         return this * rhs;
     }
 
-    [[nodiscard]] friend constexpr Point_3D operator / ( Point_3D &lhs, const float rhs ) {
+    [[nodiscard]] friend constexpr Point_3D
+        operator / ( Point_3D &lhs, const float rhs ) {
         return { lhs.x / rhs, lhs.y / rhs, lhs.z / rhs };
     }
 
@@ -402,7 +404,7 @@ using Point3D = Point_3D<float>;
 /*! @brief Dot Product
  * @note ( a.x * b.x ) + ( a.y * b.y ) + ( a.z * b.z )*/
 float Dot3D ( const Point3D &a, const Point3D &b ) {
-    return ( a.x * b.x ) + ( a.y * b.y ) + ( a.z * b.z );
+    return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 float DistanceSquared3D ( const Point3D &a, const Point3D &b ) {

@@ -47,13 +47,15 @@ enum class ClientError {
  * @result Outputs code location and custom error message.
  * @note "[file:line.column::function]: err_msg" */
 void SRC_LocationOut (
-    const char*     err_msg = "NO ERROR MESSAGE PROVIDED",
-    source_location srcLoc  = source_location::current( )
+    const char           *err_msg = "NO ERROR MESSAGE PROVIDED",
+    const source_location srcLoc  = source_location::current( )
 ) {
     // Strip the absolute directory path down to just the filename
-    string_view file_path = srcLoc.file_name();
-    if ( const auto last_slash = file_path.find_last_of("/\\"); last_slash != string_view::npos) {
-        file_path.remove_prefix(last_slash + 1);
+    string_view file_path = srcLoc.file_name( );
+    if ( const auto last_slash = file_path.find_last_of ( "/\\" );
+         last_slash != string_view::npos )
+    {
+        file_path.remove_prefix ( last_slash + 1 );
     }
 
     // clang-format off
@@ -67,27 +69,26 @@ void SRC_LocationOut (
 
 //! @brief Custom assert
 inline bool Assert (
-    bool            bool_,
-    const char*     msg = "",
-    source_location loc = source_location::current( )
+    const bool            bool_,
+    const char           *msg = "",
+    const source_location loc = source_location::current( )
 ) {
     if ( bool_ )
         return true;
-    else
-        SRC_LocationOut ( msg, loc );
+    SRC_LocationOut ( msg, loc );
 #if !BUILD_FOR_LADDER
     abort( );
 #endif
     return false;
 }
 
-struct ClientConnectionError : runtime_error
+struct ClientConnectionError final : runtime_error
 {
-    ClientConnectionError ( const string& net_address_, int port_ )
-          : runtime_error (
-                "Failed connect to client " + net_address_ + ":" +
-                to_string ( port_ )
-            ) {}
+    ClientConnectionError ( const string &net_address_, const int port_ )
+        : runtime_error (
+              "Failed connect to client " + net_address_ + ":" +
+              to_string ( port_ )
+          ) { }
 };
 
 } // namespace sc2
@@ -107,7 +108,7 @@ mutex error_mutex_;
 
 inline void Log (
     const ClientError client_error = ClientError::NULL_ERROR,
-    [[maybe_unused]] const vector<string>& protocol_errors = { }
+    [[maybe_unused]] const vector<string> &protocol_errors = { }
 ) {
     // A ConnectionClosed error can come off a civetweb worker thread.
     const lock_guard guard ( error_mutex_ );
@@ -117,7 +118,7 @@ inline void Log (
         client_errors_.push_back ( client_error );
 
     // Cache protocol errors
-    for ( const string& err : protocol_errors ) {
+    for ( const string &err : protocol_errors ) {
         protocol_errors_.push_back ( err );
     }
 
@@ -127,11 +128,11 @@ inline void Log (
     // #endif
 }
 
-inline vector<ClientError>& GetClientErrors ( ) {
+inline vector<ClientError> &GetClientErrors ( ) {
     return client_errors_;
 }
 
-inline vector<string>& GetProtocolErrors ( ) {
+inline vector<string> &GetProtocolErrors ( ) {
     return protocol_errors_;
 }
 

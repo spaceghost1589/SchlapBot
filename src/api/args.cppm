@@ -119,7 +119,7 @@ string ParseExecuteInfo (
 } // string ParseExecuteInfo
 
 bool ParseSettings (
-    span<char*>      args,
+    const span<char*>      args,
     ProcessSettings& process_settings,
     GameSettings&    game_settings
 ) {

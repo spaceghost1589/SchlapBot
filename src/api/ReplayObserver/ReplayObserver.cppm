@@ -13,10 +13,8 @@ import game_settings;
 import game_types;
 import proto_to_pods;
 
-
 export namespace sc2 {
 using namespace std;
-
 
 //! A client for running a replay.
 class ReplayObserver final : public Client {
@@ -24,7 +22,7 @@ public:
     ReplayInfo replay_info_;
 
     ReplayObserver ( )
-          : observer_action_interface_ ( new ObserverActionInterface( ) ) {}
+        : observer_action_interface_ ( new ObserverActionInterface( ) ) { }
 
     ~ReplayObserver ( ) override {
         delete observer_action_interface_;
@@ -32,7 +30,7 @@ public:
 
     /*! @brief Obtains the observer action interface.
      * @return The observer action interface. */
-    ObserverActionInterface* ObserverAction ( ) const {
+    ObserverActionInterface *ObserverAction ( ) const {
         return observer_action_interface_;
     }
 
@@ -42,7 +40,7 @@ public:
      * @param player_id
      * @returns If TRUE, the replay will be rejected and not analyzed. */
     static bool
-        IgnoreReplay ( const ReplayInfo& replay_info, uint32_t /*player_id*/ ) {
+        IgnoreReplay ( const ReplayInfo &replay_info, uint32_t /*player_id*/ ) {
         // Ignore games less than 30 seconds.
         return replay_info.duration < 30.0F;
     }
@@ -53,12 +51,15 @@ public:
         observer_action_interface_ = new ObserverActionInterface( );
     }
 
-    bool GatherReplayInfo ( const string& path, bool download_data = false ) {
+    bool GatherReplayInfo (
+        const string &path,
+        const bool    download_data = false
+    ) {
         replay_info_.num_players = 0;
 
         // Request the replay info.
         const GameRequestPtr               request = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestReplayInfo* request_replay_info =
+        SC2APIProtocol::RequestReplayInfo *request_replay_info =
             request->mutable_replay_info( );
         request_replay_info->set_replay_path ( path );
         request_replay_info->set_download_data ( download_data );
@@ -82,7 +83,7 @@ public:
             return false;
         }
 
-        const SC2APIProtocol::ResponseReplayInfo& proto_replay_info =
+        const SC2APIProtocol::ResponseReplayInfo &proto_replay_info =
             response->replay_info( );
 
         if ( proto_replay_info.has_error( ) ) {
@@ -131,12 +132,12 @@ public:
         replay_info_.base_build = proto_replay_info.base_build( );
 
         for ( int i = 0; i < proto_replay_info.player_info_size( ); ++i ) {
-            const SC2APIProtocol::PlayerInfoExtra& player_info_extra_proto =
+            const SC2APIProtocol::PlayerInfoExtra &player_info_extra_proto =
                 proto_replay_info.player_info ( i );
             ReplayPlayerInfo player_info;
 
             if ( player_info_extra_proto.has_player_info( ) ) {
-                const SC2APIProtocol::PlayerInfo& player_info_proto =
+                const SC2APIProtocol::PlayerInfo &player_info_proto =
                     player_info_extra_proto.player_info( );
                 player_info.player_id = player_info_proto.player_id( );
                 if ( player_info_proto.has_race_actual( ) ) {
@@ -155,7 +156,7 @@ public:
             player_info.apm = player_info_extra_proto.player_apm( );
 
             if ( player_info_extra_proto.has_player_result( ) ) {
-                if ( const SC2APIProtocol::PlayerResult& player_result_proto =
+                if ( const SC2APIProtocol::PlayerResult &player_result_proto =
                          player_info_extra_proto.player_result( );
                      player_result_proto.has_result( ) )
                 {
@@ -178,20 +179,20 @@ public:
     }
 
     static bool LoadReplay (
-        const string&            replay_path,
-        const InterfaceSettings& settings,
-        uint32_t                 player_id,
-        bool                     realtime = false
+        const string            &replay_path,
+        const InterfaceSettings &settings,
+        const uint32_t           player_id,
+        const bool               realtime = false
     ) {
         // Send the request.
         const GameRequestPtr                request = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestStartReplay* start_replay_request =
+        SC2APIProtocol::RequestStartReplay *start_replay_request =
             request->mutable_start_replay( );
         start_replay_request->set_replay_path ( replay_path );
         start_replay_request->set_observed_player_id ( player_id );
         start_replay_request->set_realtime ( realtime );
 
-        SC2APIProtocol::InterfaceOptions* options =
+        SC2APIProtocol::InterfaceOptions *options =
             start_replay_request->mutable_options( );
 
         options->set_raw ( true );
@@ -202,16 +203,16 @@ public:
         options->set_raw_affects_selection ( false );
 
         if ( settings.use_feature_layers ) {
-            SC2APIProtocol::SpatialCameraSetup* setupProto =
+            SC2APIProtocol::SpatialCameraSetup *setupProto =
                 options->mutable_feature_layer( );
             setupProto->set_width (
                 settings.feature_layer_settings.camera_width
             );
-            SC2APIProtocol::Size2DI* resolution =
+            SC2APIProtocol::Size2DI *resolution =
                 setupProto->mutable_resolution( );
             resolution->set_x ( settings.feature_layer_settings.map_x );
             resolution->set_y ( settings.feature_layer_settings.map_y );
-            SC2APIProtocol::Size2DI* minimap_resolution =
+            SC2APIProtocol::Size2DI *minimap_resolution =
                 setupProto->mutable_minimap_resolution( );
             minimap_resolution->set_x (
                 settings.feature_layer_settings.minimap_x
@@ -221,13 +222,13 @@ public:
             );
         }
         if ( settings.use_render ) {
-            SC2APIProtocol::SpatialCameraSetup* setupProto =
+            SC2APIProtocol::SpatialCameraSetup *setupProto =
                 options->mutable_render( );
-            SC2APIProtocol::Size2DI* resolution =
+            SC2APIProtocol::Size2DI *resolution =
                 setupProto->mutable_resolution( );
             resolution->set_x ( settings.render_settings.map_x );
             resolution->set_y ( settings.render_settings.map_y );
-            SC2APIProtocol::Size2DI* minimap_resolution =
+            SC2APIProtocol::Size2DI *minimap_resolution =
                 setupProto->mutable_minimap_resolution( );
             minimap_resolution->set_x ( settings.render_settings.minimap_x );
             minimap_resolution->set_y ( settings.render_settings.minimap_y );
@@ -262,7 +263,7 @@ public:
             return false;
         }
 
-        if ( const SC2APIProtocol::ResponseStartReplay& response_replay =
+        if ( const SC2APIProtocol::ResponseStartReplay &response_replay =
                  response->start_replay( );
              response_replay.has_error( ) )
         {
@@ -297,16 +298,12 @@ public:
         return true;
     }
 
-    static void UseGeneralizedAbility ( bool value ) {
-        UseGeneralizedAbility ( value );
-    }
-
-    const ReplayInfo& GetReplayInfo ( ) const {
+    const ReplayInfo &GetReplayInfo ( ) const {
         return replay_info_;
     }
 
 private:
-    ObserverActionInterface* observer_action_interface_;
+    ObserverActionInterface *observer_action_interface_;
 }; // ReplayObserver
 
 } // namespace sc2

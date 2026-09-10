@@ -3,7 +3,6 @@ module;
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <mutex>
 #include <set>
 #include <string>
 #include <vector>
@@ -36,7 +35,6 @@ using namespace std;
 export namespace sc2 {
 
 
-
 GameResponsePtr WaitForResponse ( );
 
 /*! The base class for Agent and ReplayObserver.
@@ -66,8 +64,6 @@ public:
     // Errors that may have occurred during calls to the various interfaces.
     vector<ClientError> client_errors_;
     vector<string>      protocol_errors_;
-
-    mutex error_mutex_;
 
     bool is_multiplayer_ { false };
 
@@ -207,7 +203,11 @@ public:
         // ctrl_face_ = new ControlInterface ( *this );
     }
 
-    virtual bool Connect ( const string &address, int port, int timeout_ms ) {
+    virtual bool Connect (
+        const string &address,
+        const int     port,
+        const int     timeout_ms
+    ) {
         // Keep retrying the connection until the timeout is hit.
         bool         connected = false;
         unsigned int timeout_seconds =
@@ -229,7 +229,7 @@ public:
         }
 
         if ( !connected ) {
-            cerr << "Unable to connect to game\n";
+            cerr << "Unable to connect to game" << endl;
             return false;
         }
 
@@ -238,6 +238,12 @@ public:
         return true;
     }
 
+    /*! @brief Saves a binary blob as a map to a remote location.
+     * @param data The map data.
+     * @param data_size The size of map data.
+     * @param remote_path The file path to save the data to.
+     * @return Is true if the save is successful.
+     * @see @c Coordinator::RemoteSaveMap */
     virtual bool RemoteSaveMap (
         const void *data,
         const int   data_size,
@@ -269,35 +275,21 @@ public:
         const SC2APIProtocol::ResponseSaveMap &response_save_game =
             response->save_map( );
 
-        bool success = true;
         if ( response_save_game.has_error( ) ) {
-            success = false;
-
-            if ( response_save_game.error( ) ==
-                 SC2APIProtocol::ResponseSaveMap::InvalidMapData )
-                string errorCode = "Invalid Map Data";
-            else
-                string errorCode = "Unknown";
-
-
-            // switch ( response_save_game.error( ) ) {
-            //     case SC2APIProtocol::ResponseSaveMap::InvalidMapData : {
-            //         errorCode = "Invalid Map Data";
-            //         break;
-            //     }
-            //     default : {
-            //         break;
-            //     }
-            // }
+            cerr << "RemoteSaveMap Error: "
+                 << ResponseSaveMap_Error_Name ( response_save_game.error( ) )
+                 << endl;
+            response_save_game.PrintDebugString( );
+            return false;
         }
-
-        return success;
+        return true;
     }
 
-    void ResolveMap (
+    static void ResolveMap (
         const string                      &map_name,
         SC2APIProtocol::RequestCreateGame *request
-    ) const {
+    )
+    {
         // BattleNet map
         if ( !HasExtension ( map_name, ".SC2Map" ) ) {
             request->set_battlenet_map_name ( map_name );
@@ -334,7 +326,7 @@ public:
     virtual bool CreateGame (
         const string              &map_name,
         const vector<PlayerSetup> &players,
-        bool                       realtime
+        const bool                 realtime
     ) {
         const GameRequestPtr               request = ProtoFace::MakeRequest( );
         SC2APIProtocol::RequestCreateGame *request_create_game =
@@ -443,7 +435,7 @@ public:
         PlayerSetup              setup,
         const InterfaceSettings &settings,
         const Ports             &ports,
-        bool                     raw_affects_selection
+        const bool               raw_affects_selection
     ) {
         observation_face_->ClearFlags( );
 
@@ -556,7 +548,7 @@ public:
             return false;
         }
 
-        GameRequestPtr request = ProtoFace::MakeRequest( );
+        const GameRequestPtr request = ProtoFace::MakeRequest( );
         request->mutable_leave_game( );
         return ProtoFace::SendRequest ( request );
     }
@@ -587,12 +579,12 @@ public:
         return true;
     }
 
-    virtual bool Step ( int count ) {
+    virtual bool Step ( const int count ) {
         if ( app_state != AppState::Normal ) {
             return false;
         }
 
-        GameRequestPtr               request = ProtoFace::MakeRequest( );
+        const GameRequestPtr         request = ProtoFace::MakeRequest( );
         SC2APIProtocol::RequestStep *step    = request->mutable_step( );
         step->set_count ( count );
         return ProtoFace::SendRequest ( request );
@@ -607,10 +599,10 @@ public:
         }
 
         return GetObservation( );
-    }
+    } // Step
 
     virtual bool SaveReplay ( const string &path ) {
-        GameRequestPtr request = ProtoFace::MakeRequest( );
+        const GameRequestPtr request = ProtoFace::MakeRequest( );
         request->mutable_save_replay( );
         if ( !ProtoFace::SendRequest ( request ) ) {
             return false;
@@ -685,7 +677,7 @@ public:
         // Step 2: distinguish between a non-responsive app and a failure to
         // deliver a valid request.
         {
-            GameRequestPtr ping_request = ProtoFace::MakeRequest( );
+            const GameRequestPtr ping_request = ProtoFace::MakeRequest( );
             ping_request->mutable_ping( );
 
             if ( !ProtoFace::SendRequest ( ping_request, true ) ) {
@@ -886,10 +878,13 @@ public:
             return;
         }
 
-        const SC2APIProtocol::ObservationRaw &raw = observation_->raw_data( );
-        if ( raw.has_event( ) ) {
-            const SC2APIProtocol::Event &event = raw.event( );
-            for ( const auto &tag : event.dead_units( ) ) {
+        if ( const SC2APIProtocol::ObservationRaw &raw =
+                 observation_->raw_data( );
+             raw.has_event( ) )
+        {
+            for ( const SC2APIProtocol::Event &event = raw.event( );
+                  const uint64_t              &tag : event.dead_units( ) )
+            {
                 const Unit *unit =
                     observation_face_->unit_pool_.GetUnit ( tag );
 
@@ -904,7 +899,8 @@ public:
     }
 
     void IssueUnitAddedEvents ( ) {
-        for ( auto unit : observation_face_->unit_pool_.GetNewUnits( ) ) {
+        for ( const Unit *unit : observation_face_->unit_pool_.GetNewUnits( ) )
+        {
             if ( unit->alliance == Unit::Alliance::Self ) {
                 OnUnitCreated ( unit );
             } else if (
@@ -916,7 +912,7 @@ public:
             }
         }
 
-        for ( auto unit :
+        for ( const Unit *unit :
               observation_face_->unit_pool_.GetUnitsEnteringVision( ) )
         {
             if ( unit->alliance == Unit::Alliance::Enemy &&
@@ -953,7 +949,7 @@ public:
     }
 
     void IssueBuildingCompletedEvents ( ) {
-        for ( auto unit :
+        for ( const Unit *unit :
               observation_face_->unit_pool_.GetCompletedBuildings( ) )
         {
             if ( unit->alliance == Unit::Alliance::Self ) {
@@ -1037,7 +1033,7 @@ public:
         protocol_errors_.clear( );
     }
 
-    void UseGeneralizedAbility ( bool value ) const {
+    void UseGeneralizedAbility ( const bool value ) const {
         observation_face_->use_generalized_ability_ = value;
     }
 
@@ -1052,7 +1048,7 @@ public:
     }
 
     void Load ( ) {
-        GameRequestPtr request = ProtoFace::MakeRequest( );
+        const GameRequestPtr request = ProtoFace::MakeRequest( );
         request->mutable_quick_load( );
         if ( !ProtoFace::SendRequest ( request ) ) {
             return;

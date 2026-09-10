@@ -17,7 +17,7 @@ using Response = SC2APIProtocol::Response::ResponseCase;
 using Request  = SC2APIProtocol::Request::RequestCase;
 
 //! Helper to produce a string for the protocol type.
-const char *RequestResponseIDToName ( int type ) {
+const char *RequestResponseIDToName (const int type ) {
     switch ( type ) {
         case 1  : return "CreateGame";
         case 2  : return "JoinGame";
@@ -58,7 +58,7 @@ using GameResponsePtr = shared_ptr<SC2APIProtocol::Response>;
 template<class MessageType> class MessageResponsePtr {
 public:
     MessageResponsePtr ( )
-      : message_ ( nullptr ) { }
+        : message_ ( nullptr ) { }
 
     void Set ( const GameResponsePtr &response, const MessageType *message ) {
         response_ = response;
@@ -68,9 +68,9 @@ public:
     bool HasErrors ( ) const {
         if ( !HasResponse( ) )
             return true;
-        else if ( response_->error_size( ) > 0 )
+        if ( response_->error_size( ) > 0 )
             return true;
-        else if ( !HasMessage( ) )
+        if ( !HasMessage( ) )
             return true;
 
         return false;
@@ -121,7 +121,7 @@ ProcessInfo pi_;
 
 SC2APIProtocol::Status latest_status_ ( SC2APIProtocol::Status::unknown );
 SC2APIProtocol::Response::ResponseCase response_pending_ (
-  SC2APIProtocol::Response::RESPONSE_NOT_SET
+    SC2APIProtocol::Response::RESPONSE_NOT_SET
 );
 
 vector<uint32_t> count_uses_;
@@ -134,7 +134,7 @@ GameRequestPtr MakeRequest ( ) {
 }
 
 void SetErrorCallback (
-  const function<void ( const string &error_str )> &error_callback
+    const function<void ( const string &error_str )> &error_callback
 ) {
     error_callback_ = error_callback;
 }
@@ -146,7 +146,6 @@ bool PollResponse ( ) {
 SC2APIProtocol::Status GetLastStatus ( ) {
     return latest_status_;
 }
-
 
 bool HasResponsePending ( ) {
     return response_pending_ != Response::RESPONSE_NOT_SET;
@@ -177,10 +176,10 @@ const string &GetDataVersion ( ) {
  * @param ignore_pending_requests
  * @returns The success or failure of the SendRequest. */
 bool SendRequest (
-  const GameRequestPtr &request,
-  bool                  ignore_pending_requests = false
+    const GameRequestPtr &request,
+    const bool            ignore_pending_requests = false
 ) {
-    const uint32_t request_type = ( request->request_case( ) );
+    const uint32_t request_type = request->request_case( );
     if ( request_type >= count_uses_.size( ) ) {
         const uint32_t current = static_cast<uint32_t> ( count_uses_.size( ) );
         count_uses_.resize ( request_type + 1 );
@@ -244,10 +243,8 @@ GameResponsePtr WaitForResponseInternal ( ) {
                 cerr << "LogError: " << response->error ( i ) << '\n';
             }
         } else {
-            if (
-              const Response actual_response = response->response_case( );
-              response_pending_ != actual_response
-            )
+            if ( const Response actual_response = response->response_case( );
+                 response_pending_ != actual_response )
             {
                 // This is bad, it means we did not get the response
                 // that matches the last request.
@@ -365,7 +362,7 @@ inline bool PingGame ( ) {
     return true;
 }
 
-bool ConnectToGame ( const string &address, int port, int timeout_ms ) {
+bool ConnectToGame ( const string &address, int port, const int timeout_ms ) {
     latest_status_      = SC2APIProtocol::Status::unknown;
     address_            = address;
     port_               = port;

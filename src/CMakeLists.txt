@@ -11,8 +11,9 @@ target_include_directories(SchlapBot PRIVATE
     "${CMAKE_BINARY_DIR}"
     )
 
+file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/generated/s2clientprotocol")
 target_include_directories(SchlapBot SYSTEM PUBLIC
-    "${PROJECT_BINARY_DIR}/generated"
+    "${PROJECT_BINARY_DIR}/generated/s2clientprotocol"
     )
 
 #if(SCCACHE)

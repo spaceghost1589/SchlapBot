@@ -26,8 +26,8 @@ import scan_directory;
 export namespace sc2 {
 using namespace std;
 
-PlayerSetup CreateParticipant ( Race race, const string &player_name = "" ) {
-    return PlayerSetup ( Participant, race, player_name );
+PlayerSetup CreateParticipant ( const string &player_name, const Race race ) {
+    return PlayerSetup ( Participant, player_name, race );
 }
 
 PlayerSetup CreateComputer (
@@ -44,7 +44,7 @@ PlayerSetup CreateComputer (
                     << AIBuildToString ( ai_build );
         final_name = name_stream.str( );
     }
-    return { Computer, race, computer_name, difficulty, ai_build };
+    return { Computer, computer_name, race, difficulty, ai_build };
 }
 
 /*! @brief Frontend for running a game.
@@ -111,7 +111,7 @@ public:
      * @param args Provided in main signature. Conversion from `int argc, char*
      * argv[]` required.
      * @return True if settings were found or discovered. */
-    bool LoadSettings ( span<char *> args ) {
+    bool LoadSettings (const span<char *> args ) {
         return ParseSettings ( args, process_settings_, game_settings_ );
     }
 
@@ -119,7 +119,7 @@ public:
      * in parallel. If set to true make sure your bots are thread-safe if they
      * reach into shared code.
      * @param value True to multithread, false otherwise. */
-    void SetMultithreaded ( bool value ) {
+    void SetMultithreaded (const bool value ) {
         process_settings_.multi_threaded = value;
     }
 
@@ -128,7 +128,7 @@ public:
      * it forward. The game is running and your bot reaches into it
      * asynchronously to read state.
      * @param value True to be realtime, false otherwise. */
-    void SetRealtime ( bool value ) {
+    void SetRealtime (const bool value ) {
         // Realtime must be set before LaunchStarcraft is called.
         assert ( !starcraft_started_ );
         process_settings_.realtime = value;
@@ -136,7 +136,7 @@ public:
 
     /*! @brief Sets the number of game loops to run for each step.
      * @param step_size Number of gameloops to run for each step. */
-    void SetStepSize ( int step_size ) {
+    void SetStepSize (const int step_size ) {
         if ( step_size < 1 ) {
             assert ( 0 );
             return;
@@ -167,14 +167,14 @@ public:
 
     /*! @brief Sets the timeout for network operations.
      * @param timeout_ms in milliseconds. */
-    void SetTimeoutMS ( uint32_t timeout_ms ) {
+    void SetTimeoutMS (const uint32_t timeout_ms ) {
         process_settings_.timeout_ms = timeout_ms;
     }
 
     /*! @brief Sets the first port number to use. Subsequent port assignments
      * are sequential.
      * @param port_start First port number. */
-    void SetPortStart ( int port_start ) {
+    void SetPortStart (const int port_start ) {
         assert ( !starcraft_started_ );
         process_settings_.port_start = port_start;
     }
@@ -201,7 +201,7 @@ public:
     /*! @brief Sets the game window dimensions.
      * @param width Width of game window.
      * @param height Height of game window. */
-    void SetWindowSize ( int width, int height ) {
+    void SetWindowSize (const int width, const int height ) {
         assert ( !starcraft_started_ );
         window_width_  = width;
         window_height_ = height;
@@ -210,7 +210,7 @@ public:
     /*! @brief Sets the game window location.
      * @param x X position of game window.
      * @param y y position of game window. */
-    void SetWindowLocation ( int x, int y ) {
+    void SetWindowLocation ( const int x, const int y ) {
         assert ( !starcraft_started_ );
         window_start_x_ = x;
         window_start_y_ = y;
@@ -221,13 +221,13 @@ public:
      * BUILD_TECHLAB_STARPORT ability ids are generalized to BUILD_TECHLAB
      * ability id in the observation. */
     // TODO Why is this here?
-    void SetUseGeneralizedAbilityId ( bool value ) {
+    void SetUseGeneralizedAbilityId ( const bool value ) {
         assert ( !starcraft_started_ );
         use_generalized_ability_id = value;
     }
 
     //! Sets the replay perspective. Use 0 to observe all players.
-    void SetReplayPerspective ( int player_id ) {
+    void SetReplayPerspective ( const int player_id ) {
         replay_settings_.player_id = player_id;
     }
 
@@ -241,7 +241,7 @@ public:
     /*! @brief When set to true, less actions will be generated because the game
      * will not try to keep your unit selection. Useful to reduce the number of
      * actions, but may complicate the debugging process. */
-    void SetRawAffectsSelection ( bool value ) {
+    void SetRawAffectsSelection ( const bool value ) {
         game_settings_.raw_affects_selection = value;
     }
 
@@ -251,7 +251,7 @@ public:
      * registered participant). The game will be launched in the windowed mode
      * for the second player (second participant). It should be used in
      * combination with SetRealtime(true), otherwise the game has no sound. */
-    void SetFullScreen ( bool value ) {
+    void SetFullScreen ( const bool value ) {
         process_settings_.full_screen = value;
     }
 
@@ -274,11 +274,11 @@ public:
         agents_.clear( );
         SRC_LocationOut ( "GameSettings and Agents cleared." );
 
-        for ( const auto p : participants ) {
-            if ( p.first != nullptr ) {
-                AddAgent ( p.first );
+        for ( const auto [agent, player_setup] : participants ) {
+            if ( agent != nullptr ) {
+                AddAgent ( agent );
             }
-            game_settings_.player_setup.push_back ( p.second );
+            game_settings_.player_setup.push_back ( player_setup );
         }
     }
 
@@ -298,12 +298,12 @@ public:
     static int LaunchProcess (
         ProcessSettings &process_settings,
         Client          *client,
-        int              window_width,
-        int              window_height,
-        int              window_start_x,
-        int              window_start_y,
-        int              port,
-        int              client_num = 0
+        const int        window_width,
+        const int        window_height,
+        const int        window_start_x,
+        const int        window_start_y,
+        const int        port,
+        const int        client_num = 0
     ) {
         assert ( client );
         process_settings.process_info.push_back ( ProcessInfo( ) );
@@ -472,10 +472,10 @@ public:
     static int LaunchProcesses (
         ProcessSettings        &process_settings,
         const vector<Client *> &clients,
-        int                     window_width,
-        int                     window_height,
-        int                     window_start_x,
-        int                     window_start_y
+        const int               window_width,
+        const int               window_height,
+        const int               window_start_x,
+        const int               window_start_y
     ) {
         int last_port   = 0;
         // Start an sc2 process for each bot.
@@ -603,7 +603,7 @@ public:
     }
 
     //! Attaches to a running StarCraft II.
-    void Connect ( int port ) {
+    void Connect ( const int port ) {
         if ( !agents_.front( )->Connect (
                  process_settings_.net_address,
                  port,
@@ -727,9 +727,9 @@ public:
      * @param check_single  Checks if the game is a single player or multiplayer
      * game */
     void SetupPorts (
-        size_t num_agents,
-        int    port_start,
-        bool   check_single = true
+        const size_t num_agents,
+        int          port_start,
+        const bool   check_single = true
     ) {
         // Join the game if there are two human participants.
         size_t humans = 0;
@@ -1258,7 +1258,7 @@ public:
      * @return Is true if the save is successful. */
     bool RemoteSaveMap (
         const void   *data,
-        int           data_size,
+        const int     data_size,
         const string &remote_path
     ) const {
         for ( Agent *agent : agents_ ) {

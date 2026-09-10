@@ -159,9 +159,9 @@ struct PlayerSetup
     PlayerSetup ( );
 
     PlayerSetup (
-        string           _player_name = "",
         const PlayerType _type,
-        const Race       _race,
+        string           _player_name = "",
+        const Race       _race = Random,
         const Difficulty _difficulty = Easy,
         const AIBuild    _ai_build   = RandomBuild
     )

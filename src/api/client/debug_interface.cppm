@@ -10,20 +10,23 @@ import point;
 import type_enums;
 import unit;
 
-
 export namespace sc2 {
 using namespace std;
 
-enum class AppTest { hang = 1, crash = 2, exit = 3 };
+enum class AppTest {
+    hang  = 1,
+    crash = 2,
+    exit  = 3,
+};
 
 /*! @brief DebugInterface draws debug text, lines and shapes. Available at any
  * time after the game starts. Guaranteed to be valid when the OnStep event is
  * called. All debug actions are queued and dispatched when SendDebug is called.
  * All drawn primitives continue to draw without resending until another
  * SendDebug is called. */
-class DebugInterface {
+class DebugInterface final {
 public:
-    ObservationInterface& observation_;
+    ObservationInterface &observation_;
 
     // Debug display.
 
@@ -70,7 +73,11 @@ public:
 
     struct DebugSetUnitValue
     {
-        enum class UnitValue { Energy, Life, Shields };
+        enum class UnitValue {
+            Energy,
+            Life,
+            Shields,
+        };
         UnitValue unit_value;
         float     value;
         Tag       tag;
@@ -101,17 +108,15 @@ public:
     bool    set_score_ { false };
     float   score_ { 0.0F };
 
-    DebugInterface ( ObservationInterface& observation )
-          : observation_ ( observation ) {}
-
-    virtual ~DebugInterface ( ) = default;
+    DebugInterface ( ObservationInterface &observation )
+        : observation_ ( observation ) { }
 
     // Debug drawing primitives.
 
     /*! @brief Outputs text at the top, left of the screen.
      * @param out The string of text to display.
      * @param text_color Text color (defaults to White) */
-    void DebugTextOut ( const string& out, Color text_color = White ) {
+    void DebugTextOut ( const string &out, const Color text_color = White ) {
         DebugText debug_text;
         debug_text.text       = out;
         debug_text.has_coords = false;
@@ -126,10 +131,10 @@ public:
      * @param color (Optional) Color of the text.
      * @param size (Optional) Pixel height of the text. */
     void DebugTextOut (
-        const string&  out,
-        const Point2D& pt_virtual_2D,
-        Color          color = White,
-        uint32_t       size  = 8
+        const string  &out,
+        const Point2D &pt_virtual_2D,
+        const Color    color = White,
+        const uint32_t size  = 8
     ) {
         DebugText debug_text;
         debug_text.text       = out;
@@ -149,10 +154,10 @@ public:
     //! @param color (Optional) Color of the text.
     //! @param size (Optional) Pixel height of the text.
     void DebugTextOut (
-        const string&  out,
-        const Point3D& pt3D,
-        Color          color = White,
-        uint32_t       size  = 8
+        const string  &out,
+        const Point3D &pt3D,
+        const Color    color = White,
+        const uint32_t size  = 8
     ) {
         DebugText debug_text;
         debug_text.text       = out;
@@ -172,7 +177,9 @@ public:
     //! @param pt_1 The ending position of the line.
     //! @param color (Optional) Color of the line.
     void DebugLineOut (
-        const Point3D& pt_0, const Point3D& pt_1, Color color = White
+        const Point3D &pt_0,
+        const Point3D &pt_1,
+        const Color    color = White
     ) {
         DebugLine line;
         line.point_0 = pt_0;
@@ -187,7 +194,9 @@ public:
     //! @param p_max The far corner of the box.
     //! @param color (Optional) Color of the lines.
     void DebugBoxOut (
-        const Point3D& p_min, const Point3D& p_max, Color color
+        const Point3D &p_min,
+        const Point3D &p_max,
+        const Color    color
     ) {
         DebugBox box;
         box.pt_min = p_min;
@@ -198,13 +207,17 @@ public:
 
     //! Outputs a sphere specified as a 3D point in the game world and a radius.
     //! Map coordinates are used.
-    //! @param p Center of the sphere.
-    //! @param r Radius of the sphere.
+    //! @param center_point Center of the sphere.
+    //! @param radius Radius of the sphere.
     //! @param color (Optional) Color of the lines.
-    void DebugSphereOut ( const Point3D& p, float r, Color color = White ) {
+    void DebugSphereOut (
+        const Point3D &center_point,
+        const float    radius,
+        const Color    color = White
+    ) {
         DebugSphere sphere;
-        sphere.center_pt = p;
-        sphere.radius    = r;
+        sphere.center_pt = center_point;
+        sphere.radius    = radius;
         sphere.color     = color;
         debug_spheres_.push_back ( sphere );
     }
@@ -217,10 +230,10 @@ public:
     //! @param player_id Player the unit should belong to.
     //! @param count Number of units to create.
     void DebugCreateUnit (
-        UnitTypeID     unit_type,
-        const Point2D& p,
-        uint32_t       player_id = 1,
-        uint32_t       count     = 1
+        const UnitTypeID unit_type,
+        const Point2D   &p,
+        const uint32_t   player_id = 1,
+        const uint32_t   count     = 1
     ) {
         DebugUnit create_unit;
         create_unit.unit_type = unit_type;
@@ -232,7 +245,7 @@ public:
 
     //! Destroy a unit.
     //! @param unit Unit to destroy.
-    void DebugKillUnit ( const Unit* unit ) {
+    void DebugKillUnit ( const Unit *unit ) {
         if ( !unit ) {
             return;
         }
@@ -304,7 +317,7 @@ public:
     }
 
     //! Sets the scripted "curriculum" score.
-    void DebugSetScore ( float score ) {
+    void DebugSetScore ( const float score ) {
         set_score_ = true;
         score_     = score;
     }
@@ -312,7 +325,7 @@ public:
     //! Ends a game.
     //! @param victory If true, this player is victorious. If false, this
     //! player surrenders.
-    void DebugEndGame ( bool victory ) {
+    void DebugEndGame ( const bool victory ) {
         if ( victory ) {
             endgame_surrender_ = false;
             endgame_victory_   = true;
@@ -326,7 +339,7 @@ public:
     //! @param value The new energy level.
     //! @param unit The unit.
     // TODO allow percentage
-    void DebugSetEnergy ( float value, const Unit* unit ) {
+    void DebugSetEnergy ( const float value, const Unit *unit ) {
         if ( !unit ) {
             return;
         }
@@ -341,7 +354,7 @@ public:
     //! @param value The new life value.
     //! @param unit The unit.
     // TODO allow percentage
-    void DebugSetLife ( float value, const Unit* unit ) {
+    void DebugSetLife ( const float value, const Unit *unit ) {
         if ( !unit ) {
             return;
         }
@@ -356,7 +369,7 @@ public:
     //! @param value The new shields.
     //! @param unit The unit.
     // TODO allow percentage
-    void DebugSetShields ( float value, const Unit* unit ) {
+    void DebugSetShields ( const float value, const Unit *unit ) {
         if ( !unit ) {
             return;
         }
@@ -369,7 +382,7 @@ public:
 
     //! Sets the position of the camera.
     //! @param pos The camera position in world space.
-    void DebugMoveCamera ( const Point2D& pos ) {
+    void DebugMoveCamera ( const Point2D &pos ) {
         has_move_camera    = true;
         debug_move_camera_ = pos;
     }
@@ -377,7 +390,7 @@ public:
     //! @brief Cause the game to fail; useful to test library behavior.
     //! @param app_test State to put the game into.
     //! @param delay_ms Time to elapse before invoking the game state.
-    void DebugTestApp ( AppTest app_test, int delay_ms = 0 ) {
+    void DebugTestApp ( const AppTest app_test, const int delay_ms = 0 ) {
         app_test_set_      = true;
         app_test_          = app_test;
         app_test_delay_ms_ = delay_ms;
@@ -400,145 +413,156 @@ public:
     //! text and lines.
     void SendDebug ( ) {
         const GameRequestPtr          request       = ProtoFace::MakeRequest( );
-        SC2APIProtocol::RequestDebug* request_debug = request->mutable_debug( );
+        SC2APIProtocol::RequestDebug *request_debug = request->mutable_debug( );
 
-        for ( const DebugText& entry : debug_text_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugText*    debug_text =
+        for ( const /*DebugText*/ auto
+                  &[text, size, color, has_coords, point, is_3d] : debug_text_ )
+        {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugText    *debug_text =
                 command->mutable_draw( )->add_text( );
-            debug_text->set_text ( entry.text );
-            debug_text->set_size ( entry.size );
-            if ( entry.has_coords ) {
-                if ( entry.is_3d ) {
-                    SC2APIProtocol::Point* pos =
+            debug_text->set_text ( text );
+            debug_text->set_size ( size );
+            if ( has_coords ) {
+                if ( is_3d ) {
+                    SC2APIProtocol::Point *pos =
                         debug_text->mutable_world_pos( );
-                    pos->set_x ( entry.point.x );
-                    pos->set_y ( entry.point.y );
-                    pos->set_z ( entry.point.z );
+                    pos->set_x ( point.x );
+                    pos->set_y ( point.y );
+                    pos->set_z ( point.z );
                 } else {
-                    SC2APIProtocol::Point* pos =
+                    SC2APIProtocol::Point *pos =
                         debug_text->mutable_virtual_pos( );
-                    pos->set_x ( entry.point.x );
-                    pos->set_y ( entry.point.y );
+                    pos->set_x ( point.x );
+                    pos->set_y ( point.y );
                 }
             }
-            SC2APIProtocol::Color* color_text = debug_text->mutable_color( );
-            color_text->set_r ( entry.color.R );
-            color_text->set_g ( entry.color.G );
-            color_text->set_b ( entry.color.B );
+            SC2APIProtocol::Color *color_text = debug_text->mutable_color( );
+            color_text->set_r ( color.R );
+            color_text->set_g ( color.G );
+            color_text->set_b ( color.B );
         }
 
-        for ( const DebugLine& line : debug_lines_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugLine*    debug_line =
+        for ( const /*DebugLine*/ auto &[point_0, point_1, color] :
+              debug_lines_ )
+        {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugLine    *debug_line =
                 command->mutable_draw( )->add_lines( );
-            SC2APIProtocol::Line* proto_line = debug_line->mutable_line( );
+            SC2APIProtocol::Line *proto_line = debug_line->mutable_line( );
 
-            SC2APIProtocol::Point* p0 = proto_line->mutable_p0( );
-            p0->set_x ( line.point_0.x );
-            p0->set_y ( line.point_0.y );
-            p0->set_z ( line.point_0.z );
+            SC2APIProtocol::Point *p0 = proto_line->mutable_p0( );
+            p0->set_x ( point_0.x );
+            p0->set_y ( point_0.y );
+            p0->set_z ( point_0.z );
 
-            SC2APIProtocol::Point* p1 = proto_line->mutable_p1( );
-            p1->set_x ( line.point_1.x );
-            p1->set_y ( line.point_1.y );
-            p1->set_z ( line.point_1.z );
+            SC2APIProtocol::Point *p1 = proto_line->mutable_p1( );
+            p1->set_x ( point_1.x );
+            p1->set_y ( point_1.y );
+            p1->set_z ( point_1.z );
 
-            SC2APIProtocol::Color* color_line = debug_line->mutable_color( );
-            color_line->set_r ( line.color.R );
-            color_line->set_g ( line.color.G );
-            color_line->set_b ( line.color.B );
+            SC2APIProtocol::Color *color_line = debug_line->mutable_color( );
+            color_line->set_r ( color.R );
+            color_line->set_g ( color.G );
+            color_line->set_b ( color.B );
         }
 
-        for ( const DebugBox& box : debug_boxes_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugBox*     debug_box =
+        for ( const /*DebugBox*/ auto &[pt_min, pt_max, color] : debug_boxes_ )
+        {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugBox     *debug_box =
                 command->mutable_draw( )->add_boxes( );
 
-            SC2APIProtocol::Point* p_min = debug_box->mutable_min( );
-            p_min->set_x ( box.pt_min.x );
-            p_min->set_y ( box.pt_min.y );
-            p_min->set_z ( box.pt_min.z );
+            SC2APIProtocol::Point *p_min = debug_box->mutable_min( );
+            p_min->set_x ( pt_min.x );
+            p_min->set_y ( pt_min.y );
+            p_min->set_z ( pt_min.z );
 
-            SC2APIProtocol::Point* p_max = debug_box->mutable_max( );
-            p_max->set_x ( box.pt_max.x );
-            p_max->set_y ( box.pt_max.y );
-            p_max->set_z ( box.pt_max.z );
+            SC2APIProtocol::Point *p_max = debug_box->mutable_max( );
+            p_max->set_x ( pt_max.x );
+            p_max->set_y ( pt_max.y );
+            p_max->set_z ( pt_max.z );
 
-            SC2APIProtocol::Color* color_box = debug_box->mutable_color( );
-            color_box->set_r ( box.color.R );
-            color_box->set_g ( box.color.G );
-            color_box->set_b ( box.color.B );
+            SC2APIProtocol::Color *color_box = debug_box->mutable_color( );
+            color_box->set_r ( color.R );
+            color_box->set_g ( color.G );
+            color_box->set_b ( color.B );
         }
 
-        for ( const DebugSphere& sphere : debug_spheres_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugSphere*  debug_sphere =
+        for ( const /*DebugSphere*/ auto &[center_pt, radius, color] :
+              debug_spheres_ )
+        {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugSphere  *debug_sphere =
                 command->mutable_draw( )->add_spheres( );
 
-            SC2APIProtocol::Point* p = debug_sphere->mutable_p( );
-            p->set_x ( sphere.center_pt.x );
-            p->set_y ( sphere.center_pt.y );
-            p->set_z ( sphere.center_pt.z );
+            SC2APIProtocol::Point *p = debug_sphere->mutable_p( );
+            p->set_x ( center_pt.x );
+            p->set_y ( center_pt.y );
+            p->set_z ( center_pt.z );
 
-            debug_sphere->set_r ( sphere.radius );
+            debug_sphere->set_r ( radius );
 
-            SC2APIProtocol::Color* color_sphere =
+            SC2APIProtocol::Color *color_sphere =
                 debug_sphere->mutable_color( );
-            color_sphere->set_r ( sphere.color.R );
-            color_sphere->set_g ( sphere.color.G );
-            color_sphere->set_b ( sphere.color.B );
+            color_sphere->set_r ( color.R );
+            color_sphere->set_g ( color.G );
+            color_sphere->set_b ( color.B );
         }
 
-        for ( const DebugSetUnitValue& set_unit_value : debug_unit_values_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugSetUnitValue* unit_value =
+        for ( const /*DebugSetUnitValue*/ auto &[unit_value, value, tag] :
+              debug_unit_values_ )
+        {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugSetUnitValue *debug_set_unit_value =
                 command->mutable_unit_value( );
-            switch ( set_unit_value.unit_value ) {
+            switch ( unit_value ) {
                 case DebugSetUnitValue::UnitValue::Energy :
-                    unit_value->set_unit_value (
+                    debug_set_unit_value->set_unit_value (
                         SC2APIProtocol::DebugSetUnitValue_UnitValue_Energy
                     );
                     break;
                 case DebugSetUnitValue::UnitValue::Life :
-                    unit_value->set_unit_value (
+                    debug_set_unit_value->set_unit_value (
                         SC2APIProtocol::DebugSetUnitValue_UnitValue_Life
                     );
                     break;
                 case DebugSetUnitValue::UnitValue::Shields :
-                    unit_value->set_unit_value (
+                    debug_set_unit_value->set_unit_value (
                         SC2APIProtocol::DebugSetUnitValue_UnitValue_Shields
                     );
                     break;
             }
-            unit_value->set_value ( set_unit_value.value );
-            unit_value->set_unit_tag ( set_unit_value.tag );
+            debug_set_unit_value->set_value ( value );
+            debug_set_unit_value->set_unit_tag ( tag );
         }
 
-        for ( const SC2APIProtocol::DebugGameState& state : debug_state_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
+        for ( const SC2APIProtocol::DebugGameState &state : debug_state_ ) {
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
             command->set_game_state ( state );
         }
 
-        for ( const DebugUnit& unit : debug_unit_ ) {
-            if ( unit.count < 1 ) {
+        for ( const /*DebugUnit*/ auto &[pos, player_id, unit_type, count] :
+              debug_unit_ )
+        {
+            if ( count < 1 ) {
                 continue;
             }
 
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugCreateUnit* create_unit =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugCreateUnit *create_unit =
                 command->mutable_create_unit( );
-            create_unit->set_unit_type ( unit.unit_type );
-            create_unit->set_owner ( unit.player_id );
-            SC2APIProtocol::Point2D* point = create_unit->mutable_pos( );
-            point->set_x ( unit.pos.x );
-            point->set_y ( unit.pos.y );
-            create_unit->set_quantity ( unit.count );
+            create_unit->set_unit_type ( unit_type );
+            create_unit->set_owner ( player_id );
+            SC2APIProtocol::Point2D *point = create_unit->mutable_pos( );
+            point->set_x ( pos.x );
+            point->set_y ( pos.y );
+            create_unit->set_quantity ( count );
         }
 
         if ( !debug_kill_tag_.empty( ) ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugKillUnit* debug_kill_unit =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugKillUnit *debug_kill_unit =
                 command->mutable_kill_unit( );
             for ( const Tag tag : debug_kill_tag_ ) {
                 debug_kill_unit->add_tag ( tag );
@@ -546,8 +570,8 @@ public:
         }
 
         if ( app_test_set_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugTestProcess* test_process =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugTestProcess *test_process =
                 command->mutable_test_process( );
             test_process->set_test (
                 static_cast<SC2APIProtocol::DebugTestProcess_Test> ( app_test_ )
@@ -556,8 +580,8 @@ public:
         }
 
         if ( set_score_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugSetScore* set_score =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugSetScore *set_score =
                 command->mutable_score( );
             set_score->set_score ( score_ );
         }
@@ -565,8 +589,8 @@ public:
         score_     = 0.0F;
 
         if ( endgame_surrender_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugEndGame* end_game =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugEndGame *end_game =
                 command->mutable_end_game( );
             end_game->set_end_result (
                 SC2APIProtocol::DebugEndGame_EndResult_Surrender
@@ -575,8 +599,8 @@ public:
         endgame_surrender_ = false;
 
         if ( endgame_victory_ ) {
-            SC2APIProtocol::DebugCommand* command = request_debug->add_debug( );
-            SC2APIProtocol::DebugEndGame* end_game =
+            SC2APIProtocol::DebugCommand *command = request_debug->add_debug( );
+            SC2APIProtocol::DebugEndGame *end_game =
                 command->mutable_end_game( );
             end_game->set_end_result (
                 SC2APIProtocol::DebugEndGame_EndResult_DeclareVictory
@@ -592,15 +616,15 @@ public:
 
         if ( has_move_camera ) {
             const GameRequestPtr camera_request = ProtoFace::MakeRequest( );
-            SC2APIProtocol::RequestAction* request_action =
+            SC2APIProtocol::RequestAction *request_action =
                 camera_request->mutable_action( );
-            SC2APIProtocol::Action*    action = request_action->add_actions( );
-            SC2APIProtocol::ActionRaw* action_raw =
+            SC2APIProtocol::Action    *action = request_action->add_actions( );
+            SC2APIProtocol::ActionRaw *action_raw =
                 action->mutable_action_raw( );
-            SC2APIProtocol::ActionRawCameraMove* camera_move =
+            SC2APIProtocol::ActionRawCameraMove *camera_move =
                 action_raw->mutable_camera_move( );
 
-            SC2APIProtocol::Point* point =
+            SC2APIProtocol::Point *point =
                 camera_move->mutable_center_world_space( );
             point->set_x ( debug_move_camera_.x );
             point->set_y ( debug_move_camera_.y );

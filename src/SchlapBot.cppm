@@ -18,7 +18,7 @@ using namespace std;
 using enum Unit::Alliance;
 
 // The main bot class.
-struct SchlapBot : Agent
+struct SchlapBot final : Agent
 {
     GameInfo        game_info { };
     MapData         map_data { };

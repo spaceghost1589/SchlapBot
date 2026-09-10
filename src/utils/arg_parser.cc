@@ -7,153 +7,165 @@
 #include <string>
 #include <utility>
 import game_settings;
+
 namespace sc2 {
 using namespace std;
 
+// ArgParser::ArgParser(const string& executable_name) :
+// executable_name_(executable_name)
+ArgParser::ArgParser ( const string_view executable_name )
+    : executable_name_ ( executable_name ) { }
 
-// ArgParser::ArgParser(const string& executable_name) : executable_name_(executable_name)
-ArgParser::ArgParser(const string_view executable_name) : executable_name_(executable_name) {
-}
+ArgParser::ArgParser ( string usage, string description, string example )
+    : usage_ ( move ( usage ) ),
+      description_ ( move ( description ) ),
+      example_ ( move ( example ) ) { }
 
-ArgParser::ArgParser(string usage,
-                     string description,
-                     string example)
-    : usage_(move(usage)),
-      description_(move(description)),
-      example_(move(example)) {
-}
-
-void ArgParser::ParseArguments(span<char*> args)
-{
+void ArgParser::ParseArguments ( const span<char *> args ) {
     // executable_name
-    ArgParser arg_parser(string_view(args.front()));
+    ArgParser arg_parser ( string_view ( args.front( ) ) );
 
-    arg_parser.AddOptions(
+    arg_parser.AddOptions (
         {
-            {.abbreviation_="-g", .fullname_="--GamePort", .description_="Port of client to connect to", .required_=false},
-            {.abbreviation_="-o", .fullname_="--StartPort", .description_="Starting server port", .required_=false},
-            {.abbreviation_="-l", .fullname_="--LadderServer", .description_="Ladder server address", .required_=false},
-            {.abbreviation_="-x", .fullname_="--OpponentId", .description_="PlayerId of opponent", .required_=false},
-        }
+            { .abbreviation_ = "-g",
+             .fullname_     = "--GamePort",
+             .description_  = "Port of client to connect to",
+             .required_     = false },
+            { .abbreviation_ = "-o",
+             .fullname_     = "--StartPort",
+             .description_  = "Starting server port",
+             .required_     = false },
+            { .abbreviation_ = "-l",
+             .fullname_     = "--LadderServer",
+             .description_  = "Ladder server address",
+             .required_     = false },
+            { .abbreviation_ = "-x",
+             .fullname_     = "--OpponentId",
+             .description_  = "PlayerId of opponent",
+             .required_     = false },
+    }
     );
 
-    arg_parser.Parse(args);
+    arg_parser.Parse ( args );
 
     LadderSettings ladder_settings;
 
-    if (string GamePortStr; arg_parser.Get("GamePort", GamePortStr)) {
-        ladder_settings.game_port = stoi(GamePortStr);
+    if ( string GamePortStr; arg_parser.Get ( "GamePort", GamePortStr ) ) {
+        ladder_settings.game_port = stoi ( GamePortStr );
     }
 
-    if (string StartPortStr; arg_parser.Get("StartPort", StartPortStr)) {
-        ladder_settings.start_port = stoi(StartPortStr);
+    if ( string StartPortStr; arg_parser.Get ( "StartPort", StartPortStr ) ) {
+        ladder_settings.start_port = stoi ( StartPortStr );
     }
 
-    if (string OpponentId; arg_parser.Get("OpponentId", OpponentId)) {
+    if ( string OpponentId; arg_parser.Get ( "OpponentId", OpponentId ) ) {
         ladder_settings.opponent_id = OpponentId;
     }
 
-    arg_parser.Get("LadderServer", ladder_settings.ladder_server);
+    arg_parser.Get ( "LadderServer", ladder_settings.ladder_server );
 } // ParseArguments
 
 //! Adds options (`Arg`) to `options_` vector.
 //! @param options const vector<Arg>&
-void ArgParser::AddOptions(const vector<Arg>& options) {
-    for (const Arg& opt : options) {
-        options_.push_back(opt);
+void ArgParser::AddOptions ( const vector<Arg> &options ) {
+    for ( const Arg &opt : options ) {
+        options_.push_back ( opt );
         abbv_to_full_[opt.abbreviation_] = opt.fullname_;
     }
 } // AddOptions
 
 //! @return false if `args is empty`, invalid option, or help command
-bool ArgParser::Parse(span<char*> args) {
-	if (args.empty()) {
-		return false;
-	}
+bool ArgParser::Parse ( const span<char *> args ) {
+    if ( args.empty( ) ) {
+        return false;
+    }
 
-	// Capture the executable name.
-	executable_name_ = args[0];
+    // Capture the executable name.
+    executable_name_ = args[0];
 
-	// Start at 1 to skip the executable name.
-	for (size_t i = 1; i < args.size(); ++i) {
-		string_view arg = args[i];
+    // Start at 1 to skip the executable name.
+    for ( size_t i = 1; i < args.size( ); ++i ) {
+        string_view arg = args[i];
 
-		// Skip values.
-		if (arg.empty() || arg.front() != '-') {
-			continue;
-		}
+        // Skip values.
+        if ( arg.empty( ) || arg.front( ) != '-' ) {
+            continue;
+        }
 
-		if (arg == "--help" || arg == "-h") {
-			PrintHelp();
-			return false;
-		}
+        if ( arg == "--help" || arg == "-h" ) {
+            PrintHelp( );
+            return false;
+        }
 
-		// Check if it's a valid option.
-		auto it = ranges::find_if(options_, [&](const Arg& option) {
-			return option.abbreviation_ == arg || option.fullname_ == arg;
-		});
-		// `find_if` returns `size() + 1` if it fails to find anything.
-		if (it == options_.end()) {
-			cerr << arg << " is an unrecognized argument.\n";
-			return false;
-		}
+        // Check if it's a valid option.
+        auto it = ranges::find_if ( options_, [&] ( const Arg &option ) {
+            return option.abbreviation_ == arg || option.fullname_ == arg;
+        } );
+        // `find_if` returns `size() + 1` if it fails to find anything.
+        if ( it == options_.end( ) ) {
+            cerr << arg << " is an unrecognized argument.\n";
+            return false;
+        }
 
-		// Resolve fullname from abbreviation
-		string fullname;
-		if (arg.size() > 1 && arg[1] != '-') {
-			fullname = abbv_to_full_[string(arg)];
-		} else {
-			fullname = string(arg);
-		}
+        // Resolve fullname from abbreviation
+        string fullname;
+        if ( arg.size( ) > 1 && arg[1] != '-' ) {
+            fullname = abbv_to_full_[string ( arg )];
+        } else {
+            fullname = string ( arg );
+        }
 
-		// Look one ahead for the value
-		string_view value;
-		if (i + 1 < args.size()) {
-			if (string_view next_arg = args[i + 1]; !next_arg.empty() && next_arg.front() != '-') {
-				value = next_arg;
-				++i; // Advance the iterator past the value
-			}
-		}
+        // Look one ahead for the value
+        string_view value;
+        if ( i + 1 < args.size( ) ) {
+            if ( string_view next_arg = args[i + 1];
+                 !next_arg.empty( ) && next_arg.front( ) != '-' )
+            {
+                value = next_arg;
+                ++i; // Advance the iterator past the value
+            }
+        }
 
-		// Remove leading '--' and save to map
-		fullname.erase(0, 2);
-		full_to_value_[fullname] = string(value);
-	}
+        // Remove leading '--' and save to map
+        fullname.erase ( 0, 2 );
+        full_to_value_[fullname] = string ( value );
+    }
 
-	// Verify all required arguments exist
-	return ranges::all_of(options_, [&](const Arg& option) {
-		if (!option.required_) {
-			return true;
-		}
+    // Verify all required arguments exist
+    return ranges::all_of ( options_, [&] ( const Arg &option ) {
+        if ( !option.required_ ) {
+            return true;
+        }
 
-		const string key = option.fullname_.substr(2); // Get name without '--'
+        const string key =
+            option.fullname_.substr ( 2 ); // Get name without '--'
 
-		// C++20 .contains() is safer than .at() and doesn't throw
-		return full_to_value_.contains(key);
-	});
+        // C++20 .contains() is safer than .at() and doesn't throw
+        return full_to_value_.contains ( key );
+    } );
 } // Parse
 
-bool ArgParser::Get(const string& identifier, string& value) {
+bool ArgParser::Get ( const string &identifier, string &value ) {
     string fullname = identifier;
 
     // If the identifier is the abbreviation turn it into the fullname
-    if (fullname.size() == 1) {
-        const auto identifier_ = abbv_to_full_.find("-" + identifier);
+    if ( fullname.size( ) == 1 ) {
+        const auto identifier_ = abbv_to_full_.find ( "-" + identifier );
 
-        if (identifier_ == abbv_to_full_.end()) {
+        if ( identifier_ == abbv_to_full_.end( ) ) {
             return false;
         }
 
         fullname = identifier_->second;
     }
 
-    if (fullname.front() == '-') {
-        fullname.erase(0, 2);
+    if ( fullname.front( ) == '-' ) {
+        fullname.erase ( 0, 2 );
     }
 
-    const auto it = full_to_value_.find(fullname);
+    const auto it = full_to_value_.find ( fullname );
 
-    if (it == full_to_value_.end()) {
+    if ( it == full_to_value_.end( ) ) {
         return false;
     }
 
@@ -162,21 +174,22 @@ bool ArgParser::Get(const string& identifier, string& value) {
     return true;
 } // Get
 
-void ArgParser::PrintHelp() const {
-    PrintUsage();
+void ArgParser::PrintHelp ( ) const {
+    PrintUsage( );
     cout << "Options -" << '\n';
-    for (const Arg& opt : options_) {
-        cout << "  " << opt.abbreviation_ << ", " << opt.fullname_ << " " << opt.description_ << '\n';
+    for ( const Arg &opt : options_ ) {
+        cout << "  " << opt.abbreviation_ << ", " << opt.fullname_ << " "
+             << opt.description_ << '\n';
     }
 } // PrintHelp
 
-void ArgParser::PrintUsage() const {
+void ArgParser::PrintUsage ( ) const {
     cout << "Usage: " << executable_name_ << " ";
     // Append required arguments.
-    for (const Arg& opt : options_) {
-        if (opt.required_) {
+    for ( const Arg &opt : options_ ) {
+        if ( opt.required_ ) {
             string fullname = opt.fullname_;
-            fullname.erase(0, 2);
+            fullname.erase ( 0, 2 );
             cout << opt.abbreviation_ << " [" << fullname << "] ";
         }
     }

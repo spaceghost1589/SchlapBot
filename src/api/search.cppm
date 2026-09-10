@@ -61,7 +61,7 @@ size_t CalculateQueries (
 /*! @brief Clusters units within some distance of each other and returns a list
  * of them and their center of mass. */
 vector<pair<Point3D, vector<Unit>>>
-    Cluster ( const Units &units, float distance_apart ) {
+    Cluster ( const Units &units, const float distance_apart ) {
     const float squared_distance_apart = distance_apart * distance_apart;
     vector<pair<Point3D, vector<Unit>>> clusters;
     for ( const Unit *unit : units ) {
@@ -90,7 +90,7 @@ vector<pair<Point3D, vector<Unit>>>
         const float size =
             static_cast<float> ( target_cluster->second.size( ) );
         target_cluster->first =
-            ( ( target_cluster->first * ( size - 1 ) ) + u.pos ) / size;
+            ( target_cluster->first * ( size - 1 ) + u.pos ) / size;
     }
 
     return clusters;
@@ -193,8 +193,8 @@ vector<Point3D> CalculateExpansionLocations (
 
     vector<bool> results     = query->Placement ( queries );
     size_t       start_index = 0;
-    for ( int i = 0; i < clusters.size( ); ++i ) { // pt3d, vUnit
-        const pair<Point3D, vector<Unit>> &cluster = clusters[i];
+    for ( int i = 0; i < static_cast<int>(clusters.size( )); ++i ) { // pt3d, vUnit
+        const auto & [exp_loc, resources] = clusters[i];
         float   distance = numeric_limits<float>::max( );
         Point2D closest;
 
@@ -209,7 +209,7 @@ vector<Point3D> CalculateExpansionLocations (
 
             const Point2D &pt = queries[j].target_pos;
 
-            if ( const float d = Distance ( pt, cluster.first ); d < distance )
+            if ( const float d = Distance ( pt, exp_loc ); d < distance )
             {
                 distance = d;
                 closest  = pt;
@@ -219,7 +219,7 @@ vector<Point3D> CalculateExpansionLocations (
         const Point3D expansion (
             closest.x,
             closest.y,
-            cluster.second.begin( )->pos.z
+            resources.begin( )->pos.z
         );
 
         if ( parameters.debug_ ) {

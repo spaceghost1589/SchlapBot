@@ -16,7 +16,7 @@ using namespace std;
 /*! @brief The ActionInterface issues actions to units in a game. Not available
  * in replays.
  * \n\n Guaranteed to be valid when the OnStep event is called. */
-class ActionInterface {
+class ActionInterface final {
 public:
     Tags commands_;
 
@@ -24,13 +24,12 @@ public:
 
     // ControlInterface& control_;
 
-    ActionInterface ( ) {}
-
-    virtual ~ActionInterface ( ) = default;
+    ActionInterface ( ) { }
 
     // TODO missing comment
     static bool Convert (
-        ChatChannel channel, SC2APIProtocol::ActionChat::Channel& channel_proto
+        const ChatChannel                    channel,
+        SC2APIProtocol::ActionChat::Channel &channel_proto
     ) {
         switch ( channel ) {
             case ChatChannel::All :
@@ -46,10 +45,10 @@ public:
     /*! @brief Sends a message to the game chat.
      * @param message Text of message to send.
      * @param channel Which players will see the message. */
-    void SendChat ( const string& message, ChatChannel channel ) {
-        SC2APIProtocol::RequestAction* request_action = GetRequestAction( );
-        SC2APIProtocol::Action*        action = request_action->add_actions( );
-        SC2APIProtocol::ActionChat*    action_chat =
+    void SendChat ( const string &message, const ChatChannel channel ) {
+        SC2APIProtocol::RequestAction *request_action = GetRequestAction( );
+        SC2APIProtocol::Action        *action = request_action->add_actions( );
+        SC2APIProtocol::ActionChat    *action_chat =
             action->mutable_action_chat( );
         action_chat->set_message ( message );
 
@@ -60,14 +59,14 @@ public:
         }
     }
 
-    SC2APIProtocol::RequestAction* GetRequestAction ( ) {
+    SC2APIProtocol::RequestAction *GetRequestAction ( ) {
         if ( request_actions_ == nullptr ) {
             request_actions_ = ProtoFace::MakeRequest( );
         }
         return request_actions_->mutable_action( );
     }
 
-    inline SC2APIProtocol::ActionRaw* ActionRawGenerate ( ) {
+    inline SC2APIProtocol::ActionRaw *ActionRawGenerate ( ) {
         return GetRequestAction( )->add_actions( )->mutable_action_raw( );
     }
 
@@ -76,7 +75,9 @@ public:
      * @param ability The ability id of the command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Unit* unit, AbilityID ability, bool queued_command = false
+        const Unit     *unit,
+        const AbilityID ability,
+        const bool      queued_command = false
     ) {
         if ( !unit )
             return;
@@ -86,7 +87,9 @@ public:
     /*! @brief Issues a command to multiple units (prefer this where possible).
      * @see UnitCommand(Unit, AbilityID). */
     void UnitCommand (
-        const Units& units, AbilityID ability, bool queued_command = false
+        const Units    &units,
+        const AbilityID ability,
+        const bool      queued_command = false
     ) {
         const Tags tags = ConvertToTags ( units );
         UnitCommand ( tags, ability, queued_command );
@@ -97,10 +100,12 @@ public:
      * @param ability The ability id of the command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        Tag tag, AbilityID ability, bool queued_command = false
+        const Tag       tag,
+        const AbilityID ability,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
@@ -114,10 +119,12 @@ public:
      * @param ability The ability id of the command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Tags& tags, AbilityID ability, bool queued_command = false
+        const Tags     &tags,
+        const AbilityID ability,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
@@ -135,10 +142,10 @@ public:
      * @param point The 2D world position to target.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Unit*    unit,
-        AbilityID      ability,
-        const Point2D& point,
-        bool           queued_command = false
+        const Unit     *unit,
+        const AbilityID ability,
+        const Point2D  &point,
+        const bool      queued_command = false
     ) {
         if ( !unit )
             return;
@@ -148,10 +155,10 @@ public:
     /*! @brief Issues a command to multiple units (prefer this where possible).
      * Same as UnitCommand(Unit, AbilityID, Point2D). */
     void UnitCommand (
-        const Units&   units,
-        AbilityID      ability,
-        const Point2D& point,
-        bool           queued_command = false
+        const Units    &units,
+        const AbilityID ability,
+        const Point2D  &point,
+        const bool      queued_command = false
     ) {
         const Tags tags = ConvertToTags ( units );
         UnitCommand ( tags, ability, point, queued_command );
@@ -163,17 +170,17 @@ public:
      * @param point The 2D world position to target.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        Tag            tag,
-        AbilityID      ability,
-        const Point2D& point,
-        bool           queued_command = false
+        const Tag       tag,
+        const AbilityID ability,
+        const Point2D  &point,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
-        SC2APIProtocol::Point2D* target_point =
+        SC2APIProtocol::Point2D *target_point =
             tag_command->mutable_target_world_space_pos( );
         target_point->set_x ( point.x );
         target_point->set_y ( point.y );
@@ -188,17 +195,17 @@ public:
      * @param point The 2D world position to target.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Tags&    tags,
-        AbilityID      ability,
-        const Point2D& point,
-        bool           queued_command = false
+        const Tags     &tags,
+        const AbilityID ability,
+        const Point2D  &point,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
-        SC2APIProtocol::Point2D* target_point =
+        SC2APIProtocol::Point2D *target_point =
             tag_command->mutable_target_world_space_pos( );
         target_point->set_x ( point.x );
         target_point->set_y ( point.y );
@@ -217,10 +224,10 @@ public:
      * @param target The unit that is a target of the unit getting the command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Unit* unit,
-        AbilityID   ability,
-        const Unit* target,
-        bool        queued_command = false
+        const Unit     *unit,
+        const AbilityID ability,
+        const Unit     *target,
+        const bool      queued_command = false
     ) {
         if ( !unit || !target )
             return;
@@ -230,10 +237,10 @@ public:
     /*! @brief Issues a command to multiple units (prefer this where
      * possible).\n\n Same as UnitCommand(Unit, AbilityID, Unit). */
     void UnitCommand (
-        const Units& units,
-        AbilityID    ability,
-        const Unit*  target,
-        bool         queued_command = false
+        const Units    &units,
+        const AbilityID ability,
+        const Unit     *target,
+        const bool      queued_command = false
     ) {
         const Tags tags = ConvertToTags ( units );
         UnitCommand ( tags, ability, target->tag, queued_command );
@@ -246,13 +253,13 @@ public:
      * command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        Tag       tag,
-        AbilityID ability,
-        const Tag target_tag,
-        bool      queued_command = false
+        const Tag       tag,
+        const AbilityID ability,
+        const Tag       target_tag,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
@@ -269,13 +276,13 @@ public:
      * command.
      * @param queued_command (false) Whether the command will be queued */
     void UnitCommand (
-        const Tags& tags,
-        AbilityID   ability,
-        const Tag   target_tag,
-        bool        queued_command = false
+        const Tags     &tags,
+        const AbilityID ability,
+        const Tag       target_tag,
+        const bool      queued_command = false
     ) {
-        SC2APIProtocol::ActionRaw*            action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawUnitCommand* tag_command =
+        SC2APIProtocol::ActionRaw            *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawUnitCommand *tag_command =
             action_raw->mutable_unit_command( );
 
         tag_command->set_ability_id ( ability );
@@ -290,7 +297,7 @@ public:
     /*! @brief Enables or disables autocast of an ability on a unit.
      * @param unit_tag The unit to toggle the ability on.
      * @param ability The ability to be toggled. */
-    void ToggleAutocast ( Tag unit_tag, AbilityID ability ) {
+    void ToggleAutocast ( const Tag unit_tag, const AbilityID ability ) {
         Tags tags = { unit_tag };
         ToggleAutocast ( tags, ability );
     }
@@ -299,19 +306,20 @@ public:
      * @param unit_tags The units to toggle the ability on.
      * @param ability The ability to be toggled. */
     void ToggleAutocast (
-        const variant<Tag, Tags>& unit_tags, AbilityID ability
+        const variant<Tag, Tags> &unit_tags,
+        const AbilityID           ability
     ) {
-        SC2APIProtocol::ActionRaw* action_raw = ActionRawGenerate( );
-        SC2APIProtocol::ActionRawToggleAutocast* autocast =
+        SC2APIProtocol::ActionRaw *action_raw = ActionRawGenerate( );
+        SC2APIProtocol::ActionRawToggleAutocast *autocast =
             action_raw->mutable_toggle_autocast( );
 
-        visit ( [autocast]<typename T0> ( T0&& unit_tags_T0 ) {
+        visit ( [autocast]<typename T0> ( T0 &&unit_tags_T0 ) {
             using T = decay_t<T0>;
 
             if constexpr ( is_same_v<T, Tag> ) {
                 autocast->add_unit_tags ( unit_tags_T0 );
             } else if constexpr ( is_same_v<T, Tags> )
-                for ( const Tag& tag : unit_tags_T0 ) {
+                for ( const Tag &tag : unit_tags_T0 ) {
                     autocast->add_unit_tags ( tag );
                 }
         }, unit_tags );
@@ -323,7 +331,7 @@ public:
      * last call to SendActions. This will be used to determine if a unit
      * actually has a command when the observation is received.
      * @return Array of units that have sent commands. */
-    const Tags& CommandsLastCall ( ) const {
+    const Tags &CommandsLastCall ( ) const {
         return commands_;
     }
 
@@ -344,11 +352,11 @@ public:
             return;
         }
 
-        if ( const SC2APIProtocol::RequestAction* request_action =
+        if ( const SC2APIProtocol::RequestAction *request_action =
                  GetRequestAction( ) )
         {
             for ( int i = 0, e = request_action->actions_size( ); i < e; ++i ) {
-                const SC2APIProtocol::Action& action =
+                const SC2APIProtocol::Action &action =
                     request_action->actions ( i );
                 for ( auto tag :
                       action.action_raw( ).unit_command( ).unit_tags( ) )

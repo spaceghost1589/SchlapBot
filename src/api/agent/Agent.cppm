@@ -31,8 +31,6 @@ public:
         actions_feature_layer_ = make_unique<ActionFeatureLayerInterface>( );
     }
 
-    ~Agent ( ) override {}
-
     virtual bool Restart ( ) {
         const GameRequestPtr request = ProtoFace::MakeRequest( );
         request->mutable_restart_game( );

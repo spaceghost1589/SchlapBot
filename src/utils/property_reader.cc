@@ -72,8 +72,7 @@ bool PropertyReader::Read(const string& key, const function<void(const string& v
         return false;
     }
 
-    auto it = properties_.find(key);
-    if (it != properties_.end()) {
+    if (const auto it = properties_.find(key); it != properties_.end()) {
         convert(it->second);
         return true;
     }

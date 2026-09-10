@@ -11,13 +11,12 @@ export namespace sc2 {
 /*! The ActionFeatureLayerInterface emulates UI actions in feature layer.\n\n
  * Guaranteed to be valid when the OnStep event is called.\n\n
  * Not available in replays. */
-class ActionFeatureLayerInterface {
+class ActionFeatureLayerInterface final
+{
 public:
     GameRequestPtr request_actions_;
 
     ActionFeatureLayerInterface ( ) {}
-
-    virtual ~ActionFeatureLayerInterface ( ) = default;
 
     SC2APIProtocol::RequestAction* GetRequestAction ( ) {
         if ( request_actions_ == nullptr ) {
@@ -28,7 +27,7 @@ public:
 
     /*! @brief Issues a command to whatever is selected. Self targeting.
      * @param ability The ability id of the command. */
-    void UnitCommand ( AbilityID ability ) {
+    void UnitCommand (const AbilityID ability ) {
         SC2APIProtocol::RequestAction* request_action = GetRequestAction( );
         SC2APIProtocol::Action*        action = request_action->add_actions( );
         SC2APIProtocol::ActionSpatial* action_feature_layer =
@@ -44,7 +43,7 @@ public:
      * @param point The 2D world position to target.
      * @param minimap Target in the minimap instead of the map. */
     void UnitCommand (
-        AbilityID ability, const Point2DI& point, bool minimap = false
+        const AbilityID ability, const Point2DI& point, const bool minimap = false
     ) {
         SC2APIProtocol::RequestAction* request_action = GetRequestAction( );
         SC2APIProtocol::Action*        action = request_action->add_actions( );

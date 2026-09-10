@@ -174,7 +174,7 @@ public:
     /*! Get the unit state as represented by the last call to GetObservation.
      * @param tag Unique tag of the unit.
      * @return @code Unit* @endcode Pointer to the Unit object. */
-    const Unit *GetUnit ( Tag tag ) const {
+    const Unit *GetUnit ( const Tag tag ) const {
         return unit_pool_.GetExistingUnit ( tag );
     }
 
@@ -215,7 +215,10 @@ public:
      * in the list.
      * @return @code Units @endcode A list of units that meet the conditions
      * provided by alliance and filter. */
-    Units GetUnits ( Unit::Alliance alliance, const Filter &filter ) const {
+    Units GetUnits (
+        const Unit::Alliance alliance,
+        const Filter        &filter
+    ) const {
         Units units;
         unit_pool_.ForEachExistingUnit ( [&] ( const Unit &unit ) {
             if ( unit.alliance != alliance ) {
@@ -286,7 +289,7 @@ public:
      * cache data from a previous call.
      * @return  All abilities allowed (`available`) for the current game
      * session. */
-    const Abilities &GetAbilityData ( bool force_refresh = false ) const {
+    const Abilities &GetAbilityData ( const bool force_refresh = false ) const {
         // Checks whether function execution is required.
         if ( force_refresh || abilities_.empty( ) ) {
             abilities_cached_ = false;
@@ -376,7 +379,7 @@ public:
      * cache data from a previous call.
      * @return @code UnitTypes& @endcode Data about all units possible for the
      * current game session. */
-    const UnitTypes &GetUnitTypeData ( bool force_refresh ) const {
+    const UnitTypes &GetUnitTypeData ( const bool force_refresh ) const {
         if ( force_refresh || unit_types_.size( ) < 1 ) {
             unit_types_cached = false;
         }
@@ -423,7 +426,7 @@ public:
      * @param force_refresh forces a full query from the game, may otherwise
      * cache data from a previous call.
      * @return Data about all upgrades possible for the current game session. */
-    const Upgrades &GetUpgradeData ( bool force_refresh ) const {
+    const Upgrades &GetUpgradeData ( const bool force_refresh ) const {
         if ( force_refresh || upgrade_ids_.empty( ) ) {
             upgrades_cached_ = false;
         }
@@ -467,7 +470,7 @@ public:
      * cache data from a previous call.
      * @return Buffs& - Data about all buffs possible for the current game
      * session. */
-    const Buffs &GetBuffData ( bool force_refresh ) const {
+    const Buffs &GetBuffData ( const bool force_refresh ) const {
         if ( force_refresh || buff_ids_.empty( ) ) {
             buffs_cached_ = false;
         }
@@ -513,7 +516,7 @@ public:
      * @param force_refresh forces a full query from the game, may otherwise
      * cache data from a previous call.
      * @return Data about all effects possible for the current game session. */
-    const Effects &GetEffectData ( bool force_refresh ) const {
+    const Effects &GetEffectData ( const bool force_refresh ) const {
         if ( force_refresh || effect_ids_.empty( ) ) {
             effects_cached_ = false;
         }
@@ -622,7 +625,7 @@ public:
         ObservationRawPtr observation_raw;
         SET_SUBMESSAGE_RESPONSE ( observation_raw, observation_, raw_data );
         if ( observation_raw.HasErrors( ) ) {
-            return Visibility::FullHidden;
+            return FullHidden;
         }
 
         return MapState ( observation_raw->map_state( ) )

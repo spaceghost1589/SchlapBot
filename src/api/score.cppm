@@ -218,8 +218,7 @@ struct Score
     }
 
     Score ( )
-      : score_type ( ScoreType::Melee ),
-        score ( 0 ) { }
+      : score_type ( ScoreType::Melee ) { }
 
     static void AddEntries ( vector<ScoreEntry> &entries ) {
         SET_ENTRY_BASE ( Score, score )
